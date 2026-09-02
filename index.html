@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=11">
   <title>SEVER</title>
   <script>document.documentElement.dataset.theme=localStorage.getItem('sever-theme')||'dark'</script>
 </head>
@@ -66,6 +66,6 @@
   <dialog id="tourDialog" class="tour-dialog"><div class="tour-brand">Sever</div><div class="tour-visual" id="tourVisual" aria-hidden="true"></div><div class="tour-copy"><small id="tourStep">1 ИЗ 4</small><h2 id="tourTitle">Добро пожаловать в SEVER</h2><p id="tourText">Личный планер, который помогает выбрать направление и двигаться небольшими шагами.</p></div><div id="tourDots" class="tour-dots" aria-label="Шаги знакомства"></div><div class="tour-actions"><button id="tourSkip" type="button">Пропустить</button><button id="tourNext" class="primary" type="button">Далее</button></div></dialog>
   <dialog id="welcomeDialog"><form id="welcomeForm"><div class="dialog-head"><h2>Какая у тебя цель?</h2></div><p class="muted">Определи направление и удобный темп. SEVER составит ежедневный план.</p><label>Главная цель<input id="goalOne" required maxlength="60" placeholder="Например: изучить английский"></label><label>Ещё одна цель — необязательно<input id="goalTwo" maxlength="60" placeholder="Например: читать каждый день"></label><div class="form-row"><label>За сколько дней хочешь прийти к цели?<input id="challengeDays" type="number" min="1" max="365" required placeholder="Например: 45"></label><label>Сколько минут готов уделять в день?<input id="challengeMinutes" type="number" min="5" max="600" required placeholder="Например: 20"></label></div><div class="dialog-actions"><button id="startEmpty" type="button">Настроить позже</button><button class="primary">Создать цель</button></div></form></dialog>
   <div id="toast"></div>
-  <script src="app.js?v=10" defer></script>
+  <script src="app.js?v=11" defer></script>
 </body>
 </html>
