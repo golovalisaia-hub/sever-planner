@@ -1,5 +1,5 @@
-const CACHE='sever-v11';
-const ASSETS=['./','./index.html','./style.css?v=11','./app.js?v=11','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
+const CACHE='sever-v12';
+const ASSETS=['./','./index.html','./style.css?v=12','./app.js?v=12','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
 
 self.addEventListener('install',event=>event.waitUntil(
   caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())
