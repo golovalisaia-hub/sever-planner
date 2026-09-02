@@ -1,5 +1,5 @@
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const KEY='sever-data-v1',months=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const KEY='sever-data-v2',months=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const dayISO=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const dateOf=s=>new Date(s+'T12:00:00');
 const addDays=(s,n)=>{const d=dateOf(s);d.setDate(d.getDate()+n);return dayISO(d)};
@@ -48,5 +48,15 @@ function checkReminder(){if(!state.reminders.enabled||state.reminders.lastDate==
 $('#moreBtn').onclick=()=>{syncReminderUI();$('#moreDialog').showModal()};$('#notificationToggle').onchange=async e=>{if(e.target.checked&&!await enableNotifications())e.target.checked=false;state.reminders.enabled=e.target.checked;save();syncReminderUI();if(e.target.checked)toast('Напоминания включены')};$('#notificationTime').onchange=e=>{state.reminders.time=e.target.value||'19:00';state.reminders.lastDate='';save();toast('Время сохранено')};$('#testNotification').onclick=async()=>{if(await enableNotifications()){await showReminder(true);toast('Проверочное уведомление отправлено')}};
 function beginCourse(goals,days,minutes){const tasks=[];for(let i=0;i<days;i++)goals.forEach(goal=>tasks.push({id:uid(),title:goal,date:addDays(TODAY,i),duration:minutes,category:goal,challenge:true,completed:false,priority:true}));state={version:3,onboarded:true,challengeStart:TODAY,challengeDays:days,challengeName:goals.join(' + '),tasks,habits:[],checks:{},reminders:{enabled:false,time:'19:00',lastDate:''}};save();render();$('#welcomeDialog').close();toast('Личный курс создан')}
 $('#welcomeForm').onsubmit=e=>{e.preventDefault();const goals=[$('#goalOne').value.trim(),$('#goalTwo').value.trim()].filter(Boolean),days=Math.max(7,Math.min(365,+$('#challengeDays').value||30)),minutes=Math.max(5,Math.min(600,+$('#challengeMinutes').value||30));beginCourse(goals,days,minutes)};$('#startEmpty').onclick=()=>{state.onboarded=true;save();render();$('#welcomeDialog').close();toast('Чистый планер готов')};
+const tourSlides=[
+  {title:'Добро пожаловать в SEVER',text:'Личный планер, который помогает выбрать направление и двигаться небольшими шагами.'},
+  {title:'Добавляй задачи быстро',text:'Нажми «+» или напиши обычной фразой: «завтра английский 20 минут».'},
+  {title:'Следи за своим курсом',text:'Календарь, серия дней и карта прогресса покажут, как далеко ты продвинулся.'},
+  {title:'Закрепляй привычки',text:'Отмечай повторяющиеся действия и включай спокойные мотивирующие напоминания.'}
+];
+let tourIndex=0;
+function renderTour(){const slide=tourSlides[tourIndex];$('#tourStep').textContent=`${tourIndex+1} ИЗ ${tourSlides.length}`;$('#tourTitle').textContent=slide.title;$('#tourText').textContent=slide.text;$('#tourVisual').dataset.step=tourIndex;$('#tourNext').textContent=tourIndex===tourSlides.length-1?'Настроить SEVER':'Далее';$('#tourDots').innerHTML=tourSlides.map((_,i)=>`<i class="${i===tourIndex?'active':''}"></i>`).join('');const copy=$('.tour-copy');copy.style.animation='none';requestAnimationFrame(()=>{copy.style.animation=''})}
+function finishTour(){state.tourSeen=true;save();$('#tourDialog').close();$('#welcomeDialog').showModal()}
+$('#tourNext').onclick=()=>{if(tourIndex<tourSlides.length-1){tourIndex++;renderTour()}else finishTour()};$('#tourSkip').onclick=finishTour;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;$('#installBtn').classList.remove('hidden')});$('#installBtn').onclick=async()=>{if(deferredInstall){deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;$('#installBtn').classList.add('hidden')}};if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
-rollover();save();render();syncReminderUI();checkReminder();setInterval(checkReminder,30000);if(!state.onboarded)$('#welcomeDialog').showModal();
+rollover();save();render();syncReminderUI();checkReminder();setInterval(checkReminder,30000);if(!state.onboarded){renderTour();$('#tourDialog').showModal()}
