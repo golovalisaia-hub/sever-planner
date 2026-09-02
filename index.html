@@ -24,7 +24,7 @@
 
   <main>
     <section id="todayView" class="view active">
-      <div class="heading"><div><small id="todayLabel"></small><h1>Сегодня</h1></div><button id="openAdd" class="add-btn">＋</button></div>
+      <div class="heading"><div><small id="todayLabel"></small><h1>Сегодня</h1></div><button id="openAdd" class="add-btn" aria-label="Добавить задачу">＋</button></div>
       <article class="course-card">
         <div class="course-copy"><small>ТВОЙ СЕВЕРНЫЙ КУРС</small><h2 id="courseTitle">Продолжай движение</h2><p id="courseText"></p><button id="courseAction">Начать следующий шаг</button></div>
         <div class="course-score"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42"></circle><circle id="courseArc" class="arc" cx="50" cy="50" r="42"></circle></svg><b id="coursePercent">0%</b></div>
@@ -34,13 +34,13 @@
         <div id="challengeProgress" class="progress-grid"></div>
       </div>
       <form id="quickForm" class="quick"><span>⌁</span><input id="quickInput" list="taskSuggestions" autocomplete="off" placeholder="Например: завтра английский 20 минут"><button>Добавить</button></form>
-      <article class="focus-card"><div class="timer-ring"><svg viewBox="0 0 180 180" aria-hidden="true"><circle class="timer-track" cx="90" cy="90" r="78"></circle><circle id="timerProgress" class="timer-progress" cx="90" cy="90" r="78"></circle></svg><div class="timer-center"><small>ФОКУС</small><h2 id="timerDisplay">25:00</h2><button id="timerToggle" type="button">Начать</button></div></div><div class="timer-panel"><small>ФОКУС-ТАЙМЕР</small><h3>Время для одного дела</h3><p id="timerStatus">Выбери время и начни спокойную работу</p><div class="timer-presets"><button type="button" data-minutes="15">15</button><button type="button" data-minutes="25" class="active">25</button><button type="button" data-minutes="30">30</button></div><form id="customTimerForm" class="custom-timer"><label for="customMinutes">Своё время</label><div><input id="customMinutes" type="number" min="1" max="600" inputmode="numeric" placeholder="Например, 45" required><button type="submit">Установить</button></div></form><button id="timerReset" class="timer-reset" type="button">↺ Сбросить таймер</button></div></article>
+      <article class="focus-card"><div class="timer-ring"><svg viewBox="0 0 180 180" aria-hidden="true"><circle class="timer-track" cx="90" cy="90" r="78"></circle><circle id="timerProgress" class="timer-progress" cx="90" cy="90" r="78"></circle></svg><div class="timer-center"><small>ФОКУС</small><h2 id="timerDisplay">25:00</h2><button id="timerToggle" type="button">Начать</button></div></div><div class="timer-panel"><small>ФОКУС-ТАЙМЕР</small><h3>Время для одного дела</h3><p id="timerStatus">Выбери время и начни спокойную работу</p><div class="timer-presets"><button type="button" data-minutes="15" aria-label="Установить 15 минут">15</button><button type="button" data-minutes="25" class="active" aria-label="Установить 25 минут">25</button><button type="button" data-minutes="30" aria-label="Установить 30 минут">30</button></div><form id="customTimerForm" class="custom-timer"><label for="customMinutes">Своё время</label><div><input id="customMinutes" type="number" min="1" max="600" inputmode="numeric" placeholder="Например, 45" required><button type="submit">Задать время</button></div></form><button id="timerReset" class="timer-reset" type="button">↺ Сбросить таймер</button></div></article>
       <div class="list-head"><span>ПЛАН НА СЕГОДНЯ</span><b id="todayLoad">0 мин</b></div>
       <div id="todayTasks" class="task-list"></div>
     </section>
 
     <section id="calendarView" class="view">
-      <div class="heading"><div><small>ОБЗОР МЕСЯЦА</small><h1 id="monthTitle"></h1></div><div><button id="prevMonth" class="icon-btn">‹</button><button id="nextMonth" class="icon-btn">›</button></div></div>
+      <div class="heading"><div><small>ОБЗОР МЕСЯЦА</small><h1 id="monthTitle"></h1></div><div><button id="prevMonth" class="icon-btn" aria-label="Предыдущий месяц">‹</button><button id="nextMonth" class="icon-btn" aria-label="Следующий месяц">›</button></div></div>
       <div class="week"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div><div id="calendar" class="calendar"></div>
     </section>
 
