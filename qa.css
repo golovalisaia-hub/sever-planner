@@ -33,3 +33,203 @@
     grid-column: auto;
   }
 }
+
+/* Folders and encrypted notes */
+.note-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.folder-add {
+  min-height: 46px;
+  padding: 0 15px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.folder-tabs {
+  display: flex;
+  gap: 8px;
+  margin: -5px 0 20px;
+  padding: 3px 0 7px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.folder-tabs button {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.folder-tabs button b {
+  display: grid;
+  min-width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--panel2);
+  color: var(--text);
+  font-size: .72rem;
+}
+
+.folder-tabs button.active {
+  border-color: var(--text);
+  background: var(--text);
+  color: var(--bg);
+}
+
+.folder-tabs button.active b {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.folder-badge {
+  display: inline-block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: .75rem;
+}
+
+.note-security {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--panel2);
+}
+
+.note-security .security-toggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.note-security .security-toggle input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--text);
+}
+
+#notePasswordHint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.secure-note {
+  border-color: #48484f;
+  background: radial-gradient(circle at 90% 0, #ffffff0b, transparent 45%), var(--panel);
+}
+
+.secure-note.locked {
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.secure-note-head {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.secure-note-head small {
+  color: var(--muted);
+  letter-spacing: .12em;
+}
+
+.secure-note-head h3 {
+  margin: 3px 0 0;
+}
+
+.secure-lock,
+.unlock-symbol {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #4a4a52;
+  border-radius: 15px;
+  background: #ffffff09;
+  font-size: 1.4rem;
+}
+
+.secure-description {
+  display: block !important;
+  margin: 20px 0 !important;
+  color: var(--muted) !important;
+  line-height: 1.55;
+}
+
+.unlock-note,
+.note-lock-now {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.note-lock-now {
+  background: transparent;
+  color: var(--text);
+}
+
+.unlock-symbol {
+  width: 72px;
+  height: 72px;
+  margin: 18px auto 12px;
+  border-radius: 50%;
+  font-size: 2rem;
+}
+
+.secure-error {
+  margin: 10px 0 0;
+  color: #ff9ca4;
+  font-size: .85rem;
+}
+
+@media (max-width: 650px) {
+  .note-heading-actions {
+    gap: 6px;
+  }
+
+  .folder-add {
+    min-height: 44px;
+    padding: 0 11px;
+    font-size: .82rem;
+  }
+
+  .folder-tabs {
+    margin-top: -8px;
+  }
+
+  .secure-note.locked {
+    min-height: 190px;
+  }
+}
