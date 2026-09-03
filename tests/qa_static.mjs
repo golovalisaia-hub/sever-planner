@@ -13,7 +13,13 @@ const sw = read('sw.js');
 const manifest = JSON.parse(read('manifest.webmanifest'));
 
 const tests = [];
+
 const test = (name, fn) => tests.push({ name, fn });
+test('Notes module has no syntax errors', async () => {
+  const { spawnSync } = await import('node:child_process');
+  const result = spawnSync(process.execPath, ['--check', path.join(root, 'notes-pro.js')]);
+  assert.equal(result.status, 0, result.stderr.toString());
+});
 
 test('JavaScript has no syntax errors', async () => {
   const { spawnSync } = await import('node:child_process');
@@ -31,16 +37,16 @@ test('PWA cache contains every required local asset', () => {
   }
 });
 
-test('Asset versions are aligned to v19', () => {
-  assert.match(html, /style\.css\?v=19/);
-  assert.match(html, /qa\.css\?v=19/);
-  assert.match(html, /app\.js\?v=19/);
-  assert.match(html, /notes-pro\.js\?v=19/);
-  assert.match(sw, /sever-v19/);
-  assert.match(sw, /style\.css\?v=19/);
-  assert.match(sw, /qa\.css\?v=19/);
-  assert.match(sw, /app\.js\?v=19/);
-  assert.match(sw, /notes-pro\.js\?v=19/);
+test('Asset versions are aligned to v20', () => {
+  assert.match(html, /style\.css\?v=20/);
+  assert.match(html, /qa\.css\?v=20/);
+  assert.match(html, /app\.js\?v=20/);
+  assert.match(html, /notes-pro\.js\?v=20/);
+  assert.match(sw, /sever-v20/);
+  assert.match(sw, /style\.css\?v=20/);
+  assert.match(sw, /qa\.css\?v=20/);
+  assert.match(sw, /app\.js\?v=20/);
+  assert.match(sw, /notes-pro\.js\?v=20/);
 });
 
 test('A new user starts without personal tasks', () => {
@@ -78,6 +84,24 @@ test('Note folders and filtering are implemented', () => {
 test('Protected notes use PBKDF2 and authenticated AES-GCM encryption', () => {
   assert.match(notes, /NOTE_CRYPTO_ITERATIONS = 600000/);
   assert.match(notes, /name: 'PBKDF2'/);
+
+test('Tasks support reversible action-sheet flows and the calendar opens a day plan', () => {
+  assert.match(html, /id="taskActionComplete"/);
+  assert.match(html, /id="taskActionMove"/);
+  assert.match(html, /id="taskActionDelete"/);
+  assert.match(html, /id="dayDialog"/);
+  assert.match(app, /function completeTask/);
+  assert.match(app, /function moveTaskToTomorrow/);
+  assert.match(app, /function openDay/);
+  assert.match(app, /b\.onclick=\(\)=>openDay\(key\)/);
+  assert.match(app, /button\.textContent='Отменить'/);
+});
+
+test('A linked timer completes its task and returns to Today', () => {
+  assert.match(app, /completeTask\(task,\{returnToToday:true\}\)/);
+  assert.match(app, /setTimeout\(\(\)=>switchView\('today'\),450\)/);
+});
+
   assert.match(notes, /hash: 'SHA-256'/);
   assert.match(notes, /name: 'AES-GCM'/);
   assert.match(notes, /crypto\.getRandomValues\(new Uint8Array\(16\)\)/);

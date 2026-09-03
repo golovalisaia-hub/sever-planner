@@ -1,5 +1,5 @@
-const CACHE='sever-v19';
-const ASSETS=['./','./index.html','./style.css?v=19','./qa.css?v=19','./app.js?v=19','./notes-pro.js?v=19','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
+const CACHE='sever-v20';
+const ASSETS=['./','./index.html','./style.css?v=20','./qa.css?v=20','./app.js?v=20','./notes-pro.js?v=20','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
 
 self.addEventListener('install',event=>event.waitUntil(
   caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())

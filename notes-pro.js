@@ -113,6 +113,7 @@ function renderFolderSelect(selected = '') {
 function renderFolders() {
   ensureNoteCollections();
   if (activeFolderId !== 'all' && activeFolderId !== 'none' && !state.folders.some(folder => folder.id === activeFolderId)) activeFolderId = 'all';
+  $('#manageFolder').classList.toggle('hidden', activeFolderId === 'all' || activeFolderId === 'none');
   const root = $('#folderTabs');
   root.innerHTML = '';
   const entries = [
@@ -327,12 +328,10 @@ $('#noteForm').onsubmit = async event => {
 
 $('#deleteNote').onclick = () => {
   const id = $('#noteId').value;
-  unlockedNotes.delete(id);
-  state.notes = state.notes.filter(note => note.id !== id);
-  save();
-  renderNotes();
+  const note = state.notes.find(item => item.id === id); const index = state.notes.findIndex(item => item.id === id); if (!note) return;
+  unlockedNotes.delete(id); state.notes.splice(index, 1); save(); renderNotes();
   $('#noteDialog').close();
-  toast('Заметка удалена');
+  toast('Заметка удалена', () => { state.notes.splice(Math.min(index, state.notes.length), 0, note); save(); renderNotes(); });
 };
 
 $('#unlockForm').onsubmit = async event => {
@@ -386,3 +385,48 @@ $('#folderForm').onsubmit = async event => {
 
 renderFolders();
 renderNotes();
+
+function currentFolder() {
+  return state.folders.find(folder => folder.id === activeFolderId) || null;
+}
+
+$('#manageFolder').onclick = () => {
+  const folder = currentFolder();
+  if (!folder) return;
+  $('#folderManagerName').value = folder.name;
+  $('#folderManagerDialog').showModal();
+  requestAnimationFrame(() => $('#folderManagerName').focus());
+};
+
+$('#folderManagerForm').onsubmit = async event => {
+  event.preventDefault();
+  const folder = currentFolder();
+  const name = $('#folderManagerName').value.trim();
+  if (!folder || !name) return;
+  const duplicate = state.folders.find(item => item.id !== folder.id && item.name.toLocaleLowerCase('ru-RU') === name.toLocaleLowerCase('ru-RU'));
+  if (duplicate) return toast('Такая папка уже есть');
+  const previousName = folder.name;
+  folder.name = name;
+  await save();
+  $('#folderManagerDialog').close();
+  renderNotes();
+  toast('Папка переименована', () => { folder.name = previousName; save(); renderNotes(); });
+};
+
+function removeFolder(withNotes) {
+  const folder = currentFolder();
+  if (!folder) return;
+  const notes = state.notes.filter(note => note.folderId === folder.id);
+  const index = state.folders.findIndex(item => item.id === folder.id);
+  state.folders.splice(index, 1);
+  if (withNotes) state.notes = state.notes.filter(note => note.folderId !== folder.id);
+  else notes.forEach(note => { note.folderId = ''; });
+  activeFolderId = 'all';
+  $('#folderManagerDialog').close();
+  save();
+  renderNotes();
+  toast(withNotes ? 'Папка и заметки удалены' : 'Папка удалена', () => { state.folders.splice(Math.min(index, state.folders.length), 0, folder); if (withNotes) state.notes.push(...notes); else notes.forEach(note => { note.folderId = folder.id; }); save(); renderNotes(); });
+}
+
+$('#deleteFolderOnly').onclick = () => removeFolder(false);
+$('#deleteFolderWithNotes').onclick = () => removeFolder(true);
