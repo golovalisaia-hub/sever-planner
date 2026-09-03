@@ -37,16 +37,16 @@ test('PWA cache contains every required local asset', () => {
   }
 });
 
-test('Asset versions are aligned to v20', () => {
-  assert.match(html, /style\.css\?v=20/);
-  assert.match(html, /qa\.css\?v=20/);
-  assert.match(html, /app\.js\?v=20/);
-  assert.match(html, /notes-pro\.js\?v=20/);
-  assert.match(sw, /sever-v20/);
-  assert.match(sw, /style\.css\?v=20/);
-  assert.match(sw, /qa\.css\?v=20/);
-  assert.match(sw, /app\.js\?v=20/);
-  assert.match(sw, /notes-pro\.js\?v=20/);
+test('Asset versions are aligned to v21', () => {
+  assert.match(html, /style\.css\?v=21/);
+  assert.match(html, /qa\.css\?v=21/);
+  assert.match(html, /app\.js\?v=21/);
+  assert.match(html, /notes-pro\.js\?v=21/);
+  assert.match(sw, /sever-v21/);
+  assert.match(sw, /style\.css\?v=21/);
+  assert.match(sw, /qa\.css\?v=21/);
+  assert.match(sw, /app\.js\?v=21/);
+  assert.match(sw, /notes-pro\.js\?v=21/);
 });
 
 test('A new user starts without personal tasks', () => {
@@ -85,6 +85,14 @@ test('Protected notes use PBKDF2 and authenticated AES-GCM encryption', () => {
   assert.match(notes, /NOTE_CRYPTO_ITERATIONS = 600000/);
   assert.match(notes, /name: 'PBKDF2'/);
 
+
+  assert.match(notes, /hash: 'SHA-256'/);
+  assert.match(notes, /name: 'AES-GCM'/);
+  assert.match(notes, /crypto\.getRandomValues\(new Uint8Array\(16\)\)/);
+  assert.doesNotMatch(notes, /password\s*:/i);
+});
+
+
 test('Tasks support reversible action-sheet flows and the calendar opens a day plan', () => {
   assert.match(html, /id="taskActionComplete"/);
   assert.match(html, /id="taskActionMove"/);
@@ -97,15 +105,23 @@ test('Tasks support reversible action-sheet flows and the calendar opens a day p
   assert.match(app, /button\.textContent='Отменить'/);
 });
 
-test('A linked timer completes its task and returns to Today', () => {
+test('Linked tasks always open the visible timer tab and complete back on Today', () => {
+  assert.match(html, /data-view="timer"/);
+  assert.match(app, /switchView\('timer'\);startTimer\(\)/);
+  assert.match(app, /if\(name==='timer'\)renderTimer\(\)/);
   assert.match(app, /completeTask\(task,\{returnToToday:true\}\)/);
   assert.match(app, /setTimeout\(\(\)=>switchView\('today'\),450\)/);
 });
 
-  assert.match(notes, /hash: 'SHA-256'/);
-  assert.match(notes, /name: 'AES-GCM'/);
-  assert.match(notes, /crypto\.getRandomValues\(new Uint8Array\(16\)\)/);
-  assert.doesNotMatch(notes, /password\s*:/i);
+
+test('Timer is a primary tab and focus can be cancelled without completing the task', () => {
+  assert.match(html, /data-view="timer"/);
+  assert.match(html, /id="cancelTimerTask"/);
+  assert.match(app, /switchView\('timer'\);startTimer\(\)/);
+  assert.match(app, /\$\('#cancelTimerTask'\)\.onclick/);
+  assert.match(app, /toast\('Фокус отменён — задача осталась в плане'\)/);
+  assert.match(css, /@keyframes cardSheen/);
+  assert.match(css, /@keyframes focusBreath/);
 });
 
 test('Large realistic state stays comfortably below localStorage quota', () => {
