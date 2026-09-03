@@ -8,8 +8,8 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="style.css?v=21">
-  <link rel="stylesheet" href="qa.css?v=21">
+  <link rel="stylesheet" href="style.css?v=22">
+  <link rel="stylesheet" href="qa.css?v=22">
   <title>SEVER</title>
   <script>document.documentElement.dataset.theme=localStorage.getItem('sever-theme')||'dark'</script>
 </head>
@@ -46,9 +46,9 @@
     </section>
 
     <section id="progressView" class="view">
-      <div class="heading"><div><small>ДВИЖЕНИЕ ПО КУРСУ</small><h1>Прогресс</h1></div></div>
+      <div class="heading progress-heading"><div><small>ДВИЖЕНИЕ ПО КУРСУ</small><h1>Прогресс</h1></div><div class="month-switcher" aria-label="Выбор месяца"><button id="prevProgressMonth" class="icon-btn" type="button" aria-label="Предыдущий месяц">‹</button><b id="progressMonthTitle" aria-live="polite"></b><button id="nextProgressMonth" class="icon-btn" type="button" aria-label="Следующий месяц">›</button></div></div>
       <div class="stats"><article><span>Выполнено</span><b id="allDone">0</b></article><article><span>Серия</span><b id="streak">0 дней</b></article><article><span>Реальный фокус</span><b id="focusMinutes">0 мин</b><small id="focusSessions">0 сессий</small></article><article><span>Объём задач</span><b id="plannedMinutes">0 мин</b><small>по завершённым задачам</small></article></div>
-      <article class="heat-card"><div><h2>Карта движения</h2><span>Каждая клетка — один день движения к цели</span></div><div id="heatmap" class="heatmap"></div></article>
+      <article class="heat-card"><div><h2>Карта движения</h2><span>Каждая клетка — конкретный день выбранного месяца</span></div><div id="heatmap" class="heatmap" aria-label="Карта выполнения задач за месяц"></div></article>
       <article class="review"><small>ИТОГ НЕДЕЛИ</small><h2 id="reviewTitle"></h2><p id="reviewText"></p></article>
     </section>
 
@@ -88,7 +88,7 @@
   <dialog id="tourDialog" class="tour-dialog"><div class="tour-brand">Sever</div><div class="tour-visual" id="tourVisual" aria-hidden="true"></div><div class="tour-copy"><small id="tourStep">1 ИЗ 4</small><h2 id="tourTitle">Добро пожаловать в SEVER</h2><p id="tourText">Личный планер, который помогает выбрать направление и двигаться небольшими шагами.</p></div><div id="tourDots" class="tour-dots" aria-label="Шаги знакомства"></div><div class="tour-actions"><button id="tourSkip" type="button">Пропустить</button><div><button id="tourBack" type="button" disabled>Назад</button><button id="tourNext" class="primary" type="button">Далее</button></div></div></dialog>
   <dialog id="welcomeDialog"><form id="welcomeForm"><div class="dialog-head"><h2>Какая у тебя цель?</h2></div><p class="muted">Определи направление и удобный темп. SEVER составит ежедневный план.</p><label>Главная цель<input id="goalOne" required maxlength="60" placeholder="Например: изучить английский"></label><label>Ещё одна цель — необязательно<input id="goalTwo" maxlength="60" placeholder="Например: читать каждый день"></label><div class="form-row"><label>За сколько дней хочешь прийти к цели?<input id="challengeDays" type="number" min="1" max="365" required placeholder="Например: 45"></label><label>Сколько минут готов уделять в день?<input id="challengeMinutes" type="number" min="5" max="600" required placeholder="Например: 20"></label></div><div class="dialog-actions"><button id="startEmpty" type="button">Настроить позже</button><button class="primary">Создать цель</button></div></form></dialog>
   <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-  <script src="app.js?v=21" defer></script>
-  <script src="notes-pro.js?v=21" defer></script>
+  <script src="app.js?v=22" defer></script>
+  <script src="notes-pro.js?v=22" defer></script>
 </body>
 </html>

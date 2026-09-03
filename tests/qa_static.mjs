@@ -37,16 +37,16 @@ test('PWA cache contains every required local asset', () => {
   }
 });
 
-test('Asset versions are aligned to v21', () => {
-  assert.match(html, /style\.css\?v=21/);
-  assert.match(html, /qa\.css\?v=21/);
-  assert.match(html, /app\.js\?v=21/);
-  assert.match(html, /notes-pro\.js\?v=21/);
-  assert.match(sw, /sever-v21/);
-  assert.match(sw, /style\.css\?v=21/);
-  assert.match(sw, /qa\.css\?v=21/);
-  assert.match(sw, /app\.js\?v=21/);
-  assert.match(sw, /notes-pro\.js\?v=21/);
+test('Asset versions are aligned to v22', () => {
+  assert.match(html, /style\.css\?v=22/);
+  assert.match(html, /qa\.css\?v=22/);
+  assert.match(html, /app\.js\?v=22/);
+  assert.match(html, /notes-pro\.js\?v=22/);
+  assert.match(sw, /sever-v22/);
+  assert.match(sw, /style\.css\?v=22/);
+  assert.match(sw, /qa\.css\?v=22/);
+  assert.match(sw, /app\.js\?v=22/);
+  assert.match(sw, /notes-pro\.js\?v=22/);
 });
 
 test('A new user starts without personal tasks', () => {
@@ -123,6 +123,23 @@ test('Timer is a primary tab and focus can be cancelled without completing the t
   assert.match(css, /@keyframes cardSheen/);
   assert.match(css, /@keyframes focusBreath/);
 });
+test('Progress is calendar-based, preserves completion history and keeps Undo interactive', () => {
+  assert.match(html, /id="progressMonthTitle"/);
+  assert.match(html, /id="prevProgressMonth"/);
+  assert.match(html, /id="nextProgressMonth"/);
+  assert.match(app, /const getLocalToday/);
+  assert.match(app, /const getDaysInMonth/);
+  assert.match(app, /function progressForDate/);
+  assert.match(app, /completedAt=Date\.now\(\)/);
+  assert.match(app, /task\.completedAt=null/);
+  assert.match(app, /state\.tasks=state\.tasks\.map\(normalizeTaskHistory\)/);
+  assert.match(css, /#toast\.show\s*\{\s*pointer-events:\s*auto/);
+  assert.match(css, /\.heat\.future/);
+  assert.match(css, /\.heat\.rate-4/);
+  assert.match(notes, /state\.notes\.splice\(Math\.min\(index,\s*state\.notes\.length\),\s*0,\s*note\)/);
+  assert.match(css, /caret-color:transparent/);
+});
+
 
 test('Large realistic state stays comfortably below localStorage quota', () => {
   const tasks = Array.from({ length: 1500 }, (_, index) => ({
