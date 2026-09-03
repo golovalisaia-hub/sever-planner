@@ -1,6 +1,6 @@
-# SEVER PWA
+# SEVER
 
-Быстрый личный планер для GitHub Pages. Работает без сервера и без API-ключа, устанавливается на телефон и сохраняет данные в браузере устройства.
+SEVER — личный планер, который постепенно развивается в умный календарь. Текущий интерфейс — быстрый офлайн-first PWA для GitHub Pages; рядом добавлен безопасный Python foundation для будущей синхронизации, календаря и AI-инструментов.
 
 ## Возможности
 
@@ -36,3 +36,17 @@
 ```bash
 node tests/qa_static.mjs
 ```
+
+## Python API foundation
+
+API находится в [`backend/`](backend/). В development он запускается с SQLite, а production-конфигурация предназначена для PostgreSQL. GitHub Pages продолжает публиковать только PWA: Python API нужно размещать отдельно.
+
+```bash
+py -m venv .venv
+.\.venv\Scripts\python -m pip install -r backend\requirements.txt
+cd backend
+..\.venv\Scripts\python -m pytest
+..\.venv\Scripts\uvicorn app.main:app --reload
+```
+
+Контракты API требуют временную идентичность через `X-SEVER-User-Id`; это сознательная граница доступа для разработки, которая будет заменена безопасной аутентификацией до production. Подробнее: [ARCHITECTURE.md](ARCHITECTURE.md).

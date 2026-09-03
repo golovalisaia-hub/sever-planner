@@ -1,0 +1,1 @@
+"""SEVER API application package."""
