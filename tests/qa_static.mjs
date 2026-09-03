@@ -37,16 +37,25 @@ test('PWA cache contains every required local asset', () => {
   }
 });
 
-test('Asset versions are aligned to v22', () => {
-  assert.match(html, /style\.css\?v=22/);
-  assert.match(html, /qa\.css\?v=22/);
-  assert.match(html, /app\.js\?v=22/);
-  assert.match(html, /notes-pro\.js\?v=22/);
-  assert.match(sw, /sever-v22/);
-  assert.match(sw, /style\.css\?v=22/);
-  assert.match(sw, /qa\.css\?v=22/);
-  assert.match(sw, /app\.js\?v=22/);
-  assert.match(sw, /notes-pro\.js\?v=22/);
+test('Asset versions are aligned to v23', () => {
+  assert.match(html, /style\.css\?v=23/);
+  assert.match(html, /qa\.css\?v=23/);
+  assert.match(html, /app\.js\?v=23/);
+  assert.match(html, /notes-pro\.js\?v=23/);
+  assert.match(sw, /sever-v23/);
+  assert.match(sw, /style\.css\?v=23/);
+  assert.match(sw, /qa\.css\?v=23/);
+  assert.match(sw, /app\.js\?v=23/);
+  assert.match(sw, /notes-pro\.js\?v=23/);
+});
+
+test('Bottom navigation uses labelled SVG icons with responsive styles', () => {
+  assert.equal((html.match(/class="nav-icon"/g) || []).length, 5);
+  assert.equal((html.match(/class="nav-label"/g) || []).length, 5);
+  assert.match(html, /<span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24">/);
+  assert.match(css, /\.bottom-nav \.nav-icon\s*\{/);
+  assert.match(css, /\.bottom-nav \.nav-icon svg\s*\{/);
+  assert.match(css, /@media \(max-width: 650px\)\s*\{[\s\S]*?\.bottom-nav \.nav-icon\s*\{[\s\S]*?width: 34px/);
 });
 
 test('A new user starts without personal tasks', () => {
