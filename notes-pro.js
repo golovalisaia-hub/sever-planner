@@ -1,0 +1,388 @@
+const NOTE_CRYPTO_ITERATIONS = 600000;
+const noteEncoder = new TextEncoder();
+const noteDecoder = new TextDecoder();
+const unlockedNotes = new Map();
+let activeFolderId = 'all';
+let pendingUnlockNote = null;
+let pendingUnlockEdit = false;
+
+const originalFreshState = freshState;
+freshState = function () {
+  return { ...originalFreshState(), folders: [] };
+};
+
+const originalMigrate = migrate;
+migrate = function (data) {
+  const migrated = originalMigrate(data);
+  migrated.folders = Array.isArray(migrated.folders) ? migrated.folders : [];
+  migrated.notes = migrated.notes.map(note => ({ ...note, folderId: note.folderId || '' }));
+  return migrated;
+};
+
+function ensureNoteCollections() {
+  state.folders = Array.isArray(state.folders) ? state.folders : [];
+  state.notes.forEach(note => note.folderId ??= '');
+}
+
+ensureNoteCollections();
+
+function bytesToBase64(bytes) {
+  let binary = '';
+  for (let index = 0; index < bytes.length; index += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+  }
+  return btoa(binary);
+}
+
+function base64ToBytes(value) {
+  const binary = atob(value);
+  return Uint8Array.from(binary, character => character.charCodeAt(0));
+}
+
+async function deriveNoteKey(password, salt, iterations = NOTE_CRYPTO_ITERATIONS) {
+  const material = await crypto.subtle.importKey('raw', noteEncoder.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations, hash: 'SHA-256' },
+    material,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+async function sealNotePayload(payload, key, salt, iterations = NOTE_CRYPTO_ITERATIONS) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const plain = noteEncoder.encode(JSON.stringify(payload));
+  const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plain);
+  return {
+    algorithm: 'AES-GCM',
+    kdf: 'PBKDF2-SHA256',
+    iterations,
+    salt: bytesToBase64(salt),
+    iv: bytesToBase64(iv),
+    cipher: bytesToBase64(new Uint8Array(encrypted))
+  };
+}
+
+async function protectNotePayload(payload, password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await deriveNoteKey(password, salt);
+  const secure = await sealNotePayload(payload, key, salt);
+  return { payload, key, salt, secure };
+}
+
+async function unlockNotePayload(note, password) {
+  const salt = base64ToBytes(note.secure.salt);
+  const iterations = Math.max(100000, Number(note.secure.iterations) || NOTE_CRYPTO_ITERATIONS);
+  const key = await deriveNoteKey(password, salt, iterations);
+  const decrypted = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv: base64ToBytes(note.secure.iv) },
+    key,
+    base64ToBytes(note.secure.cipher)
+  );
+  const payload = JSON.parse(noteDecoder.decode(decrypted));
+  if (!payload || typeof payload.title !== 'string') throw new Error('Invalid protected note');
+  return { payload, key, salt };
+}
+
+async function saveUnlockedProtectedNote(note, payload) {
+  const unlocked = unlockedNotes.get(note.id);
+  if (!unlocked) throw new Error('Note is locked');
+  note.secure = await sealNotePayload(payload, unlocked.key, unlocked.salt, note.secure.iterations);
+  note.updatedAt = Date.now();
+  unlocked.payload = payload;
+  await save();
+}
+
+function folderName(folderId) {
+  return state.folders.find(folder => folder.id === folderId)?.name || 'Без папки';
+}
+
+function renderFolderSelect(selected = '') {
+  const select = $('#noteFolder');
+  select.innerHTML = '<option value="">Без папки</option>';
+  state.folders.forEach(folder => {
+    const option = document.createElement('option');
+    option.value = folder.id;
+    option.textContent = folder.name;
+    select.appendChild(option);
+  });
+  select.value = state.folders.some(folder => folder.id === selected) ? selected : '';
+}
+
+function renderFolders() {
+  ensureNoteCollections();
+  if (activeFolderId !== 'all' && activeFolderId !== 'none' && !state.folders.some(folder => folder.id === activeFolderId)) activeFolderId = 'all';
+  const root = $('#folderTabs');
+  root.innerHTML = '';
+  const entries = [
+    { id: 'all', name: 'Все', count: state.notes.length },
+    { id: 'none', name: 'Без папки', count: state.notes.filter(note => !note.folderId).length },
+    ...state.folders.map(folder => ({ id: folder.id, name: folder.name, count: state.notes.filter(note => note.folderId === folder.id).length }))
+  ];
+  entries.forEach(entry => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = entry.id === activeFolderId ? 'active' : '';
+    button.setAttribute('aria-pressed', String(entry.id === activeFolderId));
+    const name = document.createElement('span');
+    const count = document.createElement('b');
+    name.textContent = entry.id === 'all' ? '▦ Все' : `⌑ ${entry.name}`;
+    count.textContent = entry.count;
+    button.append(name, count);
+    button.onclick = () => {
+      activeFolderId = entry.id;
+      renderFolders();
+      renderNotes();
+    };
+    root.appendChild(button);
+  });
+}
+
+function askToUnlock(note, editAfter = false) {
+  pendingUnlockNote = note;
+  pendingUnlockEdit = editAfter;
+  $('#unlockPassword').value = '';
+  $('#unlockError').classList.add('hidden');
+  $('#unlockDialog').showModal();
+  requestAnimationFrame(() => $('#unlockPassword').focus());
+}
+
+function visibleNoteData(note) {
+  return note.protected ? unlockedNotes.get(note.id)?.payload || null : note;
+}
+
+renderNotes = function () {
+  ensureNoteCollections();
+  renderFolders();
+  const root = $('#noteList');
+  root.innerHTML = '';
+  const filtered = state.notes.filter(note => activeFolderId === 'all' || (activeFolderId === 'none' ? !note.folderId : note.folderId === activeFolderId));
+  if (!filtered.length) {
+    root.innerHTML = empty(activeFolderId === 'all' ? 'Заметок пока нет. Создай обычную запись или чек-лист.' : 'В этой папке пока нет заметок.');
+    return;
+  }
+  [...filtered].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)).forEach(note => {
+    const data = visibleNoteData(note);
+    const locked = note.protected && !data;
+    const card = document.createElement('article');
+    card.className = `note-card${locked ? ' secure-note locked' : ''}`;
+    if (locked) {
+      card.innerHTML = '<div class="secure-note-head"><span class="secure-lock" aria-hidden="true">⌁</span><div><small>ЗАЩИЩЕНО ПАРОЛЕМ</small><h3>Закрытая заметка</h3></div></div><p class="secure-description">Название и содержимое зашифрованы. Введи пароль, чтобы открыть заметку.</p><div class="note-card-footer"><span class="folder-badge"></span><button class="unlock-note" type="button">Открыть</button></div>';
+      card.querySelector('.folder-badge').textContent = `⌑ ${folderName(note.folderId)}`;
+      card.querySelector('.unlock-note').onclick = () => askToUnlock(note);
+      root.appendChild(card);
+      return;
+    }
+
+    const items = data.items || [];
+    const isChecklist = data.kind === 'checklist';
+    const progress = noteProgress(data);
+    card.className += ` ${isChecklist ? 'checklist-note' : 'text-note'}${isChecklist && progress === 100 ? ' complete' : ''}${note.protected ? ' secure-note unlocked' : ''}`;
+    const progressMarkup = isChecklist
+      ? `<div class="note-ring" aria-label="Выполнено ${progress}%"><svg viewBox="0 0 80 80" aria-hidden="true"><circle class="track" cx="40" cy="40" r="34"></circle><circle class="value" cx="40" cy="40" r="34" style="stroke-dashoffset:${213.63 * (1 - progress / 100)}"></circle></svg><b>${progress}%</b></div>`
+      : `<span class="note-kind">${note.protected ? '🔓 ОТКРЫТА' : 'ЗАМЕТКА'}</span>`;
+    card.innerHTML = `<div class="note-card-head"><h3></h3>${progressMarkup}</div><p class="note-body"></p><div class="note-checklist"></div><div class="note-card-footer"><div><span class="folder-badge"></span><time></time></div><div class="note-card-actions"></div></div>`;
+    card.querySelector('h3').textContent = data.title;
+    card.querySelector('.folder-badge').textContent = `⌑ ${folderName(note.folderId)}`;
+    const body = card.querySelector('.note-body');
+    body.textContent = data.body || (!isChecklist ? 'Пустая заметка' : '');
+    body.classList.toggle('hidden', !body.textContent);
+    const checklist = card.querySelector('.note-checklist');
+    if (isChecklist) {
+      if (items.length) {
+        items.forEach(item => {
+          const label = document.createElement('label');
+          label.className = `note-check${item.done ? ' done' : ''}`;
+          label.innerHTML = '<input type="checkbox"><span></span>';
+          const checkbox = label.querySelector('input');
+          checkbox.checked = Boolean(item.done);
+          label.querySelector('span').textContent = item.text;
+          checkbox.onchange = async () => {
+            item.done = checkbox.checked;
+            data.done = items.every(step => step.done);
+            note.updatedAt = Date.now();
+            if (note.protected) await saveUnlockedProtectedNote(note, data); else await save();
+            renderNotes();
+          };
+          checklist.appendChild(label);
+        });
+      } else checklist.innerHTML = '<p class="note-empty-list">Добавь пункты через «Изменить».</p>';
+    }
+    const actions = card.querySelector('.note-card-actions');
+    if (isChecklist && items.length) {
+      const toggle = document.createElement('button');
+      toggle.className = 'note-toggle-all';
+      toggle.type = 'button';
+      const allDone = items.every(item => item.done);
+      toggle.textContent = allDone ? 'Снять все' : 'Отметить всё';
+      toggle.onclick = async () => {
+        setAllNoteItems(data, !allDone);
+        if (note.protected) await saveUnlockedProtectedNote(note, data); else await save();
+        renderNotes();
+        toast(allDone ? 'Отметки сняты' : 'Все пункты выполнены');
+      };
+      actions.appendChild(toggle);
+    }
+    if (note.protected) {
+      const lock = document.createElement('button');
+      lock.className = 'note-lock-now';
+      lock.type = 'button';
+      lock.textContent = 'Заблокировать';
+      lock.onclick = () => { unlockedNotes.delete(note.id); renderNotes(); toast('Заметка заблокирована'); };
+      actions.appendChild(lock);
+    }
+    const edit = document.createElement('button');
+    edit.className = 'note-edit';
+    edit.type = 'button';
+    edit.textContent = 'Изменить';
+    edit.onclick = () => openNote(note);
+    actions.appendChild(edit);
+    card.querySelector('time').textContent = `Обновлено ${new Date(note.updatedAt || Date.now()).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}`;
+    root.appendChild(card);
+  });
+};
+
+openNote = async function (note = null) {
+  if (note?.protected && !unlockedNotes.has(note.id)) {
+    askToUnlock(note, true);
+    return;
+  }
+  const data = note?.protected ? unlockedNotes.get(note.id).payload : note;
+  $('#noteDialogTitle').textContent = note ? 'Изменить заметку' : 'Новая заметка';
+  $('#noteId').value = note?.id || '';
+  $('#noteTitle').value = data?.title || '';
+  $('#noteBody').value = data?.body || '';
+  editingNoteItems = (data?.items || []).map(item => ({ ...item }));
+  $('#deleteNote').classList.toggle('hidden', !note);
+  renderFolderSelect(note?.folderId || (activeFolderId !== 'all' && activeFolderId !== 'none' ? activeFolderId : ''));
+  setNoteType(data?.kind || ((data?.items || []).length ? 'checklist' : 'text'));
+  renderNoteItemsEditor();
+  $('#noteProtected').checked = Boolean(note?.protected);
+  $('#notePassword').value = '';
+  $('#notePasswordWrap').classList.toggle('hidden', !note?.protected);
+  $('#notePasswordHint').textContent = note?.protected
+    ? 'Оставь поле пустым, чтобы сохранить текущий пароль, или введи новый.'
+    : 'Пароль не сохраняется. Если его забыть, заметку нельзя будет восстановить.';
+  $('#noteDialog').showModal();
+};
+
+$('#noteProtected').onchange = event => {
+  $('#notePasswordWrap').classList.toggle('hidden', !event.target.checked);
+  if (event.target.checked) $('#notePassword').focus();
+};
+
+$('#noteForm').onsubmit = async event => {
+  event.preventDefault();
+  const id = $('#noteId').value;
+  const existing = state.notes.find(note => note.id === id);
+  const items = editingNoteItems.map(item => ({ id: item.id || uid(), text: item.text.trim(), done: Boolean(item.done) })).filter(item => item.text);
+  const payload = {
+    title: $('#noteTitle').value.trim(),
+    body: $('#noteBody').value.trim(),
+    kind: editingNoteType,
+    items,
+    done: editingNoteType === 'checklist' && items.length ? items.every(item => item.done) : false
+  };
+  const folderId = $('#noteFolder').value;
+  const wantsProtection = $('#noteProtected').checked;
+  const newPassword = $('#notePassword').value;
+
+  try {
+    if (wantsProtection && !crypto?.subtle) throw new Error('Шифрование не поддерживается этим браузером');
+    if (wantsProtection && !existing?.protected && newPassword.length < 8) throw new Error('Пароль должен содержать минимум 8 символов');
+    if (wantsProtection && newPassword && newPassword.length < 8) throw new Error('Пароль должен содержать минимум 8 символов');
+
+    let note = existing;
+    if (!note) {
+      note = { id: uid(), folderId, createdAt: Date.now(), updatedAt: Date.now() };
+      state.notes.push(note);
+    }
+    note.folderId = folderId;
+    note.updatedAt = Date.now();
+
+    if (wantsProtection) {
+      let protectedData;
+      if (newPassword) protectedData = await protectNotePayload(payload, newPassword);
+      else {
+        const unlocked = unlockedNotes.get(note.id);
+        if (!unlocked) throw new Error('Сначала разблокируй заметку');
+        protectedData = { ...unlocked, payload, secure: await sealNotePayload(payload, unlocked.key, unlocked.salt, note.secure.iterations) };
+      }
+      Object.assign(note, { title: '', body: '', kind: 'protected', items: [], done: false, protected: true, secure: protectedData.secure });
+      unlockedNotes.set(note.id, { payload, key: protectedData.key, salt: protectedData.salt });
+    } else {
+      Object.assign(note, payload, { protected: false });
+      delete note.secure;
+      unlockedNotes.delete(note.id);
+    }
+    await save();
+    $('#noteDialog').close();
+    renderNotes();
+    toast(wantsProtection ? 'Заметка зашифрована' : editingNoteType === 'checklist' ? 'Чек-лист сохранён' : 'Заметка сохранена');
+  } catch (error) {
+    toast(error.message || 'Не удалось сохранить заметку');
+  }
+};
+
+$('#deleteNote').onclick = () => {
+  const id = $('#noteId').value;
+  unlockedNotes.delete(id);
+  state.notes = state.notes.filter(note => note.id !== id);
+  save();
+  renderNotes();
+  $('#noteDialog').close();
+  toast('Заметка удалена');
+};
+
+$('#unlockForm').onsubmit = async event => {
+  event.preventDefault();
+  if (!pendingUnlockNote) return;
+  const button = $('#unlockForm .primary');
+  button.disabled = true;
+  button.textContent = 'Открываем…';
+  try {
+    const unlocked = await unlockNotePayload(pendingUnlockNote, $('#unlockPassword').value);
+    unlockedNotes.set(pendingUnlockNote.id, unlocked);
+    $('#unlockDialog').close();
+    $('#unlockError').classList.add('hidden');
+    renderNotes();
+    if (pendingUnlockEdit) await openNote(pendingUnlockNote);
+    else toast('Заметка открыта');
+  } catch {
+    $('#unlockError').classList.remove('hidden');
+    $('#unlockPassword').select();
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Открыть заметку';
+  }
+};
+
+$('#openFolder').onclick = () => {
+  $('#folderForm').reset();
+  $('#folderDialog').showModal();
+  requestAnimationFrame(() => $('#folderName').focus());
+};
+
+$('#folderForm').onsubmit = async event => {
+  event.preventDefault();
+  const name = $('#folderName').value.trim();
+  if (!name) return;
+  const existing = state.folders.find(folder => folder.name.toLocaleLowerCase('ru-RU') === name.toLocaleLowerCase('ru-RU'));
+  if (existing) {
+    activeFolderId = existing.id;
+    toast('Такая папка уже есть');
+  } else {
+    const folder = { id: uid(), name, createdAt: Date.now() };
+    state.folders.push(folder);
+    activeFolderId = folder.id;
+    await save();
+    toast('Папка создана');
+  }
+  $('#folderDialog').close();
+  renderFolders();
+  renderNotes();
+};
+
+renderFolders();
+renderNotes();
