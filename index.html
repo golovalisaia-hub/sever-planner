@@ -8,7 +8,8 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="style.css?v=17">
+  <link rel="stylesheet" href="style.css?v=18">
+  <link rel="stylesheet" href="qa.css?v=18">
   <title>SEVER</title>
   <script>document.documentElement.dataset.theme=localStorage.getItem('sever-theme')||'dark'</script>
 </head>
@@ -45,13 +46,13 @@
 
     <section id="progressView" class="view">
       <div class="heading"><div><small>ДВИЖЕНИЕ ПО КУРСУ</small><h1>Прогресс</h1></div></div>
-      <div class="stats"><article><span>Выполнено</span><b id="allDone">0</b></article><article><span>Серия</span><b id="streak">0 дней</b></article><article><span>Время</span><b id="focusMinutes">0 мин</b></article></div>
+      <div class="stats"><article><span>Выполнено</span><b id="allDone">0</b></article><article><span>Серия</span><b id="streak">0 дней</b></article><article><span>Реальный фокус</span><b id="focusMinutes">0 мин</b><small id="focusSessions">0 сессий</small></article><article><span>Объём задач</span><b id="plannedMinutes">0 мин</b><small>по завершённым задачам</small></article></div>
       <article class="heat-card"><div><h2>Карта движения</h2><span>Каждая клетка — один день движения к цели</span></div><div id="heatmap" class="heatmap"></div></article>
       <article class="review"><small>ИТОГ НЕДЕЛИ</small><h2 id="reviewTitle"></h2><p id="reviewText"></p></article>
     </section>
 
     <section id="habitsView" class="view">
-      <div class="heading"><div><small>ПОВТОРЯЙ И УКРЕПЛЯЙ</small><h1>Привычки</h1></div><button id="openHabit" class="add-btn">＋</button></div>
+      <div class="heading"><div><small>ПОВТОРЯЙ И УКРЕПЛЯЙ</small><h1>Привычки</h1></div><button id="openHabit" class="add-btn" aria-label="Добавить привычку">＋</button></div>
       <div id="habitList" class="habit-list"></div>
     </section>
 
@@ -78,7 +79,7 @@
   <dialog id="moreDialog"><div class="dialog-head"><h2>Настройки SEVER</h2><button type="button" data-close="moreDialog">×</button></div><section class="notification-settings"><div class="setting-title"><div><b>Напоминания</b><span>Разные мотивирующие фразы каждый день</span></div><label class="switch"><input id="notificationToggle" type="checkbox"><i></i></label></div><label>Время напоминания<input id="notificationTime" type="time" value="19:00"></label><button id="testNotification" class="secondary" type="button">Проверить уведомление</button><p id="notificationHint" class="muted small"></p></section><div class="storage-status"><span>Хранилище</span><b id="storageStatus">Проверяем сохранение…</b></div><p class="muted">Данные автоматически сохраняются в двух копиях на этом устройстве. Для дополнительной защиты иногда скачивай резервную копию.</p><div class="menu-actions"><button id="exportBtn">Скачать резервную копию</button><label class="file-btn">Восстановить из файла<input id="importInput" type="file" accept="application/json"></label><button id="resetBtn" class="danger">Начать заново</button></div></dialog>
   <dialog id="tourDialog" class="tour-dialog"><div class="tour-brand">Sever</div><div class="tour-visual" id="tourVisual" aria-hidden="true"></div><div class="tour-copy"><small id="tourStep">1 ИЗ 4</small><h2 id="tourTitle">Добро пожаловать в SEVER</h2><p id="tourText">Личный планер, который помогает выбрать направление и двигаться небольшими шагами.</p></div><div id="tourDots" class="tour-dots" aria-label="Шаги знакомства"></div><div class="tour-actions"><button id="tourSkip" type="button">Пропустить</button><div><button id="tourBack" type="button" disabled>Назад</button><button id="tourNext" class="primary" type="button">Далее</button></div></div></dialog>
   <dialog id="welcomeDialog"><form id="welcomeForm"><div class="dialog-head"><h2>Какая у тебя цель?</h2></div><p class="muted">Определи направление и удобный темп. SEVER составит ежедневный план.</p><label>Главная цель<input id="goalOne" required maxlength="60" placeholder="Например: изучить английский"></label><label>Ещё одна цель — необязательно<input id="goalTwo" maxlength="60" placeholder="Например: читать каждый день"></label><div class="form-row"><label>За сколько дней хочешь прийти к цели?<input id="challengeDays" type="number" min="1" max="365" required placeholder="Например: 45"></label><label>Сколько минут готов уделять в день?<input id="challengeMinutes" type="number" min="5" max="600" required placeholder="Например: 20"></label></div><div class="dialog-actions"><button id="startEmpty" type="button">Настроить позже</button><button class="primary">Создать цель</button></div></form></dialog>
-  <div id="toast"></div>
-  <script src="app.js?v=17" defer></script>
+  <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <script src="app.js?v=18" defer></script>
 </body>
 </html>
