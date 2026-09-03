@@ -7,6 +7,7 @@ const root = path.resolve(import.meta.dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const html = read('index.html');
 const app = read('app.js');
+const notes = read('notes-pro.js');
 const css = `${read('style.css')}\n${read('qa.css')}`;
 const sw = read('sw.js');
 const manifest = JSON.parse(read('manifest.webmanifest'));
@@ -30,14 +31,16 @@ test('PWA cache contains every required local asset', () => {
   }
 });
 
-test('Asset versions are aligned to v18', () => {
-  assert.match(html, /style\.css\?v=18/);
-  assert.match(html, /qa\.css\?v=18/);
-  assert.match(html, /app\.js\?v=18/);
-  assert.match(sw, /sever-v18/);
-  assert.match(sw, /style\.css\?v=18/);
-  assert.match(sw, /qa\.css\?v=18/);
-  assert.match(sw, /app\.js\?v=18/);
+test('Asset versions are aligned to v19', () => {
+  assert.match(html, /style\.css\?v=19/);
+  assert.match(html, /qa\.css\?v=19/);
+  assert.match(html, /app\.js\?v=19/);
+  assert.match(html, /notes-pro\.js\?v=19/);
+  assert.match(sw, /sever-v19/);
+  assert.match(sw, /style\.css\?v=19/);
+  assert.match(sw, /qa\.css\?v=19/);
+  assert.match(sw, /app\.js\?v=19/);
+  assert.match(sw, /notes-pro\.js\?v=19/);
 });
 
 test('A new user starts without personal tasks', () => {
@@ -62,6 +65,23 @@ test('Analytics separates focus usage and completed task volume', () => {
   assert.match(html, /id="plannedMinutes"/);
   assert.match(app, /stats:\{focusMs:0,sessions:0\}/);
   assert.match(app, /function trackFocusElapsed/);
+});
+
+test('Note folders and filtering are implemented', () => {
+  assert.match(html, /id="folderTabs"/);
+  assert.match(html, /id="folderDialog"/);
+  assert.match(html, /id="noteFolder"/);
+  assert.match(notes, /function renderFolders/);
+  assert.match(notes, /activeFolderId/);
+});
+
+test('Protected notes use PBKDF2 and authenticated AES-GCM encryption', () => {
+  assert.match(notes, /NOTE_CRYPTO_ITERATIONS = 600000/);
+  assert.match(notes, /name: 'PBKDF2'/);
+  assert.match(notes, /hash: 'SHA-256'/);
+  assert.match(notes, /name: 'AES-GCM'/);
+  assert.match(notes, /crypto\.getRandomValues\(new Uint8Array\(16\)\)/);
+  assert.doesNotMatch(notes, /password\s*:/i);
 });
 
 test('Large realistic state stays comfortably below localStorage quota', () => {
