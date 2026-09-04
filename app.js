@@ -1,5 +1,5 @@
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const KEY='sever-data-v2',months=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const KEY='sever-data-v2',ANONYMOUS_KEY='sever-anonymous-state-v1',LEGACY_OWNER_KEY='sever-cloud-legacy-owner-v1',months=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const dayISO=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const dateOf=s=>new Date(s+'T12:00:00');
 const addDays=(s,n)=>{const d=dateOf(s);d.setDate(d.getDate()+n);return dayISO(d)};
@@ -8,21 +8,23 @@ const localDayFromTimestamp=value=>{const timestamp=Number(value);return Number.
 const getDaysInMonth=(year,month)=>new Date(year,month+1,0).getDate();
 const monthStart=(date=new Date())=>new Date(date.getFullYear(),date.getMonth(),1);
 const sameMonth=(a,b)=>a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth();
-let TODAY=getLocalToday(),cursor=monthStart(),progressCursor=monthStart(),deferredInstall=null;
+let TODAY=getLocalToday(),cursor=monthStart(),progressCursor=monthStart(),dashboardCursor=monthStart(),deferredInstall=null;
 const uid=()=>crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);
 const STORAGE_DB='sever-storage-v1',STORAGE_STORE='state';
 
 function openStorageDb(){return new Promise((resolve,reject)=>{if(!('indexedDB'in window)){reject(new Error('IndexedDB недоступен'));return}const request=indexedDB.open(STORAGE_DB,1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(STORAGE_STORE))request.result.createObjectStore(STORAGE_STORE)};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})}
-async function writeStorageBackup(value){const db=await openStorageDb();return new Promise((resolve,reject)=>{const tx=db.transaction(STORAGE_STORE,'readwrite');tx.objectStore(STORAGE_STORE).put(JSON.parse(JSON.stringify(value)),'latest');tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}
-async function readStorageBackup(){const db=await openStorageDb();return new Promise((resolve,reject)=>{const tx=db.transaction(STORAGE_STORE,'readonly'),request=tx.objectStore(STORAGE_STORE).get('latest');request.onsuccess=()=>{db.close();resolve(request.result)};request.onerror=()=>{db.close();reject(request.error)}})}
+async function writeStorageBackup(value){const db=await openStorageDb();return new Promise((resolve,reject)=>{const tx=db.transaction(STORAGE_STORE,'readwrite');tx.objectStore(STORAGE_STORE).put(JSON.parse(JSON.stringify(value)),storageKey);tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}
+async function readStorageBackup(){const db=await openStorageDb();return new Promise((resolve,reject)=>{const tx=db.transaction(STORAGE_STORE,'readonly'),request=tx.objectStore(STORAGE_STORE).get(storageKey);request.onsuccess=()=>{db.close();resolve(request.result)};request.onerror=()=>{db.close();reject(request.error)}})}
 function storageStatus(text,kind='ok'){const el=$('#storageStatus');if(!el)return;el.textContent=text;el.className=kind}
 
-function freshState(){return{version:8,onboarded:false,challengeStart:TODAY,challengeDays:0,challengeName:'',tasks:[],notes:[],habits:[],checks:{},taskMemory:[],stats:{focusMs:0,sessions:0},reminders:{enabled:false,time:'19:00',lastDate:''}}}
-function migrate(data){if(!data?.tasks)return freshState();data.notes=(data.notes||[]).map(note=>{const items=Array.isArray(note.items)?note.items.map(item=>({id:item.id||uid(),text:String(item.text||''),done:Boolean(item.done)})):[];return{...note,kind:['text','checklist'].includes(note.kind)?note.kind:items.length?'checklist':'text',items,done:note.done??Number(note.progress)>=100}});data.habits??=[];data.checks??={};data.taskMemory??=[];data.stats={focusMs:Math.max(0,Number(data.stats?.focusMs)||0),sessions:Math.max(0,Math.floor(Number(data.stats?.sessions)||0))};data.reminders??={enabled:false,time:'19:00',lastDate:''};data.challengeStart??=TODAY;const challenge=data.tasks.filter(t=>t.challenge);data.challengeDays??=(new Set(challenge.map(t=>t.date)).size||30);data.challengeName??=[...new Set(challenge.map(t=>t.category))].join(' + ');data.onboarded??=true;data.version=8;return data}
-function readState(){try{const raw=localStorage.getItem(KEY);return raw?migrate(JSON.parse(raw)):freshState()}catch{return freshState()}}
+let storageKey=KEY;
+function freshState(){return{version:9,onboarded:false,challengeStart:TODAY,challengeDays:0,challengeName:'',tasks:[],notes:[],habits:[],checks:{},taskMemory:[],profile:{name:''},focusSessions:[],stats:{focusMs:0,sessions:0},reminders:{enabled:false,time:'19:00',lastDate:''}}}
+function migrate(data){if(!data?.tasks)return freshState();data.notes=(data.notes||[]).map(note=>{const items=Array.isArray(note.items)?note.items.map(item=>({id:item.id||uid(),text:String(item.text||''),done:Boolean(item.done)})):[];return{...note,kind:['text','checklist'].includes(note.kind)?note.kind:items.length?'checklist':'text',items,done:note.done??Number(note.progress)>=100}});data.habits??=[];data.checks??={};data.taskMemory??=[];data.focusSessions=Array.isArray(data.focusSessions)?data.focusSessions:[];data.profile??={name:''};data.stats={focusMs:Math.max(0,Number(data.stats?.focusMs)||0),sessions:Math.max(0,Math.floor(Number(data.stats?.sessions)||0))};if(!data.focusSessions.length&&data.stats.focusMs>0)data.focusSessions=[{id:uid(),taskId:null,durationMinutes:Math.max(1,Math.round(data.stats.focusMs/60000)),startedAt:null,completedAt:data._savedAt||Date.now(),status:'completed',createdAt:data._savedAt||Date.now(),updatedAt:data._savedAt||Date.now(),legacy:true}];data.reminders??={enabled:false,time:'19:00',lastDate:''};data.challengeStart??=TODAY;const challenge=data.tasks.filter(t=>t.challenge);data.challengeDays??=(new Set(challenge.map(t=>t.date)).size||30);data.challengeName??=[...new Set(challenge.map(t=>t.category))].join(' + ');data.onboarded??=true;data.version=9;return data}
+function readState(key=storageKey){try{const raw=localStorage.getItem(key);return raw?migrate(JSON.parse(raw)):freshState()}catch{return freshState()}}
 let state=readState();
-function save(){state._savedAt=Date.now();const serialized=JSON.stringify(state);let localSaved=true;try{localStorage.setItem(KEY,serialized)}catch{localSaved=false}return writeStorageBackup(state).then(()=>storageStatus(localSaved?'Две копии сохранены':'Резервная копия сохранена')).catch(()=>{if(localSaved)storageStatus('Основная копия сохранена');else{storageStatus('Не удалось сохранить','error');setTimeout(()=>toast('Ошибка сохранения. Скачай резервную копию.'),0)}})}
-async function recoverLatestState(){try{const backup=await readStorageBackup();if(backup&&Number(backup._savedAt)>Number(state._savedAt||0)){state=migrate(backup);try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}toast('Данные восстановлены из резервной копии')}}catch{} }
+function persistLocal(){state._savedAt=Date.now();const serialized=JSON.stringify(state);let localSaved=true;try{localStorage.setItem(storageKey,serialized)}catch{localSaved=false}return writeStorageBackup(state).then(()=>storageStatus(localSaved?'Две копии сохранены':'Резервная копия сохранена')).catch(()=>{if(localSaved)storageStatus('Основная копия сохранена');else{storageStatus('Не удалось сохранить','error');setTimeout(()=>toast('Ошибка сохранения. Скачай резервную копию.'),0)}})}
+function save(){const result=persistLocal();window.SeverApp?.onLocalSave?.();return result}
+async function recoverLatestState(){try{const backup=await readStorageBackup();if(backup&&Number(backup._savedAt)>Number(state._savedAt||0)){state=migrate(backup);try{localStorage.setItem(storageKey,JSON.stringify(state))}catch{}toast('Данные восстановлены из резервной копии')}}catch{} }
 let toastTimer=null,undoAction=null;
 function toast(text,undo=null){const root=$('#toast');root.textContent='';const label=document.createElement('span');label.textContent=text;root.appendChild(label);undoAction=undo;if(undo){const button=document.createElement('button');button.type='button';button.textContent='Отменить';button.onclick=()=>{const action=undoAction;undoAction=null;clearTimeout(toastTimer);root.classList.remove('show');action?.()};root.appendChild(button)}root.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>{undoAction=null;root.classList.remove('show')},undo?5000:2200)}
 function saveAndRender(){save();render()}
@@ -126,7 +128,7 @@ $('#timerToggle').onclick=()=>timerRunning?pauseTimer():startTimer();$('#timerRe
 $('#completeTimerTask').onclick=()=>{const task=state.tasks.find(item=>item.id===activeTaskId);if(!task){clearActiveTask();return}if(timerRunning)pauseTimer();clearActiveTask();completeTask(task,{returnToToday:true})};
 $('#cancelTimerTask').onclick=()=>{if(timerRunning)pauseTimer();clearActiveTask();timerLeft=timerMinutes*60;timerEnd=0;saveTimerState();renderTimer();toast('Фокус отменён — задача осталась в плане')};
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;$('#installBtn').classList.remove('hidden')});$('#installBtn').onclick=async()=>{if(deferredInstall){deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;$('#installBtn').classList.add('hidden')}};if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
-window.addEventListener('pagehide',()=>{trackFocusElapsed();try{state._savedAt=Date.now();localStorage.setItem(KEY,JSON.stringify(state))}catch{}});
+window.addEventListener('pagehide',()=>{trackFocusElapsed();try{state._savedAt=Date.now();localStorage.setItem(storageKey,JSON.stringify(state))}catch{}});
 async function initializeApp(){await recoverLatestState();rollover();render();renderSuggestions();$$('.timer-presets button').forEach(item=>item.classList.toggle('active',+item.dataset.minutes===timerMinutes));renderTimer();requestAnimationFrame(()=>updateNavIndicator());if(timerRunning)timerInterval=setInterval(timerTick,250);syncReminderUI();checkReminder();setInterval(checkReminder,30000);if(!state.onboarded){renderTour();$('#tourDialog').showModal()}await save()}
 initializeApp();
 function refreshToday(){const next=getLocalToday();if(next===TODAY)return TODAY;const previousMonth=monthStart(dateOf(TODAY));TODAY=next;const currentMonth=monthStart();if(sameMonth(cursor,previousMonth))cursor=currentMonth;if(sameMonth(progressCursor,previousMonth))progressCursor=currentMonth;return TODAY}
@@ -147,3 +149,55 @@ const migrateLegacyState=migrate;
 migrate=data=>{const migrated=migrateLegacyState(data);migrated.tasks=migrated.tasks.map(normalizeTaskHistory);migrated.version=9;return migrated};
 function taskElement(t){const el=document.createElement('article'),duration=t.duration?`${t.duration} мин`:'Без времени';el.className='task '+(t.completed?'done':'');el.innerHTML=`<button class="check" aria-label="${t.completed?'Вернуть задачу':'Выполнить задачу'}">${t.completed?'✓':''}</button><button class="task-open" type="button"><span class="task-name">${t.priority?'<span class="star">★</span>':''}</span><span class="task-meta">${duration} · ${escapeText(t.category)}</span></button><button class="edit" aria-label="Действия с задачей">•••</button>`;el.querySelector('.task-name').append(document.createTextNode(t.title));el.querySelector('.check').onclick=()=>{if(t.completed){t.completed=false;t.completedAt=null;saveAndRender();toast('Задача возвращена')}else completeTask(t)};el.querySelector('.task-open').onclick=()=>openTaskAction(t);el.querySelector('.edit').onclick=()=>openTaskAction(t);return el}
 $('#taskActionStart').onclick=()=>{const task=state.tasks.find(item=>item.id===taskActionId);$('#taskActionDialog').close();if(!task)return;if(task.completed){task.completed=false;task.completedAt=null;saveAndRender();toast('Задача возвращена')}else startLinkedTask(task)};
+/* Cloud sync adapter: every user mutation is already saved locally before this hook runs. */
+function refreshDesktopContext(){
+  const profileName=state.profile?.name?.trim()||'SEVER';
+  const profile=$('#localProfileName');if(profile)profile.textContent=profileName;
+  const month=$('#desktopMonthTitle'),calendar=$('#desktopCalendar');
+  if(month&&calendar){const year=dashboardCursor.getFullYear(),monthIndex=dashboardCursor.getMonth(),first=new Date(year,monthIndex,1),offset=(first.getDay()+6)%7;month.textContent=`${months[monthIndex]} ${year}`;calendar.innerHTML='';for(let index=0;index<42;index++){const date=new Date(year,monthIndex,index-offset+1),key=dayISO(date),items=state.tasks.filter(task=>task.date===key),button=document.createElement('button');button.type='button';button.className=(date.getMonth()===monthIndex?'':'dim ')+(key===TODAY?'today ':'')+(items.some(task=>task.completed)?'done ':'');button.textContent=date.getDate();button.title=items.length?`${pretty(key,false)}: ${items.length} задач` : pretty(key,false);button.onclick=()=>openDay(key);calendar.appendChild(button)}}
+  const habits=$('#desktopHabitSummary');if(habits){habits.innerHTML='';const visible=state.habits.slice(0,4);if(!visible.length)habits.innerHTML='<p>Добавьте привычку, чтобы видеть ритм дня.</p>';visible.forEach(habit=>{const done=Boolean(state.checks[habit.id]?.includes(TODAY)),row=document.createElement('button');row.type='button';row.className=done?'done':'';row.innerHTML=`<i>${done?'✓':''}</i><span></span>`;row.querySelector('span').textContent=habit.title;row.onclick=()=>switchView('habits');habits.appendChild(row)})}
+  const goal=$('#desktopGoalCard'),goalTitle=$('#desktopGoalTitle');if(goal&&goalTitle){const challenge=state.tasks.filter(task=>task.challenge);goal.classList.toggle('hidden',!challenge.length);if(challenge.length){const completed=challenge.filter(task=>task.completed).length,percent=Math.round(completed/challenge.length*100);goalTitle.textContent=state.challengeName||challenge[0].category;$('#desktopGoalProgress').style.width=`${percent}%`;$('#desktopGoalMeta').textContent=`${completed} из ${challenge.length} шагов · ${percent}%`}}
+}
+const appRender=render;
+render=function(){appRender();refreshDesktopContext()};
+function switchStorageScope(userId,localFallback=null){
+  const nextKey=userId?`sever-cloud-state-v1:${userId}`:ANONYMOUS_KEY;
+  const existing=userId?localStorage.getItem(nextKey):null;
+  storageKey=nextKey;
+  state=existing?readState(storageKey):migrate(localFallback||freshState());
+
+  activeTaskId='';localStorage.removeItem('sever-active-task');
+  return state;
+}
+function updateCloudStatus(status,user=null){
+  const label=$('#cloudStatus'),email=$('#accountEmail'),button=$('#localProfileBtn');
+  const messages={local:'Локально',offline:'Офлайн · изменения сохраняются',pending:'Ожидает синхронизации',syncing:'Синхронизация…',synced:'✓ Синхронизировано','signed-out':'Войдите для синхронизации',migration:'Нужен выбор данных'};
+  if(label)label.textContent=messages[status]||messages.local;if(settingsLabel)settingsLabel.textContent=messages[status]||messages.local;
+  if(email)email.textContent=user?.email||'Данные только на этом устройстве';
+  if(button)button.dataset.cloudStatus=status;
+}
+function openLocalProfile(){const dialog=$('#localProfileDialog');$('#localProfileInput').value=state.profile?.name||'';updateCloudStatus(window.SeverCloud?.status||'local',window.SeverCloud?.user);dialog.showModal()}
+$('#localProfileBtn')?.addEventListener('click',openLocalProfile);
+$('#localProfileForm')?.addEventListener('submit',event=>{event.preventDefault();state.profile={...(state.profile||{}),name:$('#localProfileInput').value.trim()};save();render();$('#localProfileDialog').close();toast('Профиль сохранён')});
+$('#openLocalBackup')?.addEventListener('click',()=>{$('#localProfileDialog').close();$('#moreDialog').showModal()});
+$$('.side-nav button').forEach(button=>button.addEventListener('click',()=>switchView(button.dataset.view)));
+$$('[data-quick-action]').forEach(button=>button.addEventListener('click',()=>{const action=button.dataset.quickAction;if(action==='task')openTask();else if(action==='note'){switchView('notes');openNote()}else{switchView('timer');startTimer()}}));
+$('#desktopOpenCalendar')?.addEventListener('click',()=>switchView('calendar'));$('#desktopOpenHabits')?.addEventListener('click',()=>switchView('habits'));$('#desktopOpenProgress')?.addEventListener('click',()=>switchView('progress'));
+const baseSwitchView=switchView;
+switchView=function(name){baseSwitchView(name);$$('.app-nav button').forEach(button=>{const active=button.dataset.view===name;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current')})};
+let focusStartedAt=0;
+const baseStartTimer=startTimer;
+startTimer=function(){if(!timerRunning)focusStartedAt=Date.now();return baseStartTimer()};
+const baseTimerTick=timerTick;
+timerTick=function(){const linkedTaskId=activeTaskId,finished=timerRunning&&timerEnd>0&&Date.now()>=timerEnd;baseTimerTick();if(finished){state.focusSessions??=[];state.focusSessions.push({id:uid(),taskId:linkedTaskId||null,durationMinutes:timerMinutes,startedAt:focusStartedAt||Date.now()-timerMinutes*60000,completedAt:Date.now(),status:'completed',createdAt:Date.now(),updatedAt:Date.now()});focusStartedAt=0;save();renderProgress()}};
+window.SeverApp={
+  getState:()=>state,
+  freshState:()=>migrate(freshState()),
+  replaceState:async next=>{state=migrate(next);await persistLocal();render();renderSuggestions()},
+  persist:()=>persistLocal(),
+  switchStorageScope,
+  getLegacyStateFor:userId=>{const owner=localStorage.getItem(LEGACY_OWNER_KEY);if(owner&&owner!==userId)return freshState();localStorage.setItem(LEGACY_OWNER_KEY,userId);return readState(KEY)},
+  render:()=>{render();renderSuggestions()},
+  setCloudStatus:updateCloudStatus,
+  onLocalSave:null
+};

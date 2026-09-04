@@ -42,3 +42,14 @@ index.html         existing installable offline PWA
 - User data must move to server-side identity before cross-device sync or AI actions.
 - Recurrence, DST and external calendar sync require a dedicated calendar domain model, not date strings.
 - An LLM must never receive database credentials or be allowed to issue SQL.
+## Cloud sync v1
+
+```
+UI action → localStorage + IndexedDB → user-scoped queue → Supabase Auth + RLS → PostgreSQL
+```
+
+The static PWA talks directly to Supabase only with its public browser key. It has no service-role credential and keeps no database password. `js/cloud-runtime.js` is responsible for auth lifecycle, initial migration, retry and realtime subscription; `js/sync-core.mjs` contains pure projection/merge helpers. UI code stays in `app.js`, and all normal actions are optimistic.
+
+The data source of truth is primary records: tasks, habits + habit entries, folders, notes, encrypted note ciphertext and completed focus sessions. Progress is calculated from them. Remote deletes are soft tombstones, conflict resolution is last-write-wins by `updated_at`, and the SQL trigger rejects a stale offline retry.
+
+Local browser stores are scoped as `sever-cloud-state-v1:<user-id>` after sign-in. Legacy `sever-data-v2` data is retained only long enough for an explicit initial migration; logout switches to a fresh anonymous state, not the last account cache.

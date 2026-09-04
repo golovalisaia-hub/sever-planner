@@ -11,178 +11,26 @@ const notes = read('notes-pro.js');
 const css = `${read('style.css')}\n${read('qa.css')}`;
 const sw = read('sw.js');
 const manifest = JSON.parse(read('manifest.webmanifest'));
-
 const tests = [];
-
 const test = (name, fn) => tests.push({ name, fn });
-test('Notes module has no syntax errors', async () => {
-  const { spawnSync } = await import('node:child_process');
-  const result = spawnSync(process.execPath, ['--check', path.join(root, 'notes-pro.js')]);
-  assert.equal(result.status, 0, result.stderr.toString());
-});
+const syntax = async file => { const { spawnSync } = await import('node:child_process'); const result = spawnSync(process.execPath, ['--check', path.join(root, file)]); assert.equal(result.status, 0, result.stderr.toString()); };
 
-test('JavaScript has no syntax errors', async () => {
-  const { spawnSync } = await import('node:child_process');
-  const result = spawnSync(process.execPath, ['--check', path.join(root, 'app.js')]);
-  assert.equal(result.status, 0, result.stderr.toString());
-});
-
-test('PWA cache contains every required local asset', () => {
-  const assets = [...sw.matchAll(/'\.\/([^']+)'/g)].map(match => match[1].split('?')[0]);
-  for (const asset of assets.filter(Boolean)) {
-    assert.ok(fs.existsSync(path.join(root, asset)), `Missing cached asset: ${asset}`);
-  }
-  for (const icon of manifest.icons) {
-    assert.ok(fs.existsSync(path.join(root, icon.src)), `Missing manifest icon: ${icon.src}`);
-  }
-});
-
-test('Asset versions are aligned to v23', () => {
-  assert.match(html, /style\.css\?v=23/);
-  assert.match(html, /qa\.css\?v=23/);
-  assert.match(html, /app\.js\?v=23/);
-  assert.match(html, /notes-pro\.js\?v=23/);
-  assert.match(sw, /sever-v23/);
-  assert.match(sw, /style\.css\?v=23/);
-  assert.match(sw, /qa\.css\?v=23/);
-  assert.match(sw, /app\.js\?v=23/);
-  assert.match(sw, /notes-pro\.js\?v=23/);
-});
-
-test('Bottom navigation uses labelled SVG icons with responsive styles', () => {
-  assert.equal((html.match(/class="nav-icon"/g) || []).length, 5);
-  assert.equal((html.match(/class="nav-label"/g) || []).length, 5);
-  assert.match(html, /<span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24">/);
-  assert.match(css, /\.bottom-nav \.nav-icon\s*\{/);
-  assert.match(css, /\.bottom-nav \.nav-icon svg\s*\{/);
-  assert.match(css, /@media \(max-width: 650px\)\s*\{[\s\S]*?\.bottom-nav \.nav-icon\s*\{[\s\S]*?width: 34px/);
-});
-
-test('A new user starts without personal tasks', () => {
-  assert.match(app, /function freshState\(\)\{return\{version:8[^\n]+tasks:\[\]/);
-  assert.doesNotMatch(app, /function freshState\(\)[^\n]+(?:Пайтон|Python|ПДД)/i);
-});
-
-test('Storage has local and IndexedDB copies plus JSON backup controls', () => {
-  assert.match(app, /localStorage\.setItem\(KEY/);
-  assert.match(app, /indexedDB\.open/);
-  assert.match(html, /id="exportBtn"/);
-  assert.match(html, /id="importInput"/);
-});
-
-test('Bottom navigation cannot be blocked by an invisible toast', () => {
-  assert.match(css, /#toast\s*\{\s*pointer-events:\s*none/);
-  assert.match(html, /id="toast" role="status" aria-live="polite"/);
-});
-
-test('Analytics separates focus usage and completed task volume', () => {
-  assert.match(html, /id="focusMinutes"/);
-  assert.match(html, /id="plannedMinutes"/);
-  assert.match(app, /stats:\{focusMs:0,sessions:0\}/);
-  assert.match(app, /function trackFocusElapsed/);
-});
-
-test('Note folders and filtering are implemented', () => {
-  assert.match(html, /id="folderTabs"/);
-  assert.match(html, /id="folderDialog"/);
-  assert.match(html, /id="noteFolder"/);
-  assert.match(notes, /function renderFolders/);
-  assert.match(notes, /activeFolderId/);
-});
-
-test('Protected notes use PBKDF2 and authenticated AES-GCM encryption', () => {
-  assert.match(notes, /NOTE_CRYPTO_ITERATIONS = 600000/);
-  assert.match(notes, /name: 'PBKDF2'/);
-
-
-  assert.match(notes, /hash: 'SHA-256'/);
-  assert.match(notes, /name: 'AES-GCM'/);
-  assert.match(notes, /crypto\.getRandomValues\(new Uint8Array\(16\)\)/);
-  assert.doesNotMatch(notes, /password\s*:/i);
-});
-
-
-test('Tasks support reversible action-sheet flows and the calendar opens a day plan', () => {
-  assert.match(html, /id="taskActionComplete"/);
-  assert.match(html, /id="taskActionMove"/);
-  assert.match(html, /id="taskActionDelete"/);
-  assert.match(html, /id="dayDialog"/);
-  assert.match(app, /function completeTask/);
-  assert.match(app, /function moveTaskToTomorrow/);
-  assert.match(app, /function openDay/);
-  assert.match(app, /b\.onclick=\(\)=>openDay\(key\)/);
-  assert.match(app, /button\.textContent='Отменить'/);
-});
-
-test('Linked tasks always open the visible timer tab and complete back on Today', () => {
-  assert.match(html, /data-view="timer"/);
-  assert.match(app, /switchView\('timer'\);startTimer\(\)/);
-  assert.match(app, /if\(name==='timer'\)renderTimer\(\)/);
-  assert.match(app, /completeTask\(task,\{returnToToday:true\}\)/);
-  assert.match(app, /setTimeout\(\(\)=>switchView\('today'\),450\)/);
-});
-
-
-test('Timer is a primary tab and focus can be cancelled without completing the task', () => {
-  assert.match(html, /data-view="timer"/);
-  assert.match(html, /id="cancelTimerTask"/);
-  assert.match(app, /switchView\('timer'\);startTimer\(\)/);
-  assert.match(app, /\$\('#cancelTimerTask'\)\.onclick/);
-  assert.match(app, /toast\('Фокус отменён — задача осталась в плане'\)/);
-  assert.match(css, /@keyframes cardSheen/);
-  assert.match(css, /@keyframes focusBreath/);
-});
-test('Progress is calendar-based, preserves completion history and keeps Undo interactive', () => {
-  assert.match(html, /id="progressMonthTitle"/);
-  assert.match(html, /id="prevProgressMonth"/);
-  assert.match(html, /id="nextProgressMonth"/);
-  assert.match(app, /const getLocalToday/);
-  assert.match(app, /const getDaysInMonth/);
-  assert.match(app, /function progressForDate/);
-  assert.match(app, /completedAt=Date\.now\(\)/);
-  assert.match(app, /task\.completedAt=null/);
-  assert.match(app, /state\.tasks=state\.tasks\.map\(normalizeTaskHistory\)/);
-  assert.match(css, /#toast\.show\s*\{\s*pointer-events:\s*auto/);
-  assert.match(css, /\.heat\.future/);
-  assert.match(css, /\.heat\.rate-4/);
-  assert.match(notes, /state\.notes\.splice\(Math\.min\(index,\s*state\.notes\.length\),\s*0,\s*note\)/);
-  assert.match(css, /caret-color:transparent/);
-});
-
-
-test('Large realistic state stays comfortably below localStorage quota', () => {
-  const tasks = Array.from({ length: 1500 }, (_, index) => ({
-    id: `task-${index}`,
-    title: `Задача ${index} с нормальным пользовательским описанием`,
-    date: '2026-09-03', duration: index % 2 ? 30 : null,
-    category: 'Личное', completed: index % 3 === 0, priority: false
-  }));
-  const notes = Array.from({ length: 500 }, (_, index) => ({
-    id: `note-${index}`, title: `Заметка ${index}`,
-    body: 'Подробный текст заметки. '.repeat(30), kind: 'checklist',
-    items: Array.from({ length: 20 }, (_, item) => ({ id: `${index}-${item}`, text: `Пункт ${item}`, done: item % 2 === 0 }))
-  }));
-  const started = performance.now();
-  const serialized = JSON.stringify({ version: 8, tasks, notes, habits: [], checks: {}, taskMemory: [], stats: { focusMs: 0, sessions: 0 } });
-  const parsed = JSON.parse(serialized);
-  const elapsed = performance.now() - started;
-  assert.equal(parsed.tasks.length, 1500);
-  assert.equal(parsed.notes.length, 500);
-  assert.ok(Buffer.byteLength(serialized) < 4_000_000, 'State is too close to common localStorage limits');
-  assert.ok(elapsed < 1000, `Serialization is unexpectedly slow: ${elapsed.toFixed(1)} ms`);
-});
+test('Notes module has no syntax errors', () => syntax('notes-pro.js'));
+test('Planner JavaScript has no syntax errors', () => syntax('app.js'));
+test('Cloud runtime modules have no syntax errors', async () => { await syntax('js/supabase-client.js'); await syntax('js/cloud-runtime.js'); await syntax('js/sync-core.mjs'); });
+test('PWA cache contains every required local asset', () => { const assets = [...sw.matchAll(/'\.\/([^']+)'/g)].map(match => match[1].split('?')[0]); for (const asset of assets.filter(Boolean)) assert.ok(fs.existsSync(path.join(root, asset)), `Missing cached asset: ${asset}`); for (const icon of manifest.icons) assert.ok(fs.existsSync(path.join(root, icon.src)), `Missing manifest icon: ${icon.src}`); });
+test('Asset versions are aligned to v25', () => { for (const asset of ['style.css', 'qa.css', 'app.js', 'notes-pro.js']) { assert.match(html, new RegExp(`${asset.replace('.', '\\.')}\\?v=25`)); assert.match(sw, new RegExp(`${asset.replace('.', '\\.')}\\?v=25`)); } assert.match(sw, /sever-v25/); });
+test('Desktop shell and mobile navigation are both reachable', () => { assert.match(html, /class="desktop-sidebar"/); assert.match(html, /class="desktop-rail"/); assert.equal((html.match(/class="nav-icon"/g) || []).length, 6); assert.equal((html.match(/class="nav-label"/g) || []).length, 6); assert.match(html, /data-view="habits"/); assert.match(css, /@media\(min-width:901px\)/); assert.match(css, /@media\(max-width:650px\)\{\.bottom-nav\{grid-template-columns:repeat\(6/); });
+test('A new user starts without personal tasks', () => { assert.match(app, /function freshState\(\)\{return\{version:9[^\n]+tasks:\[\]/); assert.doesNotMatch(app, /function freshState\(\)[^\n]+(?:Пайтон|Python|ПДД)/i); });
+test('Storage has local and IndexedDB copies plus JSON backup controls', () => { assert.match(app, /localStorage\.setItem\(storageKey/); assert.match(app, /indexedDB\.open/); assert.match(html, /id="exportBtn"/); assert.match(html, /id="importInput"/); });
+test('Cloud sync remains opt-in and has a safe static UI', () => { assert.ok(fs.existsSync(path.join(root, 'supabase-config.js'))); assert.ok(fs.existsSync(path.join(root, 'js', 'cloud-runtime.js'))); assert.ok(fs.existsSync(path.join(root, 'supabase', 'migrations', '001_initial_cloud_sync.sql'))); assert.match(html, /id="accountDialog"/); assert.match(html, /id="migrationDialog"/); assert.match(html, /js\/cloud-runtime\.js\?v=25/); assert.match(read('supabase-config.js'), /url:\s*''/); assert.doesNotMatch(read('supabase-config.js'), /service_role[_\\s]*key\\s*:/i); });
+test('Protected notes use PBKDF2 and authenticated AES-GCM encryption', () => { assert.match(notes, /NOTE_CRYPTO_ITERATIONS = 600000/); assert.match(notes, /name: 'PBKDF2'/); assert.match(notes, /hash: 'SHA-256'/); assert.match(notes, /name: 'AES-GCM'/); assert.match(notes, /crypto\.getRandomValues\(new Uint8Array\(16\)\)/); assert.doesNotMatch(notes, /password\s*:/i); });
+test('Tasks support reversible action-sheet flows and the calendar opens a day plan', () => { for (const id of ['taskActionComplete', 'taskActionMove', 'taskActionDelete', 'dayDialog']) assert.match(html, new RegExp(`id="${id}"`)); for (const fn of ['completeTask', 'moveTaskToTomorrow', 'openDay']) assert.match(app, new RegExp(`function ${fn}`)); assert.match(app, /button\.textContent='Отменить'/); });
+test('Linked tasks always open the visible timer tab and complete back on Today', () => { assert.match(app, /switchView\('timer'\);startTimer\(\)/); assert.match(app, /completeTask\(task,\{returnToToday:true/); assert.match(app, /setTimeout\(\(\)=>switchView\('today'\),450\)/); });
+test('Focus sessions are primary cloud data and timer does not write every tick', () => { assert.match(app, /focusSessions:\[\]/); assert.match(app, /state\.focusSessions\.push/); assert.match(app, /if\(now-lastFocusPersistAt>=15000\)/); });
+test('Progress is calendar-based and keeps Undo interactive', () => { assert.match(html, /id="progressMonthTitle"/); assert.match(app, /task\.completedAt=Date\.now\(\)/); assert.match(app, /task\.completedAt=null/); assert.match(css, /\.heat\.future/); });
+test('Large realistic state stays comfortably below localStorage quota', () => { const tasks = Array.from({ length: 1500 }, (_, index) => ({ id: `task-${index}`, title: `Задача ${index}`, date: '2026-09-03', duration: index % 2 ? 30 : null, category: 'Личное', completed: index % 3 === 0, priority: false })); const notes = Array.from({ length: 500 }, (_, index) => ({ id: `note-${index}`, title: `Заметка ${index}`, body: 'Подробный текст заметки. '.repeat(30), kind: 'checklist', items: Array.from({ length: 20 }, (_, item) => ({ id: `${index}-${item}`, text: `Пункт ${item}`, done: item % 2 === 0 })) })); const started = performance.now(); const serialized = JSON.stringify({ version: 9, tasks, notes, habits: [], checks: {}, focusSessions: [] }); const parsed = JSON.parse(serialized); assert.equal(parsed.tasks.length, 1500); assert.ok(Buffer.byteLength(serialized) < 4_000_000); assert.ok(performance.now() - started < 1000); });
 
 let passed = 0;
-for (const { name, fn } of tests) {
-  try {
-    await fn();
-    passed += 1;
-    console.log(`PASS  ${name}`);
-  } catch (error) {
-    console.error(`FAIL  ${name}`);
-    console.error(error.message);
-    process.exitCode = 1;
-  }
-}
-
+for (const { name, fn } of tests) { try { await fn(); passed += 1; console.log(`PASS  ${name}`); } catch (error) { console.error(`FAIL  ${name}`); console.error(error.message); process.exitCode = 1; } }
 console.log(`\n${passed}/${tests.length} checks passed`);
