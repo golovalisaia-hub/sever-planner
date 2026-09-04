@@ -1,4 +1,4 @@
-import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState } from './sync-core.mjs?v=32';
+import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState } from './sync-core.mjs?v=33';
 
 const QUEUE_PREFIX = 'sever-cloud-queue-v2';
 const MARKER_PREFIX = 'sever-cloud-migration-v2';
@@ -84,7 +84,7 @@ class SeverCloud {
   }
 
   async start() {
-    if (!this.configured) { this.setStatus('local'); return; }
+    if (!this.configured) { this.setStatus('local'); window.SeverCloudReady = true; window.dispatchEvent(new Event('sever:cloud-ready')); return; }
     try {
       const client = await this.client();
       const { data: { session } } = await client.auth.getSession();
@@ -104,6 +104,8 @@ class SeverCloud {
     window.addEventListener('online', () => this.restoreSession());
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') this.restoreSession(); });
     this.poller ||= window.setInterval(() => { if (document.visibilityState === 'visible') this.pull(); }, 30000);
+    window.SeverCloudReady = true;
+    window.dispatchEvent(new Event('sever:cloud-ready'));
   }
 
   async restoreSession() {

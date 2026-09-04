@@ -115,15 +115,88 @@ $('#moreBtn').onclick=()=>{syncReminderUI();$('#moreDialog').showModal()};$('#no
 function beginCourse(goals,days,minutes){const tasks=[];for(let i=0;i<days;i++)goals.forEach(goal=>tasks.push({id:uid(),title:goal,date:addDays(TODAY,i),duration:minutes,category:goal,challenge:true,completed:false,priority:true}));state={version:8,onboarded:true,challengeStart:TODAY,challengeDays:days,challengeName:goals.join(' + '),tasks,notes:[],habits:[],checks:{},taskMemory:goals.map(title=>({key:title.toLocaleLowerCase('ru-RU'),title,uses:1,lastUsed:Date.now()})),stats:{focusMs:0,sessions:0},reminders:{enabled:false,time:'19:00',lastDate:''}};save();renderSuggestions();render();$('#welcomeDialog').close();toast('Цель создана')}
 $('#welcomeForm').onsubmit=e=>{e.preventDefault();const goals=[$('#goalOne').value.trim(),$('#goalTwo').value.trim()].filter(Boolean),days=Math.max(1,Math.min(365,+$('#challengeDays').value)),minutes=Math.max(5,Math.min(600,+$('#challengeMinutes').value));beginCourse(goals,days,minutes)};$('#startEmpty').onclick=()=>{state.onboarded=true;save();render();$('#welcomeDialog').close();toast('Планер готов')};
 const tourSlides=[
-  {title:'Добро пожаловать в SEVER',text:'Личный планер, который помогает выбрать направление и двигаться небольшими шагами.'},
-  {title:'Добавляй задачи быстро',text:'Нажми «+» или напиши обычной фразой. Время можно выбрать или оставить задачу без времени.'},
-  {title:'Заметка или чек-лист',text:'Сохраняй обычный текст или добавляй дела с галочками. Для чек-листа прогресс посчитается сам.'},
-  {title:'Работай в своём темпе',text:'Запускай отдельный фокус-таймер, отмечай привычки и наблюдай за общим прогрессом.'}
+  { title: 'Добро пожаловать в Север', text: 'Планируй день, следи за задачами и сохраняй всё важное в одном месте.', view: 'today', target: null },
+  { title: 'Сегодня', text: 'Здесь находятся задачи на текущий день. Отмечай выполненные дела — прогресс обновится автоматически.', view: 'today', target: 'today' },
+  { title: 'Создавай быстро', text: 'На экране «Сегодня» нажатие + открывает создание новой задачи. Остальные действия доступны там, где они нужны.', view: 'today', target: 'create' },
+  { title: 'Сфокусируйся', text: 'Запусти таймер прямо из задачи. Когда связанная сессия закончится, Север отметит задачу выполненной.', view: 'timer', target: 'timer' },
+  { title: 'Всё готово', text: 'Добавь первое дело — дальше Север поможет держать спокойный и понятный темп.', view: 'today', target: null }
 ];
-let tourIndex=0;
-function renderTour(){const slide=tourSlides[tourIndex];$('#tourStep').textContent=`${tourIndex+1} ИЗ ${tourSlides.length}`;$('#tourTitle').textContent=slide.title;$('#tourText').textContent=slide.text;$('#tourVisual').dataset.step=tourIndex;$('#tourBack').disabled=tourIndex===0;$('#tourNext').textContent=tourIndex===tourSlides.length-1?'Настроить SEVER':'Далее';$('#tourDots').innerHTML=tourSlides.map((_,i)=>`<i class="${i===tourIndex?'active':''}"></i>`).join('');const copy=$('.tour-copy');copy.style.animation='none';requestAnimationFrame(()=>{copy.style.animation=''})}
-function finishTour(){state.tourSeen=true;save();$('#tourDialog').close();$('#welcomeDialog').showModal()}
-$('#tourNext').onclick=()=>{if(tourIndex<tourSlides.length-1){tourIndex++;renderTour()}else finishTour()};$('#tourBack').onclick=()=>{if(tourIndex>0){tourIndex--;renderTour()}};$('#tourSkip').onclick=finishTour;
+let tourIndex=0,guideManual=false,guideReturnFocus=null,guideAutomaticPending=false,guideCloudReady=false,guideShown=false;
+const guideReducedMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const guideIsPhone=()=>window.matchMedia?.('(max-width: 900px)').matches;
+function guideTargetFor(slide){
+  if(!slide.target)return null;
+  if(slide.target==='today')return document.querySelector(guideIsPhone()?'.bottom-nav button[data-view="today"]':'.side-nav button[data-view="today"]');
+  if(slide.target==='create')return document.querySelector(guideIsPhone()?'#mobileHeaderAction':'#globalAddBtn');
+  if(slide.target==='timer')return document.querySelector(guideIsPhone()?'.bottom-nav button[data-view="timer"]':'.side-nav button[data-view="timer"]');
+  return null;
+}
+function positionGuideTarget(){
+  const dialog=$('#tourDialog'),spot=$('#guideSpotlight'),target=guideTargetFor(tourSlides[tourIndex]);
+  if(!dialog?.open||!spot)return;
+  if(!target||target.classList.contains('hidden')){dialog.dataset.hasTarget='false';return}
+  target.scrollIntoView({block:'nearest',inline:'nearest',behavior:guideReducedMotion()?'auto':'smooth'});
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const rect=target.getBoundingClientRect(),gap=6;
+    spot.style.left=`${Math.max(0,rect.left-gap)}px`;
+    spot.style.top=`${Math.max(0,rect.top-gap)}px`;
+    spot.style.width=`${Math.min(window.innerWidth,rect.width+gap*2)}px`;
+    spot.style.height=`${Math.min(window.innerHeight,rect.height+gap*2)}px`;
+    spot.style.borderRadius=getComputedStyle(target).borderRadius||'15px';
+    dialog.dataset.hasTarget='true';
+  }));
+}
+function renderTour(){
+  const slide=tourSlides[tourIndex],dialog=$('#tourDialog'),copy=$('#guideCopy');
+  if(slide.view)switchView(slide.view);
+  $('#tourTitle').textContent=slide.title;
+  $('#tourText').textContent=slide.text;
+  $('#tourBack').disabled=tourIndex===0;
+  $('#tourNext').textContent=tourIndex===tourSlides.length-1?'Начать':'Далее';
+  $('#tourSkip').textContent=guideManual?'Закрыть':'Пропустить';
+  $('#tourDots').innerHTML=tourSlides.map((_,index)=>`<i class="${index===tourIndex?'active':''}" aria-hidden="true"></i>`).join('');
+  dialog.dataset.step=String(tourIndex+1);
+  copy?.classList.add('is-changing');
+  requestAnimationFrame(()=>copy?.classList.remove('is-changing'));
+  positionGuideTarget();
+}
+function closeGuide({complete=false}={}){
+  const dialog=$('#tourDialog');
+  if(!dialog?.open)return;
+  const shouldPersist=complete&&!guideManual;
+  if(shouldPersist){state.onboarded=true;state.tourSeen=true;save()}
+  dialog.close();
+  dialog.dataset.hasTarget='false';
+  if(complete)switchView('today');
+  const returnFocus=guideReturnFocus;
+  guideReturnFocus=null;
+  if(returnFocus?.isConnected)setTimeout(()=>returnFocus.focus({preventScroll:true}),0);
+}
+function startGuide({manual=false}={}){
+  const dialog=$('#tourDialog');
+  if(!dialog||dialog.open)return;
+  guideManual=Boolean(manual);
+  guideReturnFocus=document.activeElement instanceof HTMLElement?document.activeElement:null;
+  $('#moreDialog')?.close();
+  $('#mobileMenuSheet')?.close();
+  tourIndex=0;
+  dialog.showModal();
+  renderTour();
+  requestAnimationFrame(()=>$('#tourNext')?.focus({preventScroll:true}));
+}
+function maybeStartAutomaticGuide(){
+  if(!guideCloudReady||!guideAutomaticPending||guideShown||state.onboarded)return;
+  guideShown=true;
+  requestAnimationFrame(()=>startGuide());
+}
+$('#tourNext').onclick=()=>{if(tourIndex<tourSlides.length-1){tourIndex+=1;renderTour()}else closeGuide({complete:true})};
+$('#tourBack').onclick=()=>{if(tourIndex>0){tourIndex-=1;renderTour()}};
+$('#tourSkip').onclick=()=>closeGuide({complete:!guideManual});
+$('#tourDialog').addEventListener('cancel',event=>{event.preventDefault();closeGuide({complete:!guideManual})});
+window.addEventListener('resize',()=>{if($('#tourDialog')?.open)positionGuideTarget()},{passive:true});
+window.addEventListener('scroll',()=>{if($('#tourDialog')?.open)positionGuideTarget()},{passive:true});
+window.addEventListener('sever:cloud-ready',()=>{guideCloudReady=true;maybeStartAutomaticGuide()});
+$('#openGuideFromMore')?.addEventListener('click',()=>startGuide({manual:true}));
 function readTimerState(){try{return JSON.parse(localStorage.getItem('sever-timer-state'))||{}}catch{return{}}}
 const savedTimer=readTimerState();
 let activeTaskId=localStorage.getItem('sever-active-task')||'';
@@ -143,7 +216,7 @@ $('#completeTimerTask').onclick=()=>{const task=state.tasks.find(item=>item.id==
 $('#cancelTimerTask').onclick=()=>{if(timerRunning)pauseTimer();clearActiveTask();timerLeft=timerMinutes*60;timerEnd=0;saveTimerState();renderTimer();toast('Фокус отменён — задача осталась в плане')};
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;$('#installBtn').classList.remove('hidden')});$('#installBtn').onclick=async()=>{if(deferredInstall){deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;$('#installBtn').classList.add('hidden')}};if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
 window.addEventListener('pagehide',()=>{trackFocusElapsed();try{state._savedAt=Date.now();localStorage.setItem(storageKey,JSON.stringify(state))}catch{}});
-async function initializeApp(){await recoverLatestState();rollover();render();renderSuggestions();$$('.timer-presets button').forEach(item=>item.classList.toggle('active',+item.dataset.minutes===timerMinutes));renderTimer();requestAnimationFrame(()=>updateNavIndicator());if(timerRunning)timerInterval=setInterval(timerTick,250);syncReminderUI();checkReminder();setInterval(checkReminder,30000);if(!state.onboarded){renderTour();$('#tourDialog').showModal()}await save()}
+async function initializeApp(){await recoverLatestState();rollover();render();renderSuggestions();$$('.timer-presets button').forEach(item=>item.classList.toggle('active',+item.dataset.minutes===timerMinutes));renderTimer();requestAnimationFrame(()=>updateNavIndicator());if(timerRunning)timerInterval=setInterval(timerTick,250);syncReminderUI();checkReminder();setInterval(checkReminder,30000);guideAutomaticPending=!state.onboarded;await save();guideCloudReady=Boolean(window.SeverCloudReady);maybeStartAutomaticGuide()}
 initializeApp();
 window.dispatchEvent(new Event('sever:ready'));
 function refreshToday(){const next=getLocalToday();if(next===TODAY)return TODAY;const previousMonth=monthStart(dateOf(TODAY));TODAY=next;const currentMonth=monthStart();if(sameMonth(cursor,previousMonth))cursor=currentMonth;if(sameMonth(progressCursor,previousMonth))progressCursor=currentMonth;return TODAY}
@@ -217,5 +290,6 @@ window.SeverApp={
   setCloudStatus:updateCloudStatus,
   resetPlanner,
   switchView,
+  startGuide,
   onLocalSave:null
 };

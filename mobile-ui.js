@@ -97,6 +97,7 @@
     $('#settingsNotificationToggle').onchange = event => { const source = $('#notificationToggle'); if (source) { source.checked = event.target.checked; source.dispatchEvent(new Event('change', { bubbles: true })); } };
     $('#settingsNotificationTime').onchange = event => { const source = $('#notificationTime'); if (source) { source.value = event.target.value; source.dispatchEvent(new Event('change', { bubbles: true })); } };
     $('#settingsTestNotification').onclick = () => $('#testNotification')?.click();
+$('#settingsGuide')?.addEventListener('click', () => window.SeverApp?.startGuide?.({ manual: true }));
     $('#settingsExport').onclick = () => $('#exportBtn')?.click();
     $('#settingsReset').onclick = requestReset;
     $('#confirmReset').onclick = async () => { closeDialog('resetConfirmDialog'); await window.SeverApp?.resetPlanner?.(); };
