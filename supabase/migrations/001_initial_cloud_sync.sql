@@ -104,6 +104,15 @@ alter table public.notes enable row level security;
 alter table public.focus_sessions enable row level security;
 alter table public.user_settings enable row level security;
 
+drop policy if exists "profiles are private" on public.profiles;
+drop policy if exists "tasks are private" on public.tasks;
+drop policy if exists "habits are private" on public.habits;
+drop policy if exists "habit entries are private" on public.habit_entries;
+drop policy if exists "folders are private" on public.note_folders;
+drop policy if exists "notes are private" on public.notes;
+drop policy if exists "focus sessions are private" on public.focus_sessions;
+drop policy if exists "settings are private" on public.user_settings;
+
 create policy "profiles are private" on public.profiles for all using (id = auth.uid()) with check (id = auth.uid());
 create policy "tasks are private" on public.tasks for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy "habits are private" on public.habits for all using (user_id = auth.uid()) with check (user_id = auth.uid());
@@ -146,6 +155,7 @@ begin
   end;
 end;
 $$;
+
 -- Last-write-wins guard: stale offline retries never overwrite a newer cloud edit or deletion.
 create or replace function public.sever_keep_newest_update()
 returns trigger
