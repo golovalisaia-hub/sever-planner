@@ -217,3 +217,48 @@ html[data-theme="light"] .mobile-wordmark, html[data-theme="light"] .desktop-sid
 .security-toggle > span { justify-content: flex-start; }
 .unlock-symbol svg { width: 31px; height: 31px; }
 .secure-lock svg { width: 24px; height: 24px; }
+/* Habit check-in: each day is an intentional, date-specific action. */
+.habit-list { align-items: start; }
+.habit { padding: 18px; border-color: var(--border-subtle); background: var(--surface-1); }
+.habit.done { border-color: var(--border-strong); }
+.habit-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.habit-card-head h3 { margin: 0 0 4px; }
+.habit-card-head .habit-status { margin: 0; color: var(--text-soft); font-size: .8rem; }
+.habit-week-total { display: grid; min-width: 38px; height: 27px; place-items: center; border: 1px solid var(--border-subtle); border-radius: 999px; color: var(--text-soft); font-size: .72rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+.habit-week { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 6px; margin-top: 17px; }
+.habit-week .habit-day { position: relative; display: grid; min-width: 0; height: 54px; min-height: 54px; align-content: center; justify-items: center; gap: 1px; padding: 4px 2px; border: 1px solid var(--border-strong); border-radius: 11px; background: transparent; color: var(--text-soft); cursor: pointer; }
+.habit-week .habit-day:hover:not(:disabled) { border-color: var(--text); background: var(--surface-3); color: var(--text); }
+.habit-week .habit-day span { font-size: .62rem; font-weight: 750; line-height: 1; }
+.habit-week .habit-day b { color: var(--text); font-size: .83rem; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.habit-week .habit-day i { position: absolute; top: 4px; right: 5px; color: var(--bg); font-size: .58rem; font-style: normal; font-weight: 900; }
+.habit.done .habit-week .habit-day { border-color: var(--border-strong); background: transparent; color: var(--text-soft); }
+.habit.done .habit-week .habit-day b { color: var(--text); }
+.habit.done .habit-week .habit-day.done { border-color: var(--text); background: var(--text); color: var(--bg); }
+.habit.done .habit-week .habit-day.done b { color: var(--bg); }
+.habit-week .habit-day.today { box-shadow: inset 0 0 0 1px var(--text); }
+.habit-week .habit-day.done { border-color: var(--text); background: var(--text); color: var(--bg); }
+.habit-week .habit-day.done b { color: var(--bg); }
+.habit-week .habit-day.done i { color: var(--bg); }
+.habit-week .habit-day:disabled { opacity: .35; cursor: not-allowed; }
+.habit .habit-help { margin: 12px 0 0; color: var(--muted); font-size: .71rem; }
+
+/* Compact desktop check-in uses the same action without navigating away. */
+.desktop-habit-summary .habit-week-row { display: grid; grid-template-columns: minmax(0,1fr); gap: 7px; width: 100%; padding: 1px 0; }
+.desktop-habit-summary .habit-week-title { display: block; width: 100%; overflow: hidden; padding: 0; border: 0; background: transparent; color: var(--text); font: 600 .8rem inherit; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.desktop-habit-summary .habit-week-title:hover { color: var(--text-soft); }
+.desktop-habit-summary .habit-week-markers { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+.desktop-habit-summary .habit-week-markers .habit-day { display: grid; width: 100%; aspect-ratio: 1; place-items: center; padding: 0; border: 1px solid var(--border-strong); border-radius: 50%; background: transparent; color: transparent; font-size: .53rem; font-weight: 800; cursor: pointer; }
+.desktop-habit-summary .habit-week-markers .habit-day::after { content: attr(data-day); color: var(--muted); font-size: .48rem; font-weight: 600; }
+.desktop-habit-summary .habit-week-markers .habit-day:hover:not(:disabled) { border-color: var(--text); background: var(--surface-3); }
+.desktop-habit-summary .habit-week-markers .habit-day.today { box-shadow: inset 0 0 0 1px var(--text); }
+.desktop-habit-summary .habit-week-markers .habit-day.done { border-color: var(--text); background: var(--text); color: var(--bg); }
+.desktop-habit-summary .habit-week-markers .habit-day.done::after { display: none; }
+.desktop-habit-summary .habit-week-markers .habit-day:disabled { opacity: .32; cursor: not-allowed; }
+
+@media (max-width: 650px) {
+  .habit { padding: 16px; }
+  .habit-week { gap: 5px; margin-top: 15px; }
+  .habit-week .habit-day { height: 48px; min-height: 48px; border-radius: 10px; }
+  .habit-week .habit-day span { font-size: .58rem; }
+  .habit-week .habit-day b { font-size: .76rem; }
+}
