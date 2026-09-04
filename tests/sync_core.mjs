@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { collectionsFor, diffCollections, mergeStates, prepareState, queueLatest, rowsToState } from '../js/sync-core.mjs';
+import { collectionsFor, diffCollections, focusStatsFor, mergeStates, prepareState, queueLatest, rowsToState } from '../js/sync-core.mjs';
 
 const base = () => ({ version: 9, tasks: [], habits: [], checks: {}, notes: [], folders: [], focusSessions: [], taskMemory: [], stats: { focusMs: 0, sessions: 0 }, reminders: {}, profile: {} });
 const tests = [];
@@ -50,9 +50,29 @@ test('tombstone wins over an older remote record', () => {
   const merged = mergeStates(local, remote);
   assert.equal(merged.tasks.length, 0); assert.ok(merged.syncMeta.tombstones['tasks:same']);
 });
+
 test('cloud rows restore completed task and encrypted note safely', () => {
   const restored = rowsToState(base(), { tasks: [{ id: 't', title: 'ПДД', scheduled_for: '2026-09-04', duration_minutes: 30, category: 'Учёба', priority: false, challenge: false, completed: true, completed_at: '2026-09-04T08:00:00Z', created_at: '2026-09-04T07:00:00Z', updated_at: '2026-09-04T08:00:00Z', deleted_at: null }], notes: [{ id: 'n', folder_id: null, title: '', body: '', kind: 'protected', items: [], done: false, protected: true, secure: { cipher: 'x' }, created_at: '2026-09-04T07:00:00Z', updated_at: '2026-09-04T08:00:00Z', deleted_at: null }] });
   assert.equal(restored.tasks[0].completed, true); assert.equal(restored.notes[0].protected, true); assert.equal(restored.notes[0].title, '');
+});
+
+test('focus statistics are derived from completed synced sessions', () => {
+  const stats = focusStatsFor([
+    { id: 'a', durationMinutes: 25, status: 'completed' },
+    { id: 'b', durationMinutes: 15, status: 'completed' },
+    { id: 'c', durationMinutes: 10, status: 'cancelled' }
+  ]);
+  assert.equal(stats.focusMs, 40 * 60000);
+  assert.equal(stats.sessions, 2);
+});
+
+test('cloud rows rebuild focus stats on another device', () => {
+  const restored = rowsToState(base(), { focus_sessions: [
+    { id: 'f1', task_id: null, duration_minutes: 25, started_at: null, completed_at: '2026-09-04T08:00:00Z', status: 'completed', created_at: '2026-09-04T07:30:00Z', updated_at: '2026-09-04T08:00:00Z', deleted_at: null },
+    { id: 'f2', task_id: null, duration_minutes: 30, started_at: null, completed_at: '2026-09-04T09:00:00Z', status: 'completed', created_at: '2026-09-04T08:30:00Z', updated_at: '2026-09-04T09:00:00Z', deleted_at: null }
+  ] });
+  assert.equal(restored.stats.focusMs, 55 * 60000);
+  assert.equal(restored.stats.sessions, 2);
 });
 
 test('prepareState timestamps changed records but leaves current focus history primary', () => {
