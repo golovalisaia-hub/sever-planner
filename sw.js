@@ -1,5 +1,5 @@
-const CACHE='sever-v25';
-const ASSETS=['./','./index.html','./style.css?v=25','./qa.css?v=25','./app.js?v=25','./notes-pro.js?v=25','./supabase-config.js?v=25','./js/supabase-client.js?v=25','./js/sync-core.mjs?v=25','./js/cloud-runtime.js?v=25','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
+const CACHE='sever-v26';
+const ASSETS=['./','./index.html','./style.css?v=26','./qa.css?v=26','./app.js?v=26','./notes-pro.js?v=26','./supabase-config.js?v=26','./js/supabase-client.js?v=26','./js/sync-core.mjs?v=26','./js/cloud-runtime.js?v=26','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
 
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
