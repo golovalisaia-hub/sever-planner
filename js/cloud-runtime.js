@@ -1,4 +1,4 @@
-import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState } from './sync-core.mjs?v=26';
+import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState } from './sync-core.mjs?v=27';
 
 const QUEUE_PREFIX = 'sever-cloud-queue-v2';
 const MARKER_PREFIX = 'sever-cloud-migration-v2';
@@ -12,6 +12,19 @@ const cloudTime = value => { const parsed = typeof value === 'number' ? value : 
 const keyFor = (prefix, userId) => `${prefix}:${userId}`;
 
 const operationTime = operation => Date.parse(operation.record?.updatedAt || operation.record?.deletedAt || '') || 0;
+const authRedirectUrl = () => new URL('./', window.location.href).href;
+const authMessage = reason => {
+  const source = String(reason?.message || reason || '').toLocaleLowerCase('ru-RU');
+  if (source.includes('invalid login credentials')) return 'Неверный email или пароль.';
+  if (source.includes('email not confirmed')) return 'Сначала подтвердите email по ссылке из письма.';
+  if (source.includes('user already registered') || source.includes('already been registered')) return 'Аккаунт с таким email уже существует. Переключитесь на вход.';
+  if (source.includes('password') && (source.includes('least') || source.includes('weak'))) return 'Пароль должен содержать минимум 8 символов.';
+  if (source.includes('valid email') || (source.includes('email address') && source.includes('invalid'))) return 'Проверьте правильность email.';
+  if (source.includes('signup') && source.includes('disabled')) return 'Регистрация временно отключена.';
+  if (source.includes('rate limit') || source.includes('too many')) return 'Слишком много попыток. Подождите немного и попробуйте снова.';
+  if (source.includes('fetch') || source.includes('network')) return 'Нет связи с сервером. Проверьте интернет и повторите попытку.';
+  return reason?.message || 'Не удалось связаться с сервером. Попробуйте ещё раз.';
+};
 
 function rowFor(collection, record, userId) {
   const base = { user_id: userId, updated_at: cloudTime(record.updatedAt), deleted_at: record.deletedAt ? cloudTime(record.deletedAt) : null };
@@ -187,7 +200,9 @@ class SeverCloud {
 
   async signIn(email, password, register) {
     const client = await this.client();
-    const result = register ? await client.auth.signUp({ email, password }) : await client.auth.signInWithPassword({ email, password });
+    const result = register
+      ? await client.auth.signUp({ email, password, options: { emailRedirectTo: authRedirectUrl() } })
+      : await client.auth.signInWithPassword({ email, password });
     if (result.error) throw result.error;
     if (register && !result.data.session) return { confirmationRequired: true };
     return result.data;
@@ -200,14 +215,73 @@ function counts(state) { return [{ label: 'задач', value: state.tasks.lengt
 function setupUi(cloud) {
   const dialog = document.querySelector('#accountDialog');
   const form = document.querySelector('#accountForm');
+  const error = document.querySelector('#accountError');
+  const submit = document.querySelector('#accountSubmit');
+  const mode = document.querySelector('#accountMode');
+  const emailInput = document.querySelector('#accountEmailInput');
+  const passwordInput = document.querySelector('#accountPassword');
   let register = false;
-  const setMode = () => { document.querySelector('#accountTitle').textContent = register ? 'Создать аккаунт' : 'Войти в SEVER'; document.querySelector('#accountSubmit').textContent = register ? 'Создать аккаунт' : 'Войти'; document.querySelector('#accountMode').textContent = register ? 'У меня уже есть аккаунт' : 'Создать аккаунт'; document.querySelector('#accountPassword').autocomplete = register ? 'new-password' : 'current-password'; };
-  const open = () => { if (!cloud.configured) { document.querySelector('#accountEyebrow').textContent = 'ЛОКАЛЬНЫЙ РЕЖИМ'; document.querySelector('#accountCopy').textContent = 'Supabase ещё не настроен. Добавьте публичные URL и ключ в supabase-config.js — SEVER продолжит работать локально.'; document.querySelector('#accountSubmit').disabled = true; } else { document.querySelector('#accountEyebrow').textContent = 'SEVER ACCOUNT'; document.querySelector('#accountCopy').textContent = cloud.user ? `Вы вошли как ${cloud.user.email}.` : 'Войдите, чтобы безопасно синхронизировать план между устройствами.'; document.querySelector('#accountSubmit').disabled = false; } document.querySelector('#accountSignOut').classList.toggle('hidden', !cloud.user); setMode(); dialog.showModal(); };
+  const clearNotice = () => { error.textContent = ''; error.classList.add('hidden'); error.classList.remove('success'); };
+  const setMode = () => {
+    document.querySelector('#accountTitle').textContent = cloud.user ? 'Аккаунт SEVER' : register ? 'Создать аккаунт' : 'Войти в SEVER';
+    submit.textContent = register ? 'Создать аккаунт' : 'Войти';
+    mode.textContent = register ? 'У меня уже есть аккаунт' : 'Создать аккаунт';
+    passwordInput.autocomplete = register ? 'new-password' : 'current-password';
+    document.querySelector('#accountCopy').textContent = !cloud.configured
+      ? 'Облачная синхронизация пока не настроена. SEVER продолжит надёжно работать на этом устройстве.'
+      : cloud.user
+      ? `Вы вошли как ${cloud.user.email}. Данные синхронизируются через защищённое облако.`
+      : register
+        ? 'Укажите email и пароль. После регистрации подтвердите адрес по ссылке из письма.'
+        : 'Войдите, чтобы безопасно синхронизировать план между устройствами.';
+  };
+  const open = () => {
+    for (const id of ['localProfileDialog', 'moreDialog']) { const parent = document.querySelector(`#${id}`); if (parent?.open) parent.close(); }
+    register = false;
+    form.reset();
+    clearNotice();
+    document.querySelector('#accountEyebrow').textContent = cloud.configured ? 'SEVER ACCOUNT' : 'ЛОКАЛЬНЫЙ РЕЖИМ';
+    const signedIn = Boolean(cloud.user);
+    emailInput.closest('label').classList.toggle('hidden', signedIn);
+    passwordInput.closest('label').classList.toggle('hidden', signedIn);
+    submit.classList.toggle('hidden', signedIn);
+    mode.classList.toggle('hidden', signedIn);
+    document.querySelector('#accountSignOut').classList.toggle('hidden', !signedIn);
+    submit.disabled = !cloud.configured;
+    if (!cloud.configured) document.querySelector('#accountCopy').textContent = 'Облачная синхронизация пока не настроена. SEVER продолжит надёжно работать на этом устройстве.';
+    setMode();
+    if (!dialog.open) dialog.showModal();
+    if (!signedIn) requestAnimationFrame(() => emailInput.focus());
+  };
   document.querySelector('#openAccount')?.addEventListener('click', open);
   document.querySelector('#openAccountFromSettings')?.addEventListener('click', open);
-  document.querySelector('#accountMode').addEventListener('click', () => { register = !register; setMode(); });
-  document.querySelector('#accountSignOut').addEventListener('click', async () => { await cloud.signOut(); dialog.close(); });
-  form.addEventListener('submit', async event => { event.preventDefault(); const error = document.querySelector('#accountError'); error.classList.add('hidden'); const submit = document.querySelector('#accountSubmit'); submit.disabled = true; try { const result = await cloud.signIn(document.querySelector('#accountEmailInput').value.trim(), document.querySelector('#accountPassword').value, register); if (result.confirmationRequired) { error.textContent = 'Проверьте почту и подтвердите адрес, затем войдите.'; error.classList.remove('hidden'); } else dialog.close(); } catch (reason) { error.textContent = reason.message || 'Не удалось выполнить вход'; error.classList.remove('hidden'); } finally { submit.disabled = false; } });
+  mode.addEventListener('click', () => { register = !register; clearNotice(); setMode(); });
+  document.querySelector('#accountSignOut').addEventListener('click', async () => { clearNotice(); try { await cloud.signOut(); dialog.close(); } catch (reason) { error.textContent = authMessage(reason); error.classList.remove('hidden'); } });
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    clearNotice();
+    const wasRegistering = register;
+    const idleLabel = wasRegistering ? 'Создать аккаунт' : 'Войти';
+    submit.disabled = true;
+    submit.textContent = wasRegistering ? 'Создаём…' : 'Входим…';
+    try {
+      const result = await cloud.signIn(emailInput.value.trim(), passwordInput.value, wasRegistering);
+      if (result.confirmationRequired) {
+        register = false;
+        error.textContent = 'Аккаунт создан. Откройте письмо, подтвердите email и вернитесь сюда для входа.';
+        error.classList.add('success');
+        error.classList.remove('hidden');
+        passwordInput.value = '';
+        setMode();
+      } else dialog.close();
+    } catch (reason) {
+      error.textContent = authMessage(reason);
+      error.classList.remove('hidden');
+    } finally {
+      submit.disabled = false;
+      if (dialog.open && !error.classList.contains('success')) submit.textContent = idleLabel;
+    }
+  });
   window.SeverCloudUI = { showMigration(state) { const root = document.querySelector('#migrationCounts'); root.innerHTML = counts(state).map(item => `<span><b>${item.value}</b> ${item.label}</span>`).join(''); document.querySelector('#migrationDialog').showModal(); } };
   document.querySelector('#acceptMigration').addEventListener('click', async () => { document.querySelector('#migrationDialog').close(); await cloud.acceptMigration(); });
   document.querySelector('#keepLocalOnly').addEventListener('click', () => { cloud.keepLocalOnly(); document.querySelector('#migrationDialog').close(); });
