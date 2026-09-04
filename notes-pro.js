@@ -5,6 +5,7 @@ const unlockedNotes = new Map();
 let activeFolderId = 'all';
 let pendingUnlockNote = null;
 let pendingUnlockEdit = false;
+let noteSearchQuery = '';
 
 const originalFreshState = freshState;
 freshState = function () {
@@ -128,7 +129,7 @@ function renderFolders() {
     button.setAttribute('aria-pressed', String(entry.id === activeFolderId));
     const name = document.createElement('span');
     const count = document.createElement('b');
-    name.textContent = entry.id === 'all' ? '▦ Все' : `⌑ ${entry.name}`;
+    name.textContent = entry.name;
     count.textContent = entry.count;
     button.append(name, count);
     button.onclick = () => {
@@ -158,7 +159,13 @@ renderNotes = function () {
   renderFolders();
   const root = $('#noteList');
   root.innerHTML = '';
-  const filtered = state.notes.filter(note => activeFolderId === 'all' || (activeFolderId === 'none' ? !note.folderId : note.folderId === activeFolderId));
+  const filtered = state.notes.filter(note => {
+    const inFolder = activeFolderId === 'all' || (activeFolderId === 'none' ? !note.folderId : note.folderId === activeFolderId);
+    if (!inFolder) return false;
+    if (!noteSearchQuery || note.protected && !visibleNoteData(note)) return true;
+    const data = visibleNoteData(note);
+    return `${data.title || ''}\n${data.body || ''}\n${(data.items || []).map(item => item.text).join(' ')}`.toLocaleLowerCase('ru-RU').includes(noteSearchQuery);
+  });
   if (!filtered.length) {
     root.innerHTML = empty(activeFolderId === 'all' ? 'Заметок пока нет. Создай обычную запись или чек-лист.' : 'В этой папке пока нет заметок.');
     return;
@@ -169,8 +176,8 @@ renderNotes = function () {
     const card = document.createElement('article');
     card.className = `note-card${locked ? ' secure-note locked' : ''}`;
     if (locked) {
-      card.innerHTML = '<div class="secure-note-head"><span class="secure-lock" aria-hidden="true">⌁</span><div><small>ЗАЩИЩЕНО ПАРОЛЕМ</small><h3>Закрытая заметка</h3></div></div><p class="secure-description">Название и содержимое зашифрованы. Введи пароль, чтобы открыть заметку.</p><div class="note-card-footer"><span class="folder-badge"></span><button class="unlock-note" type="button">Открыть</button></div>';
-      card.querySelector('.folder-badge').textContent = `⌑ ${folderName(note.folderId)}`;
+      card.innerHTML = '<div class="secure-note-head"><span class="secure-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span><div><small>ЗАЩИЩЕНО ПАРОЛЕМ</small><h3>Закрытая заметка</h3></div></div><p class="secure-description">Название и содержимое зашифрованы. Введи пароль, чтобы открыть заметку.</p><div class="note-card-footer"><span class="folder-badge"></span><button class="unlock-note" type="button">Открыть</button></div>';
+      card.querySelector('.folder-badge').textContent = folderName(note.folderId);
       card.querySelector('.unlock-note').onclick = () => askToUnlock(note);
       root.appendChild(card);
       return;
@@ -182,10 +189,10 @@ renderNotes = function () {
     card.className += ` ${isChecklist ? 'checklist-note' : 'text-note'}${isChecklist && progress === 100 ? ' complete' : ''}${note.protected ? ' secure-note unlocked' : ''}`;
     const progressMarkup = isChecklist
       ? `<div class="note-ring" aria-label="Выполнено ${progress}%"><svg viewBox="0 0 80 80" aria-hidden="true"><circle class="track" cx="40" cy="40" r="34"></circle><circle class="value" cx="40" cy="40" r="34" style="stroke-dashoffset:${213.63 * (1 - progress / 100)}"></circle></svg><b>${progress}%</b></div>`
-      : `<span class="note-kind">${note.protected ? '🔓 ОТКРЫТА' : 'ЗАМЕТКА'}</span>`;
+      : `<span class="note-kind">${note.protected ? 'ОТКРЫТА' : 'ЗАМЕТКА'}</span>`;
     card.innerHTML = `<div class="note-card-head"><h3></h3>${progressMarkup}</div><p class="note-body"></p><div class="note-checklist"></div><div class="note-card-footer"><div><span class="folder-badge"></span><time></time></div><div class="note-card-actions"></div></div>`;
     card.querySelector('h3').textContent = data.title;
-    card.querySelector('.folder-badge').textContent = `⌑ ${folderName(note.folderId)}`;
+    card.querySelector('.folder-badge').textContent = folderName(note.folderId);
     const body = card.querySelector('.note-body');
     body.textContent = data.body || (!isChecklist ? 'Пустая заметка' : '');
     body.classList.toggle('hidden', !body.textContent);
@@ -385,6 +392,8 @@ $('#folderForm').onsubmit = async event => {
 
 renderFolders();
 renderNotes();
+
+$('#noteSearch').oninput = event => { noteSearchQuery = event.target.value.trim().toLocaleLowerCase('ru-RU'); renderNotes(); };
 
 function currentFolder() {
   return state.folders.find(folder => folder.id === activeFolderId) || null;

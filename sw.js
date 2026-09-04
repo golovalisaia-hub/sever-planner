@@ -1,5 +1,5 @@
-const CACHE='sever-v27';
-const ASSETS=['./','./index.html','./style.css?v=27','./qa.css?v=27','./responsive.css?v=27','./app.js?v=27','./notes-pro.js?v=27','./supabase-config.js?v=27','./js/supabase-client.js?v=27','./js/sync-core.mjs?v=27','./js/cloud-runtime.js?v=27','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
+const CACHE='sever-v30';
+const ASSETS=['./','./index.html','./style.css?v=30','./qa.css?v=30','./responsive.css?v=30','./design-system.css?v=30','./app.js?v=30','./notes-pro.js?v=30','./supabase-config.js?v=30','./js/supabase-client.js?v=30','./js/sync-core.mjs?v=30','./js/cloud-runtime.js?v=30','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
 
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));

@@ -1,0 +1,219 @@
+/* SEVER visual system v28 — monochrome productivity layout over existing logic. */
+:root {
+  --surface-1: #0c0c0d;
+  --surface-2: #101011;
+  --surface-3: #171719;
+  --border-subtle: rgba(255,255,255,.08);
+  --border-strong: rgba(255,255,255,.16);
+  --text-soft: #a0a0a5;
+  --control-hover: rgba(255,255,255,.065);
+  --motion-fast: 150ms;
+  --motion-sheet: 220ms;
+}
+
+button svg, .side-create svg, .round-play svg, .note-search svg, .add-task-row svg, .rail-calendar-actions svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+button { transition: transform var(--motion-fast) ease, background var(--motion-fast) ease, border-color var(--motion-fast) ease, color var(--motion-fast) ease; }
+button:active { transform: scale(.98); }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+.icon-btn { display: grid; place-items: center; background: var(--surface-1); border-color: var(--border-subtle); }
+.icon-btn:hover { background: var(--surface-3); border-color: var(--border-strong); }
+.icon-btn.global-add { display: inline-flex; width: auto; min-width: 42px; gap: 7px; padding: 0 12px; background: var(--text); border-color: var(--text); color: var(--bg); font-size: .8rem; font-weight: 750; }
+.icon-btn.global-add svg { width: 18px; height: 18px; }
+.themeBtn[data-theme="light"] { transform: rotate(180deg); }
+
+.side-create button { display: inline-flex; align-items: center; gap: 9px; padding: 0 9px; border-radius: 9px; }
+.side-create button svg { width: 16px; height: 16px; color: var(--muted); }
+.side-create button:hover svg { color: var(--text); }
+.local-profile i { display: grid; width: 26px; height: 26px; place-items: center; }
+.local-profile i svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+.today-dashboard { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin: 0 0 20px; }
+.dashboard-card { position: relative; min-height: 138px; padding: 17px; overflow: hidden; border: 1px solid var(--border-subtle); border-radius: 15px; background: var(--surface-1); }
+.dashboard-card small, .today-focus-widget small { display: block; color: var(--muted); font-size: .66rem; font-weight: 750; letter-spacing: .11em; }
+.dashboard-card>b { display: block; max-width: calc(100% - 36px); margin: 12px 0 4px; overflow: hidden; color: var(--text); font-size: clamp(1.2rem,2vw,1.72rem); line-height: 1.12; text-overflow: ellipsis; white-space: nowrap; }
+.dashboard-card>span { display: block; max-width: 180px; color: var(--text-soft); font-size: .76rem; line-height: 1.4; }
+.dashboard-progress { display: grid; grid-template-columns: minmax(0,1fr) 68px; align-items: center; gap: 8px; }
+.dashboard-progress>b { max-width: none; }
+.dashboard-ring { position: relative; width: 65px; height: 65px; }
+.dashboard-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.dashboard-ring circle { fill: none; stroke: rgba(255,255,255,.1); stroke-width: 8; }
+.dashboard-ring .dashboard-arc { stroke: var(--text); stroke-linecap: round; stroke-dasharray: 251.33; transition: stroke-dashoffset .3s ease; }
+.dashboard-ring i { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-soft); font-size: .68rem; font-style: normal; font-variant-numeric: tabular-nums; }
+.focus-sparkline { position: absolute; right: 16px; bottom: 15px; display: flex; height: 36px; align-items: end; gap: 3px; }
+.focus-sparkline i { width: 4px; min-height: 4px; border-radius: 99px; background: rgba(255,255,255,.25); }
+.focus-sparkline i:last-child { background: var(--text); }
+.dashboard-line { display: block; height: 4px; margin-top: 22px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.1); }
+.dashboard-line em { display: block; height: 100%; border-radius: inherit; background: var(--text); transition: width .25s ease; }
+.dashboard-next>b { padding-right: 38px; font-size: 1.05rem; }
+.round-play { position: absolute; right: 15px; bottom: 15px; display: grid; width: 36px; height: 36px; place-items: center; padding: 0; border: 1px solid var(--text); border-radius: 50%; background: var(--text); color: var(--bg); cursor: pointer; }
+.round-play:hover { box-shadow: 0 5px 15px rgba(0,0,0,.25); }
+.round-play:disabled { opacity: .35; cursor: not-allowed; }
+.round-play svg { width: 17px; height: 17px; fill: currentColor; stroke: none; }
+
+.course-card { display: none; }
+.challenge-head { margin-top: 4px; }
+.task-filters { display: flex; gap: 4px; margin: -1px 0 9px; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle); overflow-x: auto; scrollbar-width: none; }
+.task-filters::-webkit-scrollbar { display: none; }
+.task-filters button { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 6px; min-height: 31px; padding: 0 9px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: .75rem; cursor: pointer; }
+.task-filters button:hover { background: var(--control-hover); color: var(--text); }
+.task-filters button.active { background: var(--surface-3); color: var(--text); }
+.task-filters b { display: grid; min-width: 17px; height: 17px; place-items: center; border-radius: 50%; background: rgba(255,255,255,.09); font-size: .64rem; }
+.task { min-height: 64px; padding: 10px 12px; border-color: var(--border-subtle); background: var(--surface-1); }
+.task:hover { border-color: var(--border-strong); background: var(--surface-2); }
+.task .edit { display: grid; width: 35px; height: 35px; place-items: center; padding: 0; border-radius: 9px; }
+.task .edit:hover { background: var(--surface-3); color: var(--text); }
+.task .edit svg { width: 18px; height: 18px; fill: currentColor; stroke: none; }
+.add-task-row { display: inline-flex; align-items: center; gap: 7px; margin: 10px 0 18px; padding: 6px 3px; border: 0; background: transparent; color: var(--text-soft); font-size: .82rem; cursor: pointer; }
+.add-task-row:hover { color: var(--text); }
+.add-task-row svg { width: 17px; height: 17px; }
+.today-focus-widget { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 16px; padding: 16px 17px; border: 1px solid var(--border-subtle); border-radius: 15px; background: var(--surface-1); }
+.today-focus-widget b { display: block; margin: 5px 0 1px; font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+.today-focus-widget span { display: block; overflow: hidden; color: var(--text-soft); font-size: .77rem; text-overflow: ellipsis; white-space: nowrap; }
+.today-focus-widget .primary { min-width: 115px; margin: 0; }
+
+.note-search { display: flex; align-items: center; gap: 9px; margin: -4px 0 16px; padding: 0 12px; border: 1px solid var(--border-subtle); border-radius: 11px; background: var(--surface-1); color: var(--muted); }
+.note-search svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.note-search input { width: 100%; height: 42px; border: 0; outline: 0; background: transparent; color: var(--text); }
+.note-search:focus-within { border-color: var(--border-strong); }
+
+.rail-calendar-actions { display: flex; align-items: center; gap: 2px; }
+.rail-calendar-actions button { display: grid; width: 26px; height: 26px; place-items: center; padding: 0; border: 0; border-radius: 7px; background: transparent; color: var(--muted); cursor: pointer; }
+.rail-calendar-actions button:hover { background: var(--surface-3); color: var(--text); }
+.rail-calendar-actions button:last-child { width: auto; padding: 0 5px; font-size: .72rem; }
+.rail-calendar-actions svg { width: 16px; height: 16px; }
+.desktop-side-card { border-color: var(--border-subtle); background: var(--surface-1); }
+.desktop-calendar button { border-radius: 8px; }
+.desktop-calendar button.today { box-shadow: inset 0 0 0 1px var(--text); }
+.desktop-calendar button.done { background: var(--text); color: var(--bg); }
+.desktop-habit-summary { gap: 10px; }
+.desktop-habit-summary button { padding: 2px 0; }
+.desktop-habit-summary i { border-color: var(--border-strong); }
+.desktop-habit-summary button.done i { background: var(--text); border-color: var(--text); }
+
+.quick-capture { display: grid; gap: 12px; margin-top: 14px; }
+.quick-capture label { display: grid; gap: 7px; color: var(--text-soft); font-size: .8rem; }
+.quick-capture input { width: 100%; min-height: 46px; padding: 11px 12px; border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--surface-1); color: var(--text); }
+.quick-capture .primary { min-height: 46px; }
+.quick-date-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.quick-date-chips button { min-height: 34px; padding: 0 11px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--surface-1); color: var(--text-soft); font-size: .76rem; cursor: pointer; }
+.quick-date-chips button.active { border-color: var(--text); background: var(--text); color: var(--bg); }
+.quick-add-divider { display: flex; align-items: center; gap: 10px; margin: 18px 0 4px; color: var(--muted); font-size: .72rem; }
+.quick-add-divider:before, .quick-add-divider:after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
+.quick-add-actions i svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (min-width: 901px) {
+  .desktop-sidebar { width: 180px; padding: 24px 10px 14px; }
+  .desktop-sidebar .wordmark { margin: 0 12px 27px; }
+  .topbar { margin-left: 180px; }
+  .app-shell { width: calc(100% - 180px); margin-left: 180px; padding-left: clamp(22px,3vw,42px); grid-template-columns: minmax(0,1fr) 272px; }
+  .today-dashboard { gap: 10px; }
+  .dashboard-card { min-height: 130px; padding: 15px; }
+  .side-nav button { min-height: 43px; padding: 0 10px; font-size: .86rem; }
+  .side-create { margin: 26px 6px; }
+  .side-create button { min-height: 35px; font-size: .8rem; }
+  .top-actions { gap: 7px; }
+}
+
+@media (min-width: 901px) and (max-width: 1179px) {
+  .desktop-sidebar { width: 172px; }
+  .topbar { margin-left: 172px; }
+  .app-shell { width: calc(100% - 172px); margin-left: 172px; }
+  .today-dashboard { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+
+@media (max-width: 900px) {
+  .icon-btn.global-add { width: 42px; min-width: 42px; padding: 0; border-radius: 13px; }
+  .icon-btn.global-add span { display: none; }
+  .today-dashboard { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; margin-bottom: 16px; }
+  .dashboard-card { min-height: 124px; padding: 14px; border-radius: 14px; }
+  .dashboard-card>b { margin-top: 10px; font-size: 1.25rem; }
+  .dashboard-card>span { font-size: .7rem; }
+  .dashboard-progress { grid-template-columns: minmax(0,1fr) 55px; }
+  .dashboard-ring { width: 54px; height: 54px; }
+  .focus-sparkline { right: 13px; bottom: 12px; height: 29px; }
+  .focus-sparkline i { width: 3px; }
+  .today-focus-widget { margin-bottom: 4px; }
+}
+
+@media (max-width: 650px) {
+  .today-dashboard { margin-top: -4px; }
+  .dashboard-card { min-height: 116px; padding: 13px; }
+  .dashboard-card small { font-size: .59rem; letter-spacing: .095em; }
+  .dashboard-card>b { max-width: 100%; font-size: 1.15rem; }
+  .dashboard-progress>b { max-width: 72px; }
+  .dashboard-progress>span { max-width: 95px; }
+  .dashboard-ring { width: 50px; height: 50px; }
+  .dashboard-ring i { font-size: .58rem; }
+  .round-play { right: 12px; bottom: 12px; width: 34px; height: 34px; }
+  .dashboard-next>b { padding-right: 3px; max-width: calc(100% - 36px); font-size: .9rem; }
+  .dashboard-line { margin-top: 17px; }
+  .task-filters { margin-bottom: 7px; }
+  .task-filters button { min-height: 34px; padding: 0 8px; font-size: .68rem; }
+  .today-focus-widget { gap: 10px; padding: 14px; border-radius: 14px; }
+  .today-focus-widget b { font-size: 1.22rem; }
+  .today-focus-widget span { max-width: 175px; }
+  .today-focus-widget .primary { min-width: 92px; padding: 10px 8px; font-size: .78rem; }
+  .note-search { margin-bottom: 12px; }
+  dialog.quick-add-dialog { max-height: min(88dvh,680px); overflow-y: auto; }
+  .quick-capture input { min-height: 48px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button, .dashboard-arc, .dashboard-line em { transition: none !important; }
+}
+
+html[data-theme="light"] {
+  --surface-1: #fff;
+  --surface-2: #f5f5f6;
+  --surface-3: #eeeeef;
+  --border-subtle: rgba(17,17,17,.10);
+  --border-strong: rgba(17,17,17,.20);
+  --text-soft: #5d5d64;
+  --control-hover: rgba(17,17,17,.05);
+}
+html[data-theme="light"] .dashboard-ring circle { stroke: rgba(17,17,17,.1); }
+html[data-theme="light"] .focus-sparkline i { background: rgba(17,17,17,.2); }
+html[data-theme="light"] .focus-sparkline i:last-child, html[data-theme="light"] .dashboard-line em { background: #111; }
+html[data-theme="light"] .dashboard-line { background: rgba(17,17,17,.1); }
+html[data-theme="light"] .task-filters b { background: rgba(17,17,17,.08); }
+
+/* QA pass: robust narrow mobile cards, sheet containment, and weekly desktop habit rhythm. */
+.add-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; }
+.dashboard-progress > div:first-child > b { display: block; max-width: none; margin: 12px 0 4px; overflow: hidden; color: var(--text); font-size: clamp(1.2rem,2vw,1.72rem); line-height: 1.12; text-overflow: ellipsis; white-space: nowrap; }
+.dashboard-progress > div:first-child > span { display: block; max-width: 180px; color: var(--text-soft); font-size: .76rem; line-height: 1.4; }
+.desktop-habit-summary { gap: 12px; }
+.desktop-habit-summary .habit-week-row { display: grid; grid-template-columns: minmax(0,1fr); gap: 7px; width: 100%; padding: 1px 0; }
+.desktop-habit-summary .habit-week-title { overflow: hidden; color: var(--text); font-size: .8rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.habit-week-markers { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+.habit-week-markers .habit-day { display: grid; width: 100%; aspect-ratio: 1; place-items: center; border: 1px solid var(--border-strong); border-radius: 50%; color: transparent; font-size: .53rem; font-style: normal; font-weight: 800; }
+.habit-week-markers .habit-day::after { content: attr(data-day); color: var(--muted); font-size: .48rem; font-style: normal; font-weight: 600; }
+.habit-week-markers .habit-day.today { box-shadow: inset 0 0 0 1px var(--text); }
+.habit-week-markers .habit-day.done { border-color: var(--text); background: var(--text); color: var(--bg); }
+.habit-week-markers .habit-day.done::after { display: none; }
+@media (max-width: 650px) {
+  .dashboard-progress > div:first-child > b { margin-top: 9px; font-size: 1.15rem; }
+  .dashboard-progress > div:first-child > span { max-width: 84px; font-size: .67rem; }
+  dialog.quick-add-dialog { overflow-x: hidden; }
+  dialog.quick-add-dialog .quick-capture, dialog.quick-add-dialog .quick-add-actions, dialog.quick-add-dialog input { min-width: 0; max-width: 100%; }
+}
+html[data-theme="light"] .mobile-wordmark, html[data-theme="light"] .desktop-sidebar .wordmark { color: var(--text); }
+
+/* Final icon-language pass: no decorative unicode symbols in core actions. */
+.quick-icon { display: grid; place-items: center; color: var(--muted); }
+.quick-icon svg, .folder-add svg, .day-add-task svg, .checklist-editor-head button svg, .security-toggle > span > svg, .unlock-symbol svg, .secure-lock svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.folder-add, .day-add-task, .checklist-editor-head button, .security-toggle > span { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.day-add-task { width: 100%; }
+.security-toggle > span { justify-content: flex-start; }
+.unlock-symbol svg { width: 31px; height: 31px; }
+.secure-lock svg { width: 24px; height: 24px; }
