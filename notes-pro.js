@@ -364,11 +364,13 @@ $('#unlockForm').onsubmit = async event => {
   }
 };
 
-$('#openFolder').onclick = () => {
+function openFolderDialog() {
   $('#folderForm').reset();
   $('#folderDialog').showModal();
   requestAnimationFrame(() => $('#folderName').focus());
-};
+}
+$('#openFolder')?.addEventListener('click', openFolderDialog);
+window.SeverNotes = { ...(window.SeverNotes || {}), openNote, openFolderDialog };
 
 $('#folderForm').onsubmit = async event => {
   event.preventDefault();

@@ -1,4 +1,4 @@
-import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState } from './sync-core.mjs?v=31';
+import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState } from './sync-core.mjs?v=32';
 
 const QUEUE_PREFIX = 'sever-cloud-queue-v2';
 const MARKER_PREFIX = 'sever-cloud-migration-v2';
@@ -52,6 +52,10 @@ class SeverCloud {
     this.retryIndex = 0;
     this.subscription = null;
     this.channel = null;
+    this.hydrated = false;
+    this.localOnly = false;
+    this.pullQueued = false;
+    this.poller = null;
   }
 
   get configured() { return Boolean(window.SeverSupabase?.configured()); }
@@ -63,13 +67,16 @@ class SeverCloud {
   async client() { return window.SeverSupabase.getClient(); }
 
   queue(operations) {
-    if (!this.user || !operations.length) return;
+    if (!this.user || !operations.length || this.localOnly) return;
     write(this.queueKey, queueLatest([...this.queued, ...operations]));
     this.setStatus(navigator.onLine ? 'pending' : 'offline');
     this.syncSoon(550);
   }
 
   capture() {
+    // Writes are intentionally disabled before the first authenticated read completes.
+    // That protects an account from a new device with empty local storage.
+    if (!this.user || !this.hydrated) return;
     const next = prepareState(this.app.getState(), this.baseline);
     const changes = diffCollections(this.baseline, next);
     this.baseline = next;
@@ -85,28 +92,56 @@ class SeverCloud {
       client.auth.onAuthStateChange((_event, nextSession) => { this.handleSession(nextSession?.user || null).catch(() => this.setStatus('pending')); });
     } catch {
       const hint = read(ACTIVE_USER_KEY, null);
-      if (hint?.id) { this.user = hint; this.app.switchStorageScope(hint.id, this.app.freshState()); this.baseline = collectionsFor(this.app.getState()); this.app.render(); this.setStatus('offline'); }
-      else this.setStatus('offline');
+      if (hint?.id) {
+        this.user = hint;
+        this.hydrated = false;
+        this.app.switchStorageScope(hint.id, this.app.freshState());
+        this.baseline = collectionsFor(this.app.getState());
+        this.app.render();
+        this.setStatus('offline');
+      } else this.setStatus('offline');
     }
     window.addEventListener('online', () => this.restoreSession());
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') this.restoreSession(); });
+    this.poller ||= window.setInterval(() => { if (document.visibilityState === 'visible') this.pull(); }, 30000);
   }
 
   async restoreSession() {
-    try { const client = await this.client(); const { data: { session } } = await client.auth.getSession(); await this.handleSession(session?.user || null); this.syncSoon(0); } catch { this.setStatus('pending'); }
+    try {
+      const client = await this.client();
+      const { data: { session } } = await client.auth.getSession();
+      await this.handleSession(session?.user || null);
+      if (this.hydrated && !this.localOnly) await this.pull();
+      this.syncSoon(0);
+    } catch { this.setStatus(navigator.onLine ? 'pending' : 'offline'); }
   }
 
   async handleSession(user) {
     if (!user) {
       const wasSignedIn = Boolean(this.user);
-      this.user = null; localStorage.removeItem(ACTIVE_USER_KEY);
+      this.user = null;
+      this.hydrated = false;
+      this.localOnly = false;
+      localStorage.removeItem(ACTIVE_USER_KEY);
       this.subscription?.unsubscribe(); this.subscription = null;
       this.channel?.close(); this.channel = null;
-      if (wasSignedIn) { this.app.switchStorageScope(null, this.app.freshState()); await this.app.persist(); this.app.render(); }
+      if (wasSignedIn) {
+        this.app.switchStorageScope(null, this.app.freshState());
+        await this.app.persist();
+        this.app.render();
+      }
       this.baseline = collectionsFor(this.app.getState());
       this.setStatus(this.configured ? 'signed-out' : 'local');
       return;
-    }    if (this.user?.id === user.id && this.baseline) { this.user = user; this.app.setCloudStatus(this.status, user); return; }
+    }
+    if (this.user?.id === user.id && this.baseline && this.hydrated) {
+      this.user = user;
+      this.app.setCloudStatus(this.status, user);
+      return;
+    }
     this.user = user;
+    this.hydrated = false;
+    this.localOnly = false;
     localStorage.setItem(ACTIVE_USER_KEY, JSON.stringify({ id: user.id, email: user.email || '' }));
     this.app.switchStorageScope(user.id, this.app.getLegacyStateFor(user.id));
     this.channel?.close();
@@ -123,31 +158,56 @@ class SeverCloud {
       const cloudEmpty = tables.every(table => !(remoteRows[table] || []).length);
       const local = this.app.getState();
       const marker = read(this.markerKey, null);
-      this.baseline = collectionsFor(rowsToState(local, rowCollections(remoteRows)));
-      if (cloudEmpty && hasPlannerData(local) && !marker) { this.setStatus('migration'); window.SeverCloudUI?.showMigration(local); return; }
-      if (cloudEmpty && marker?.mode === 'local') { this.baseline = prepareState(local, this.baseline); this.setStatus('local'); return; }
       const remote = rowsToState(local, rowCollections(remoteRows));
-      const merged = mergeStates(local, remote);
+      const localHasPlannerData = hasPlannerData(local);
+      this.baseline = collectionsFor(remote);
+
+      if (cloudEmpty && localHasPlannerData && !marker) {
+        this.setStatus('migration');
+        window.SeverCloudUI?.showMigration(local);
+        return;
+      }
+      if (cloudEmpty && marker?.mode === 'local') {
+        this.localOnly = true;
+        this.hydrated = true;
+        this.baseline = prepareState(local, this.baseline);
+        this.setStatus('local');
+        return;
+      }
+
+      // A truly fresh device gets remote state directly, preventing an empty local cache
+      // from receiving timestamps and racing to overwrite the account.
+      const merged = !cloudEmpty && !localHasPlannerData && !local.syncMeta?.seededAt ? remote : mergeStates(local, remote);
       await this.app.replaceState(merged);
       this.baseline = collectionsFor(remote);
+      this.hydrated = true;
       this.capture();
       await this.flush();
       this.subscribe();
-    } catch { this.setStatus(navigator.onLine ? 'pending' : 'offline'); this.scheduleRetry(); }
+    } catch {
+      this.hydrated = false;
+      this.setStatus(navigator.onLine ? 'pending' : 'offline');
+      this.scheduleRetry();
+    }
   }
 
   async acceptMigration() {
     if (!this.user) return;
     write(this.markerKey, { mode: 'cloud', at: Date.now() });
+    this.localOnly = false;
+    this.hydrated = true;
     this.baseline = { tasks: new Map(), habits: new Map(), habitEntries: new Map(), notes: new Map(), folders: new Map(), focusSessions: new Map(), settings: new Map() };
     this.capture();
     await this.app.persist();
-    await this.flush(); this.subscribe();
+    await this.flush();
+    this.subscribe();
   }
 
   keepLocalOnly() {
     if (!this.user) return;
     write(this.markerKey, { mode: 'local', at: Date.now() });
+    this.localOnly = true;
+    this.hydrated = true;
     this.baseline = prepareState(this.app.getState(), this.baseline);
     this.app.persist();
     this.setStatus('local');
@@ -155,15 +215,20 @@ class SeverCloud {
 
   async fetchAll() {
     const client = await this.client();
-    const entries = await Promise.all(tables.map(async table => { const { data, error } = await client.from(table).select('*'); if (error) throw error; return [table, data || []]; }));
+    const entries = await Promise.all(tables.map(async table => {
+      const { data, error } = await client.from(table).select('*');
+      if (error) throw error;
+      return [table, data || []];
+    }));
     return Object.fromEntries(entries);
   }
 
   async flush() {
-    if (!this.user || !navigator.onLine || this.running) return;
+    if (!this.user || !this.hydrated || this.localOnly || !navigator.onLine || this.running) return;
     const operations = this.queued;
     if (!operations.length) { this.setStatus('synced'); return; }
-    this.running = true; this.setStatus('syncing');
+    this.running = true;
+    this.setStatus('syncing');
     try {
       const client = await this.client();
       for (const operation of operations) {
@@ -173,13 +238,25 @@ class SeverCloud {
         if (error) throw error;
       }
       const sent = new Map(operations.map(operation => [`${operation.collection}:${operation.id}`, operationTime(operation)]));
-      write(this.queueKey, this.queued.filter(operation => { const sentAt = sent.get(`${operation.collection}:${operation.id}`); return sentAt === undefined || operationTime(operation) > sentAt; }));      this.retryIndex = 0; this.setStatus('synced'); this.channel?.postMessage({ syncedAt: Date.now() });
-    } catch { this.setStatus(navigator.onLine ? 'pending' : 'offline'); this.scheduleRetry(); }
-    finally { this.running = false; }
+      write(this.queueKey, this.queued.filter(operation => {
+        const sentAt = sent.get(`${operation.collection}:${operation.id}`);
+        return sentAt === undefined || operationTime(operation) > sentAt;
+      }));
+      this.retryIndex = 0;
+      this.setStatus('synced');
+      this.channel?.postMessage({ syncedAt: Date.now() });
+    } catch {
+      this.setStatus(navigator.onLine ? 'pending' : 'offline');
+      this.scheduleRetry();
+    } finally {
+      this.running = false;
+      if (this.pullQueued) { this.pullQueued = false; this.pull(); }
+    }
   }
 
   async pull() {
-    if (!this.user || !navigator.onLine || this.running) return;
+    if (!this.user || !this.hydrated || this.localOnly || !navigator.onLine) return;
+    if (this.running) { this.pullQueued = true; return; }
     try {
       const local = this.app.getState();
       const remote = rowsToState(local, rowCollections(await this.fetchAll()));
@@ -187,15 +264,19 @@ class SeverCloud {
       await this.app.replaceState(merged);
       this.baseline = collectionsFor(merged);
       this.setStatus('synced');
-    } catch { this.setStatus('pending'); }
+    } catch { this.setStatus(navigator.onLine ? 'pending' : 'offline'); }
   }
 
   syncSoon(delay = 300) { clearTimeout(this.timer); this.timer = setTimeout(() => this.flush(), delay); }
   scheduleRetry() { this.syncSoon(RETRIES[Math.min(this.retryIndex++, RETRIES.length - 1)]); }
 
   subscribe() {
-    if (this.subscription || !this.user) return;
-    this.client().then(client => { this.subscription = client.channel(`sever:${this.user.id}`).on('postgres_changes', { event: '*', schema: 'public', filter: `user_id=eq.${this.user.id}` }, () => this.pull()).subscribe(); });
+    if (this.subscription || !this.user || this.localOnly) return;
+    this.client().then(client => {
+      const channel = client.channel(`sever:${this.user.id}`);
+      tables.forEach(table => channel.on('postgres_changes', { event: '*', schema: 'public', table, filter: `user_id=eq.${this.user.id}` }, () => this.pull()));
+      this.subscription = channel.subscribe();
+    }).catch(() => this.setStatus('pending'));
   }
 
   async signIn(email, password, register) {
@@ -208,9 +289,13 @@ class SeverCloud {
     return result.data;
   }
 
-  async signOut() { const client = await this.client(); const { error } = await client.auth.signOut(); if (error) throw error; await this.handleSession(null); }
+  async signOut() {
+    const client = await this.client();
+    const { error } = await client.auth.signOut();
+    if (error) throw error;
+    await this.handleSession(null);
+  }
 }
-
 function counts(state) { return [{ label: 'задач', value: state.tasks.length }, { label: 'заметок', value: state.notes.length }, { label: 'привычек', value: state.habits.length }]; }
 function setupUi(cloud) {
   const dialog = document.querySelector('#accountDialog');
