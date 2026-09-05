@@ -1,7 +1,6 @@
 (() => {
   const $ = selector => document.querySelector(selector);
   const isPhone = () => window.matchMedia('(max-width: 900px)').matches;
-  const titles = { today: 'Sever', calendar: 'Календарь', timer: 'Таймер', notes: 'Заметки', habits: 'Привычки', progress: 'Прогресс', settings: 'Настройки' };
   const actions = {
     today: () => $('#openAdd')?.click(),
     notes: () => openSheet('noteCreateSheet'),
@@ -19,9 +18,8 @@
   function setText(element, value) { if (element && element.textContent !== value) element.textContent = value; }
   function updateHeader() {
     const name = currentView();
-    const title = name === 'notes' ? document.querySelector('#folderTabs button.active span')?.textContent || titles[name] : titles[name] || 'Sever';
     const heading = $('#mobileHeaderTitle');
-    setText(heading, title);
+    setText(heading, 'SEVER');
     const action = $('#mobileHeaderAction');
     if (action) {
       const show = Boolean(actions[name]);
@@ -89,11 +87,11 @@
       else $('#moreDialog')?.showModal();
     };
     $('#openSettingsMenu').onclick = openSettings;
-    $('#menuAccount').onclick = () => { closeDialog('mobileMenuSheet'); $('#openAccountFromSettings')?.click(); };
+    $('#menuAccount').onclick = () => { closeDialog('mobileMenuSheet'); window.SeverCloudUI?.openAccount?.(); };
     $('#menuSync').onclick = async () => { syncSettings(); try { await window.SeverCloud?.restoreSession?.(); } finally { syncSettings(); } };
     $('#menuTheme').onclick = () => { $('#themeBtn')?.click(); closeDialog('mobileMenuSheet'); };
 
-    $('#settingsAccountButton').onclick = () => $('#openAccountFromSettings')?.click();
+    $('#settingsAccountButton').onclick = () => window.SeverCloudUI?.openAccount?.();
     $('#settingsSyncRetry').onclick = async () => { const button = $('#settingsSyncRetry'); button.disabled = true; button.textContent = 'Проверяем…'; try { await window.SeverCloud?.restoreSession?.(); } finally { button.disabled = false; button.textContent = 'Повторить'; syncSettings(); } };
     $('#settingsNotificationToggle').onchange = event => { const source = $('#notificationToggle'); if (source) { source.checked = event.target.checked; source.dispatchEvent(new Event('change', { bubbles: true })); } };
     $('#settingsNotificationTime').onchange = event => { const source = $('#notificationTime'); if (source) { source.value = event.target.value; source.dispatchEvent(new Event('change', { bubbles: true })); } };

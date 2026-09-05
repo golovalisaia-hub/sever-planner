@@ -1,5 +1,5 @@
-const CACHE='sever-v36-security';
-const ASSETS=['./','./index.html','./style.css?v=35','./qa.css?v=35','./responsive.css?v=35','./design-system.css?v=35','./mobile-system.css?v=35','./onboarding.css?v=35','./app.js?v=36','./notes-pro.js?v=36','./mobile-ui.js?v=36','./supabase-config.js?v=36','./vendor/supabase.min.js?v=2.57.4','./js/theme-init.js?v=36','./js/protected-notes-crypto.js?v=36','./js/security-core.js?v=36','./js/supabase-client.js?v=36','./js/sync-core.mjs?v=36','./js/cloud-runtime.js?v=36','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
+const CACHE='sever-v37-auth';
+const ASSETS=['./','./index.html','./style.css?v=37','./qa.css?v=37','./responsive.css?v=37','./design-system.css?v=37','./mobile-system.css?v=37','./onboarding.css?v=37','./app.js?v=37','./notes-pro.js?v=37','./mobile-ui.js?v=37','./supabase-config.js?v=37','./vendor/supabase.min.js?v=2.57.4','./js/theme-init.js?v=37','./js/protected-notes-crypto.js?v=37','./js/security-core.js?v=37','./js/supabase-client.js?v=37','./js/sync-core.mjs?v=37','./js/cloud-runtime.js?v=37','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
 
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));

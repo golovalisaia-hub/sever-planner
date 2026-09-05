@@ -13,6 +13,8 @@ GitHub remains the source repository. GitHub Pages can host the PWA, but it does
 
 For automated RLS isolation checks, create two disposable confirmed Auth users and add these GitHub Actions secrets: `SEVER_RLS_TEST_URL`, `SEVER_RLS_TEST_ANON_KEY`, `SEVER_RLS_USER_A_EMAIL`, `SEVER_RLS_USER_A_PASSWORD`, `SEVER_RLS_USER_B_EMAIL`, and `SEVER_RLS_USER_B_PASSWORD`. The test creates temporary planner rows and removes them afterwards. Without all six values the external RLS test is reported as skipped, never as passed.
 
+For the separate browser-SDK Auth smoke test, add one disposable confirmed user through `SEVER_AUTH_TEST_URL`, `SEVER_AUTH_TEST_ANON_KEY`, `SEVER_AUTH_TEST_EMAIL`, and `SEVER_AUTH_TEST_PASSWORD`. The test uses the bundled Supabase client and verifies `createClient`, `signInWithPassword`, `getSession`, `refreshSession`, and local `signOut`. Without all four values this test is explicitly reported as skipped.
+
 ## Verification checklist
 
 - CSP contains `frame-ancestors 'none'` and no remote script origin.
@@ -20,6 +22,6 @@ For automated RLS isolation checks, create two disposable confirmed Auth users a
 - Offline static assets load after one online visit.
 - A protected-note marker is absent from localStorage, IndexedDB, backup and sync queue.
 - RLS A→B and B→A tests have been run with disposable users.
-- Service worker updates to `sever-v36-security` without manual cache clearing.
+- Service worker updates to `sever-v37-auth` without manual cache clearing.
 
 The FastAPI folder is a future foundation. Its development-only `X-SEVER-User-Id` identity must be replaced by verified Supabase JWT authentication before it stores private production data.

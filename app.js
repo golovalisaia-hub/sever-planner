@@ -262,7 +262,7 @@ function switchStorageScope(userId,localFallback=null){
 }
 function updateCloudStatus(status,user=null){
   const label=$('#cloudStatus'),settingsLabel=$('#cloudStatusSettings'),email=$('#accountEmail'),button=$('#localProfileBtn');
-  const messages={local:'Локально',offline:'Офлайн · изменения сохраняются',pending:'Ожидает синхронизации',syncing:'Синхронизация…',synced:'✓ Синхронизировано','signed-out':'Войдите для синхронизации',migration:'Нужен выбор данных'};
+  const messages={local:'Локально',offline:'Офлайн · изменения сохраняются',pending:'Ожидает синхронизации',syncing:'Синхронизация…',synced:'✓ Синхронизировано','signed-out':'Войдите для синхронизации',migration:'Нужен выбор данных',unavailable:'Модуль синхронизации недоступен'};
   if(label)label.textContent=messages[status]||messages.local;if(settingsLabel)settingsLabel.textContent=messages[status]||messages.local;
   if(email)email.textContent=user?.email||'Данные только на этом устройстве';
   if(button)button.dataset.cloudStatus=status;

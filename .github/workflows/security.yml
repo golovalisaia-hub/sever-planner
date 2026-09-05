@@ -27,6 +27,10 @@ jobs:
           SEVER_RLS_USER_A_PASSWORD: ${{ secrets.SEVER_RLS_USER_A_PASSWORD }}
           SEVER_RLS_USER_B_EMAIL: ${{ secrets.SEVER_RLS_USER_B_EMAIL }}
           SEVER_RLS_USER_B_PASSWORD: ${{ secrets.SEVER_RLS_USER_B_PASSWORD }}
+          SEVER_AUTH_TEST_URL: ${{ secrets.SEVER_AUTH_TEST_URL }}
+          SEVER_AUTH_TEST_ANON_KEY: ${{ secrets.SEVER_AUTH_TEST_ANON_KEY }}
+          SEVER_AUTH_TEST_EMAIL: ${{ secrets.SEVER_AUTH_TEST_EMAIL }}
+          SEVER_AUTH_TEST_PASSWORD: ${{ secrets.SEVER_AUTH_TEST_PASSWORD }}
         run: node --test tests/security/*.*
       - name: Secret scan
         shell: bash
