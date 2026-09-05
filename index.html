@@ -8,12 +8,12 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="style.css?v=34">
-  <link rel="stylesheet" href="qa.css?v=34">
-  <link rel="stylesheet" href="responsive.css?v=34">
-  <link rel="stylesheet" href="design-system.css?v=34">
-  <link rel="stylesheet" href="mobile-system.css?v=34">
-  <link rel="stylesheet" href="onboarding.css?v=34">
+  <link rel="stylesheet" href="style.css?v=35">
+  <link rel="stylesheet" href="qa.css?v=35">
+  <link rel="stylesheet" href="responsive.css?v=35">
+  <link rel="stylesheet" href="design-system.css?v=35">
+  <link rel="stylesheet" href="mobile-system.css?v=35">
+  <link rel="stylesheet" href="onboarding.css?v=35">
   <title>SEVER</title>
   <script>document.documentElement.dataset.theme=localStorage.getItem('sever-theme')||'dark'</script>
 </head>
@@ -106,7 +106,7 @@
         <section class="settings-section"><small>УВЕДОМЛЕНИЯ</small><label class="settings-row settings-switch-row"><span><b>Напоминания</b><em>Мягкое напоминание о плане</em></span><span class="switch"><input id="settingsNotificationToggle" type="checkbox"><i></i></span></label><label class="settings-row settings-time-row"><span><b>Время</b><em>Когда напоминать</em></span><input id="settingsNotificationTime" type="time" value="19:00"></label><button id="settingsTestNotification" class="settings-row" type="button"><span><b>Проверить уведомление</b><em>Отправить тест в этот браузер</em></span><i aria-hidden="true">›</i></button></section>
         <section class="settings-section"><small>ДАННЫЕ</small><div class="settings-storage"><span>Хранилище</span><b id="settingsStorageStatus">Проверяем сохранение…</b></div><button id="settingsExport" class="settings-row" type="button"><span><b>Создать резервную копию</b><em>Скачать файл с данными</em></span><i aria-hidden="true">›</i></button><label class="settings-row file-row" for="importInput"><span><b>Восстановить из файла</b><em>Импортировать резервную копию</em></span><i aria-hidden="true">›</i></label></section>
         <section class="settings-section settings-danger-zone"><small>ОПАСНАЯ ЗОНА</small><button id="settingsReset" class="settings-row danger-row" type="button"><span><b>Начать заново</b><em>Удалить планерные данные</em></span><i aria-hidden="true">›</i></button></section>
-        <section class="settings-section"><small>ПОМОЩЬ</small><button id="settingsGuide" class="settings-row" type="button"><span><b>Гид по Северу</b><em>Коротко покажем основные возможности</em></span><i aria-hidden="true">›</i></button></section><p class="settings-version">SEVER · версия 0.33 · данные сохраняются локально и синхронизируются только после входа.</p>
+        <section class="settings-section"><small>ПОМОЩЬ</small><button id="settingsGuide" class="settings-row" type="button"><span><b>Гид по Северу</b><em>Коротко покажем основные возможности</em></span><i aria-hidden="true">›</i></button></section><p class="settings-version">SEVER · версия 0.35 · данные сохраняются локально и синхронизируются только после входа.</p>
       </div>
     </section>
     <section id="timerView" class="view">
@@ -142,11 +142,11 @@
   <dialog id="resetConfirmDialog" class="mobile-sheet confirm-sheet" aria-label="Подтвердить удаление данных"><div class="sheet-grabber" aria-hidden="true"></div><div class="sheet-head"><div><small>ОПАСНАЯ ЗОНА</small><h2>Начать заново?</h2></div><button type="button" data-close="resetConfirmDialog" aria-label="Закрыть">×</button></div><p id="resetConfirmCopy">Будут удалены все данные календаря на этом устройстве. Учётная запись сохранится.</p><div class="sheet-confirm-actions"><button type="button" class="secondary" data-close="resetConfirmDialog">Отмена</button><button id="confirmReset" type="button" class="danger">Начать заново</button></div></dialog>  <dialog id="tourDialog" class="guide-dialog" aria-labelledby="tourTitle" aria-describedby="tourText"><div id="guideSpotlight" class="guide-spotlight" aria-hidden="true"></div><article class="guide-card"><header class="guide-card-head"><span class="guide-kicker">SEVER GUIDE</span><button id="tourSkip" type="button" class="guide-skip">Пропустить</button></header><div id="guideCopy" class="guide-copy"><h2 id="tourTitle">Добро пожаловать в Север</h2><p id="tourText">Планируй день, следи за задачами и сохраняй всё важное в одном месте.</p></div><div id="tourDots" class="guide-dots" aria-label="Прогресс знакомства"></div><footer class="guide-actions"><button id="tourBack" type="button" class="guide-back" disabled>Назад</button><button id="tourNext" type="button" class="primary">Далее</button></footer></article></dialog>
   <dialog id="welcomeDialog"><form id="welcomeForm"><div class="dialog-head"><h2>Какая у тебя цель?</h2></div><p class="muted">Определи направление и удобный темп. SEVER составит ежедневный план.</p><label>Главная цель<input id="goalOne" required maxlength="60" placeholder="Например: изучить английский"></label><label>Ещё одна цель — необязательно<input id="goalTwo" maxlength="60" placeholder="Например: читать каждый день"></label><div class="form-row"><label>За сколько дней хочешь прийти к цели?<input id="challengeDays" type="number" min="1" max="365" required placeholder="Например: 45"></label><label>Сколько минут готов уделять в день?<input id="challengeMinutes" type="number" min="5" max="600" required placeholder="Например: 20"></label></div><div class="dialog-actions"><button id="startEmpty" type="button">Настроить позже</button><button class="primary">Создать цель</button></div></form></dialog>
   <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-  <script src="supabase-config.js?v=34"></script>
-  <script src="js/supabase-client.js?v=34"></script>
-  <script src="app.js?v=34" defer></script>
-  <script src="notes-pro.js?v=34" defer></script>
-  <script src="mobile-ui.js?v=34" defer></script>
-  <script type="module" src="js/cloud-runtime.js?v=34"></script>
+  <script src="supabase-config.js?v=35"></script>
+  <script src="js/supabase-client.js?v=35"></script>
+  <script src="app.js?v=35" defer></script>
+  <script src="notes-pro.js?v=35" defer></script>
+  <script src="mobile-ui.js?v=35" defer></script>
+  <script type="module" src="js/cloud-runtime.js?v=35"></script>
 </body>
 </html>

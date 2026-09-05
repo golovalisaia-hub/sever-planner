@@ -1,4 +1,4 @@
-import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState } from './sync-core.mjs?v=34';
+import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState, settleCloudOperations } from './sync-core.mjs?v=35';
 
 const QUEUE_PREFIX = 'sever-cloud-queue-v2';
 const MARKER_PREFIX = 'sever-cloud-migration-v2';
@@ -233,17 +233,22 @@ class SeverCloud {
     this.setStatus('syncing');
     try {
       const client = await this.client();
-      for (const operation of operations) {
+      const { succeeded, failed } = await settleCloudOperations(operations, async operation => {
         const table = CLOUD_TABLES[operation.collection];
         const conflict = operation.collection === 'habitEntries' ? 'user_id,habit_id,entry_date' : operation.collection === 'settings' ? 'user_id' : 'id';
         const { error } = await client.from(table).upsert(rowFor(operation.collection, operation.record, this.user.id), { onConflict: conflict });
         if (error) throw error;
-      }
-      const sent = new Map(operations.map(operation => [`${operation.collection}:${operation.id}`, operationTime(operation)]));
+      });
+      const sent = new Map(succeeded.map(operation => [`${operation.collection}:${operation.id}`, operationTime(operation)]));
       write(this.queueKey, this.queued.filter(operation => {
         const sentAt = sent.get(`${operation.collection}:${operation.id}`);
         return sentAt === undefined || operationTime(operation) > sentAt;
       }));
+      if (failed.length) {
+        this.setStatus('pending');
+        this.scheduleRetry();
+        return;
+      }
       this.retryIndex = 0;
       this.setStatus('synced');
       this.channel?.postMessage({ syncedAt: Date.now() });

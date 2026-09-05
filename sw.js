@@ -1,5 +1,5 @@
-const CACHE='sever-v34';
-const ASSETS=['./','./index.html','./style.css?v=34','./qa.css?v=34','./responsive.css?v=34','./design-system.css?v=34','./mobile-system.css?v=34','./onboarding.css?v=34','./app.js?v=34','./notes-pro.js?v=34','./mobile-ui.js?v=34','./supabase-config.js?v=34','./js/supabase-client.js?v=34','./js/sync-core.mjs?v=34','./js/cloud-runtime.js?v=34','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
+const CACHE='sever-v35';
+const ASSETS=['./','./index.html','./style.css?v=35','./qa.css?v=35','./responsive.css?v=35','./design-system.css?v=35','./mobile-system.css?v=35','./onboarding.css?v=35','./app.js?v=35','./notes-pro.js?v=35','./mobile-ui.js?v=35','./supabase-config.js?v=35','./js/supabase-client.js?v=35','./js/sync-core.mjs?v=35','./js/cloud-runtime.js?v=35','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
 
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
