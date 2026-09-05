@@ -16,11 +16,12 @@
   }
   function closeDialog(id) { const dialog = document.getElementById(id); if (dialog?.open) dialog.close(); }
   function currentView() { return document.querySelector('.view.active')?.id.replace(/View$/, '') || 'today'; }
+  function setText(element, value) { if (element && element.textContent !== value) element.textContent = value; }
   function updateHeader() {
     const name = currentView();
     const title = name === 'notes' ? document.querySelector('#folderTabs button.active span')?.textContent || titles[name] : titles[name] || 'Sever';
     const heading = $('#mobileHeaderTitle');
-    if (heading) heading.textContent = title;
+    setText(heading, title);
     const action = $('#mobileHeaderAction');
     if (action) {
       const show = Boolean(actions[name]);
@@ -47,12 +48,12 @@
     const account = $('#settingsAccountEmail');
     const menuAccount = $('#menuAccountStatus');
     const email = $('#accountEmail')?.textContent || 'Локальный режим';
-    if (sync) sync.textContent = cloud;
-    if (menuSync) menuSync.textContent = cloud;
-    if (account) account.textContent = email;
-    if (menuAccount) menuAccount.textContent = email === 'Данные только на этом устройстве' ? 'Войти для синхронизации' : email;
+    setText(sync, cloud);
+    setText(menuSync, cloud);
+    setText(account, email);
+    setText(menuAccount, email === 'Данные только на этом устройстве' ? 'Войти для синхронизации' : email);
     const storage = $('#storageStatus')?.textContent;
-    if (storage && $('#settingsStorageStatus')) $('#settingsStorageStatus').textContent = storage;
+    if (storage) setText($('#settingsStorageStatus'), storage);
   }
   function attachSheetBehavior(dialog) {
     dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
@@ -97,14 +98,15 @@
     $('#settingsNotificationToggle').onchange = event => { const source = $('#notificationToggle'); if (source) { source.checked = event.target.checked; source.dispatchEvent(new Event('change', { bubbles: true })); } };
     $('#settingsNotificationTime').onchange = event => { const source = $('#notificationTime'); if (source) { source.value = event.target.value; source.dispatchEvent(new Event('change', { bubbles: true })); } };
     $('#settingsTestNotification').onclick = () => $('#testNotification')?.click();
-$('#settingsGuide')?.addEventListener('click', () => window.SeverApp?.startGuide?.({ manual: true }));
+    $('#settingsGuide')?.addEventListener('click', () => window.SeverApp?.startGuide?.({ manual: true }));
     $('#settingsExport').onclick = () => $('#exportBtn')?.click();
     $('#settingsReset').onclick = requestReset;
     $('#confirmReset').onclick = async () => { closeDialog('resetConfirmDialog'); await window.SeverApp?.resetPlanner?.(); };
 
     const update = () => { updateHeader(); syncSettings(); };
     new MutationObserver(update).observe(document.querySelector('main'), { subtree: true, attributes: true, attributeFilter: ['class'] });
-    new MutationObserver(syncSettings).observe(document.body, { subtree: true, childList: true, characterData: true });
+    const settingsObserver = new MutationObserver(syncSettings);
+    ['#cloudStatusSettings', '#accountEmail', '#storageStatus'].map($).filter(Boolean).forEach(source => settingsObserver.observe(source, { subtree: true, childList: true, characterData: true }));
     document.querySelectorAll('.bottom-nav button').forEach(button => button.addEventListener('click', () => setTimeout(update, 0)));
     window.addEventListener('resize', update, { passive: true });
     update();
