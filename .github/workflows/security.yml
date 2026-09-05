@@ -1,0 +1,40 @@
+name: Security and regression tests
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Static regression
+        run: node tests/qa_static.mjs
+      - name: Sync regression
+        run: node tests/sync_core.mjs
+      - name: Security suite
+        env:
+          SEVER_RLS_TEST_URL: ${{ secrets.SEVER_RLS_TEST_URL }}
+          SEVER_RLS_TEST_ANON_KEY: ${{ secrets.SEVER_RLS_TEST_ANON_KEY }}
+          SEVER_RLS_USER_A_EMAIL: ${{ secrets.SEVER_RLS_USER_A_EMAIL }}
+          SEVER_RLS_USER_A_PASSWORD: ${{ secrets.SEVER_RLS_USER_A_PASSWORD }}
+          SEVER_RLS_USER_B_EMAIL: ${{ secrets.SEVER_RLS_USER_B_EMAIL }}
+          SEVER_RLS_USER_B_PASSWORD: ${{ secrets.SEVER_RLS_USER_B_PASSWORD }}
+        run: node --test tests/security/*.*
+      - name: Secret scan
+        shell: bash
+        run: |
+          if git grep -IEni '(sb_secret_[A-Za-z0-9._-]{10,}|service[_-]?role([_-]?key)?[[:space:]]*[:=][[:space:]]*[A-Za-z0-9._-]{20,}|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|postgres(ql)?://[^[:space:]]+:[^[:space:]@]+@)' -- ':!tests/security/*' ':!.github/workflows/security.yml'; then
+            echo 'Potential secret detected'; exit 1
+          fi
+      - name: Backend tests
+        run: |
+          python -m pip install -r backend/requirements.txt
+          python -m pytest backend/tests

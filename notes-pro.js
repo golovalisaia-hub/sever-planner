@@ -1,99 +1,19 @@
 const NOTE_CRYPTO_ITERATIONS = 600000;
-const noteEncoder = new TextEncoder();
-const noteDecoder = new TextDecoder();
+const noteCrypto = window.SeverProtectedNotesCrypto;
 const unlockedNotes = new Map();
 let activeFolderId = 'all';
 let pendingUnlockNote = null;
 let pendingUnlockEdit = false;
 let noteSearchQuery = '';
-
 const originalFreshState = freshState;
-freshState = function () {
-  return { ...originalFreshState(), folders: [] };
-};
-
+freshState = function () { return { ...originalFreshState(), folders: [] }; };
 const originalMigrate = migrate;
-migrate = function (data) {
-  const migrated = originalMigrate(data);
-  migrated.folders = Array.isArray(migrated.folders) ? migrated.folders : [];
-  migrated.notes = migrated.notes.map(note => ({ ...note, folderId: note.folderId || '' }));
-  return migrated;
-};
-
-function ensureNoteCollections() {
-  state.folders = Array.isArray(state.folders) ? state.folders : [];
-  state.notes.forEach(note => note.folderId ??= '');
-}
-
+migrate = function (data) { const migrated = originalMigrate(data); migrated.folders = Array.isArray(migrated.folders) ? migrated.folders : []; migrated.notes = migrated.notes.map(note => ({ ...note, folderId: note.folderId || '' })); return migrated; };
+function ensureNoteCollections() { state.folders = Array.isArray(state.folders) ? state.folders : []; state.notes.forEach(note => note.folderId ??= ''); }
 ensureNoteCollections();
-
-function bytesToBase64(bytes) {
-  let binary = '';
-  for (let index = 0; index < bytes.length; index += 0x8000) {
-    binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
-  }
-  return btoa(binary);
-}
-
-function base64ToBytes(value) {
-  const binary = atob(value);
-  return Uint8Array.from(binary, character => character.charCodeAt(0));
-}
-
-async function deriveNoteKey(password, salt, iterations = NOTE_CRYPTO_ITERATIONS) {
-  const material = await crypto.subtle.importKey('raw', noteEncoder.encode(password), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations, hash: 'SHA-256' },
-    material,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt']
-  );
-}
-
-async function sealNotePayload(payload, key, salt, iterations = NOTE_CRYPTO_ITERATIONS) {
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const plain = noteEncoder.encode(JSON.stringify(payload));
-  const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plain);
-  return {
-    algorithm: 'AES-GCM',
-    kdf: 'PBKDF2-SHA256',
-    iterations,
-    salt: bytesToBase64(salt),
-    iv: bytesToBase64(iv),
-    cipher: bytesToBase64(new Uint8Array(encrypted))
-  };
-}
-
-async function protectNotePayload(payload, password) {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const key = await deriveNoteKey(password, salt);
-  const secure = await sealNotePayload(payload, key, salt);
-  return { payload, key, salt, secure };
-}
-
-async function unlockNotePayload(note, password) {
-  const salt = base64ToBytes(note.secure.salt);
-  const iterations = Math.max(100000, Number(note.secure.iterations) || NOTE_CRYPTO_ITERATIONS);
-  const key = await deriveNoteKey(password, salt, iterations);
-  const decrypted = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: base64ToBytes(note.secure.iv) },
-    key,
-    base64ToBytes(note.secure.cipher)
-  );
-  const payload = JSON.parse(noteDecoder.decode(decrypted));
-  if (!payload || typeof payload.title !== 'string') throw new Error('Invalid protected note');
-  return { payload, key, salt };
-}
-
-async function saveUnlockedProtectedNote(note, payload) {
-  const unlocked = unlockedNotes.get(note.id);
-  if (!unlocked) throw new Error('Note is locked');
-  note.secure = await sealNotePayload(payload, unlocked.key, unlocked.salt, note.secure.iterations);
-  note.updatedAt = Date.now();
-  unlocked.payload = payload;
-  await save();
-}
+async function protectNotePayload(payload, password) { return noteCrypto.protect(payload, password, NOTE_CRYPTO_ITERATIONS); }
+async function unlockNotePayload(note, password) { return noteCrypto.unlock(note.secure, password); }
+async function saveUnlockedProtectedNote(note, payload) { const unlocked = unlockedNotes.get(note.id); if (!unlocked) throw new Error('Note is locked'); note.secure = await noteCrypto.sealWithMaterial(payload, unlocked.material, NOTE_CRYPTO_ITERATIONS); note.updatedAt = Date.now(); unlocked.payload = payload; unlocked.lastActivityAt = Date.now(); await save(); }
 
 function folderName(folderId) {
   return state.folders.find(folder => folder.id === folderId)?.name || 'Без папки';
@@ -156,6 +76,7 @@ function visibleNoteData(note) {
 
 renderNotes = function () {
   ensureNoteCollections();
+  syncProtectedNoteSecuritySettings();
   renderFolders();
   const root = $('#noteList');
   root.innerHTML = '';
@@ -237,7 +158,7 @@ renderNotes = function () {
       lock.className = 'note-lock-now';
       lock.type = 'button';
       lock.textContent = 'Заблокировать';
-      lock.onclick = () => { unlockedNotes.delete(note.id); renderNotes(); toast('Заметка заблокирована'); };
+      lock.onclick = () => lockProtectedNote(note.id, true);
       actions.appendChild(lock);
     }
     const edit = document.createElement('button');
@@ -298,8 +219,8 @@ $('#noteForm').onsubmit = async event => {
 
   try {
     if (wantsProtection && !crypto?.subtle) throw new Error('Шифрование не поддерживается этим браузером');
-    if (wantsProtection && !existing?.protected && newPassword.length < 8) throw new Error('Пароль должен содержать минимум 8 символов');
-    if (wantsProtection && newPassword && newPassword.length < 8) throw new Error('Пароль должен содержать минимум 8 символов');
+    if (wantsProtection && !existing?.protected && !newPassword) throw new Error('Введите пароль для защищённой заметки');
+    if (wantsProtection && newPassword && newPassword.length < 12 && !confirm('Короткий пароль легче подобрать. Рекомендуем 12 или больше символов. Сохранить с этим паролем?')) return;
 
     let note = existing;
     if (!note) {
@@ -315,10 +236,10 @@ $('#noteForm').onsubmit = async event => {
       else {
         const unlocked = unlockedNotes.get(note.id);
         if (!unlocked) throw new Error('Сначала разблокируй заметку');
-        protectedData = { ...unlocked, payload, secure: await sealNotePayload(payload, unlocked.key, unlocked.salt, note.secure.iterations) };
+        protectedData = { ...unlocked, payload, secure: await noteCrypto.sealWithMaterial(payload, unlocked.material, NOTE_CRYPTO_ITERATIONS) };
       }
       Object.assign(note, { title: '', body: '', kind: 'protected', items: [], done: false, protected: true, secure: protectedData.secure });
-      unlockedNotes.set(note.id, { payload, key: protectedData.key, salt: protectedData.salt });
+      unlockedNotes.set(note.id, { payload, material: protectedData.material, unlockedAt: Date.now(), lastActivityAt: Date.now() });
     } else {
       Object.assign(note, payload, { protected: false });
       delete note.secure;
@@ -348,12 +269,12 @@ $('#unlockForm').onsubmit = async event => {
   button.disabled = true;
   button.textContent = 'Открываем…';
   try {
-    const unlocked = await unlockNotePayload(pendingUnlockNote, $('#unlockPassword').value);
-    unlockedNotes.set(pendingUnlockNote.id, unlocked);
-    $('#unlockDialog').close();
-    $('#unlockError').classList.add('hidden');
-    renderNotes();
-    if (pendingUnlockEdit) await openNote(pendingUnlockNote);
+    const note = pendingUnlockNote, editAfter = pendingUnlockEdit;
+    const unlocked = await unlockNotePayload(note, $('#unlockPassword').value);
+    unlockedNotes.set(note.id, unlocked); touchUnlockedNote(note.id);
+    $('#unlockPassword').value = ''; pendingUnlockNote = null; pendingUnlockEdit = false;
+    $('#unlockDialog').close(); $('#unlockError').classList.add('hidden'); renderNotes();
+    if (editAfter) await openNote(note);
     else toast('Заметка открыта');
   } catch {
     $('#unlockError').classList.remove('hidden');
@@ -441,3 +362,18 @@ function removeFolder(withNotes) {
 
 $('#deleteFolderOnly').onclick = () => removeFolder(false);
 $('#deleteFolderWithNotes').onclick = () => removeFolder(true);
+
+function clearProtectedForm(){for(const id of ['noteId','noteTitle','noteBody','notePassword','unlockPassword']){const field=document.querySelector('#'+id);if(field)field.value=''}const editor=document.querySelector('#noteItemsEditor');if(editor)editor.textContent='';editingNoteItems=[];pendingUnlockNote=null;pendingUnlockEdit=false;document.querySelector('#unlockError')?.classList.add('hidden')}
+function touchUnlockedNote(noteId){const session=unlockedNotes.get(noteId);if(session)session.lastActivityAt=Date.now()}
+function lockProtectedNote(noteId,notify=false){const existed=unlockedNotes.delete(noteId);if(document.querySelector('#noteId')?.value===noteId){clearProtectedForm();document.querySelector('#noteDialog')?.close()}if(pendingUnlockNote?.id===noteId){clearProtectedForm();document.querySelector('#unlockDialog')?.close()}if(existed)renderNotes();if(notify&&existed)toast('Заметка заблокирована')}
+function lockAllProtectedNotes(notify=false){const hadUnlocked=unlockedNotes.size>0;unlockedNotes.clear();clearProtectedForm();document.querySelector('#noteDialog')?.close();document.querySelector('#unlockDialog')?.close();if(hadUnlocked)renderNotes();if(notify)toast(hadUnlocked?'Защищённые заметки заблокированы':'Все заметки уже заблокированы')}
+function syncProtectedNoteSecuritySettings(){state.security??={protectedNotesAutoLockMinutes:5,lockInBackground:true};const timeout=document.querySelector('#protectedNotesAutoLock'),background=document.querySelector('#protectedNotesBackgroundLock'),status=document.querySelector('#securityCheckStatus');if(timeout)timeout.value=String(state.security.protectedNotesAutoLockMinutes||5);if(background)background.checked=state.security.lockInBackground!==false;if(status){const valid=state.notes.filter(note=>note.protected).every(note=>{try{return window.SeverSecurityCore.assertProtectedNote(note)}catch{return false}});status.textContent=valid?'Локальные проверки пройдены':'Есть повреждённые защищённые данные';status.dataset.status=valid?'ok':'warning'}}
+function checkProtectedNoteTimeouts(now=Date.now()){for(const[noteId,session]of unlockedNotes)if(window.SeverSecurityCore.shouldAutoLock(session,state.security,now))lockProtectedNote(noteId)}
+document.querySelector('#protectedNotesAutoLock')?.addEventListener('change',event=>{state.security??={};state.security.protectedNotesAutoLockMinutes=[1,5,15,30].includes(Number(event.target.value))?Number(event.target.value):5;save()});
+document.querySelector('#protectedNotesBackgroundLock')?.addEventListener('change',event=>{state.security??={};state.security.lockInBackground=Boolean(event.target.checked);save()});
+document.querySelector('#lockProtectedNotesNow')?.addEventListener('click',()=>lockAllProtectedNotes(true));
+document.querySelector('#noteDialog')?.addEventListener('close',()=>{const id=document.querySelector('#noteId')?.value;if(id&&state.notes.find(note=>note.id===id)?.protected)lockProtectedNote(id);else clearProtectedForm()});
+document.querySelector('#unlockDialog')?.addEventListener('close',()=>{const password=document.querySelector('#unlockPassword');if(password)password.value='';pendingUnlockNote=null;pendingUnlockEdit=false});
+window.addEventListener('sever:lock-protected-notes',()=>lockAllProtectedNotes(false));
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&state.security?.lockInBackground!==false)lockAllProtectedNotes(false);checkProtectedNoteTimeouts()});
+document.addEventListener('pointerdown',()=>{const id=document.querySelector('#noteId')?.value;if(id)touchUnlockedNote(id)},{passive:true});document.addEventListener('keydown',()=>{const id=document.querySelector('#noteId')?.value;if(id)touchUnlockedNote(id)},{passive:true});setInterval(checkProtectedNoteTimeouts,15000);syncProtectedNoteSecuritySettings();

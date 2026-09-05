@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import { collectionsFor, queueLatest } from '../../js/sync-core.mjs';
+const secure={version:2,algorithm:'AES-GCM',kdf:{name:'PBKDF2',hash:'SHA-256',iterations:600000,salt:'AAAAAAAAAAAAAAAAAAAAAA=='},iv:'AAAAAAAAAAAAAAAA',ciphertext:'AAAAAAAAAAAAAAAAAAAAAAAA'};
+const base={tasks:[],habits:[],checks:{},folders:[],focusSessions:[],notes:[{id:'n',folderId:'',title:'',body:'',kind:'protected',items:[],done:false,protected:true,secure}]};
+test('protected sync record contains no plaintext fields',()=>{const row=collectionsFor(base).notes.get('n');assert.equal(row.title,'');assert.equal(row.body,'');assert.deepEqual(row.items,[]);assert.equal(JSON.stringify(row).includes('SEVER_SECRET'),false)});
+test('sync rejects a protected record containing plaintext',()=>{const bad={...base.notes[0],title:'SEVER_SECRET'};assert.throws(()=>collectionsFor({...base,notes:[bad]}));assert.throws(()=>queueLatest([{collection:'notes',id:'n',record:bad}]))});

@@ -100,6 +100,7 @@
     $('#settingsTestNotification').onclick = () => $('#testNotification')?.click();
     $('#settingsGuide')?.addEventListener('click', () => window.SeverApp?.startGuide?.({ manual: true }));
     $('#settingsExport').onclick = () => $('#exportBtn')?.click();
+    $('#settingsVaultExport').onclick = () => window.SeverApp?.exportProtectedVault?.();
     $('#settingsReset').onclick = requestReset;
     $('#confirmReset').onclick = async () => { closeDialog('resetConfirmDialog'); await window.SeverApp?.resetPlanner?.(); };
 

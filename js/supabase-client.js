@@ -8,10 +8,11 @@
     async getClient() {
       if (!configured()) throw new Error('Supabase не настроен');
       if (!clientPromise) {
-        clientPromise = import('https://esm.sh/@supabase/supabase-js@2.57.4')
-          .then(({ createClient }) => createClient(config().url, config().anonKey, {
-            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-          }));
+        const createClient = window.supabase?.createClient;
+        if (typeof createClient !== 'function') throw new Error('Supabase SDK unavailable');
+        clientPromise = Promise.resolve(createClient(config().url, config().anonKey, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+        }));
       }
       return clientPromise;
     }

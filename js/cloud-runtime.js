@@ -1,4 +1,4 @@
-import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState, settleCloudOperations } from './sync-core.mjs?v=35';
+import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState, settleCloudOperations } from './sync-core.mjs?v=36';
 
 const QUEUE_PREFIX = 'sever-cloud-queue-v2';
 const MARKER_PREFIX = 'sever-cloud-migration-v2';
@@ -17,13 +17,12 @@ const authMessage = reason => {
   const source = String(reason?.message || reason || '').toLocaleLowerCase('ru-RU');
   if (source.includes('invalid login credentials')) return 'Неверный email или пароль.';
   if (source.includes('email not confirmed')) return 'Сначала подтвердите email по ссылке из письма.';
-  if (source.includes('user already registered') || source.includes('already been registered')) return 'Аккаунт с таким email уже существует. Переключитесь на вход.';
   if (source.includes('password') && (source.includes('least') || source.includes('weak'))) return 'Пароль должен содержать минимум 8 символов.';
   if (source.includes('valid email') || (source.includes('email address') && source.includes('invalid'))) return 'Проверьте правильность email.';
   if (source.includes('signup') && source.includes('disabled')) return 'Регистрация временно отключена.';
   if (source.includes('rate limit') || source.includes('too many')) return 'Слишком много попыток. Подождите немного и попробуйте снова.';
   if (source.includes('fetch') || source.includes('network')) return 'Нет связи с сервером. Проверьте интернет и повторите попытку.';
-  return reason?.message || 'Не удалось связаться с сервером. Попробуйте ещё раз.';
+  return 'Не удалось выполнить вход или регистрацию. Проверьте данные и попробуйте позже.';
 };
 
 function rowFor(collection, record, userId) {
@@ -68,6 +67,8 @@ class SeverCloud {
 
   queue(operations) {
     if (!this.user || !operations.length || this.localOnly) return;
+    try { operations.forEach(operation => window.SeverSecurityCore.assertCloudOperation(operation)); }
+    catch { this.setStatus('pending'); return; }
     write(this.queueKey, queueLatest([...this.queued, ...operations]));
     this.setStatus(navigator.onLine ? 'pending' : 'offline');
     this.syncSoon(550);
@@ -119,6 +120,8 @@ class SeverCloud {
   }
 
   async handleSession(user) {
+    const nextUserId = user?.id || null;
+    if (this.user?.id !== nextUserId) this.app.lockProtectedNotes('account-change');
     if (!user) {
       const wasSignedIn = Boolean(this.user);
       this.user = null;
@@ -297,6 +300,7 @@ class SeverCloud {
   }
 
   async signOut() {
+    this.app.lockProtectedNotes('logout');
     const client = await this.client();
     const { error } = await client.auth.signOut();
     if (error) throw error;
@@ -369,12 +373,13 @@ function setupUi(cloud) {
     } catch (reason) {
       error.textContent = authMessage(reason);
       error.classList.remove('hidden');
+      passwordInput.value = '';
     } finally {
       submit.disabled = false;
       if (dialog.open && !error.classList.contains('success')) submit.textContent = idleLabel;
     }
   });
-  window.SeverCloudUI = { showMigration(state) { const root = document.querySelector('#migrationCounts'); root.innerHTML = counts(state).map(item => `<span><b>${item.value}</b> ${item.label}</span>`).join(''); document.querySelector('#migrationDialog').showModal(); } };
+  window.SeverCloudUI = { showMigration(state) { const root = document.querySelector('#migrationCounts'); root.textContent = ''; counts(state).forEach(item => { const row = document.createElement('span'), value = document.createElement('b'); value.textContent = String(item.value); row.append(value, document.createTextNode(` ${item.label}`)); root.appendChild(row); }); document.querySelector('#migrationDialog').showModal(); } };
   document.querySelector('#acceptMigration').addEventListener('click', async () => { document.querySelector('#migrationDialog').close(); await cloud.acceptMigration(); });
   document.querySelector('#keepLocalOnly').addEventListener('click', () => { cloud.keepLocalOnly(); document.querySelector('#migrationDialog').close(); });
 }

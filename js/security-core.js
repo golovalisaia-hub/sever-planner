@@ -1,0 +1,24 @@
+(function (root, factory) {
+  const api = factory(root.SeverProtectedNotesCrypto);
+  root.SeverSecurityCore = api;
+  if (typeof module === 'object' && module.exports) module.exports = api;
+})(typeof globalThis === 'object' ? globalThis : this, function (cryptoModule) {
+  'use strict';
+  const BACKUP_FORMAT = 'sever-backup', BACKUP_VERSION = 2, VAULT_FORMAT = 'sever-vault', VAULT_VERSION = 1, MAX_BACKUP_BYTES = 20 * 1024 * 1024;
+  const forbidden = new Set(['__proto__', 'prototype', 'constructor']);
+  const AUTO_LOCK_MINUTES = Object.freeze([1, 5, 15, 30]);
+  const copy = value => JSON.parse(JSON.stringify(value));
+  const object = value => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+  function rejectDangerousKeys(value, depth = 0) { if (depth > 30) throw new Error('Backup nesting is too deep'); if (!value || typeof value !== 'object') return; for (const key of Object.keys(value)) { if (forbidden.has(key)) throw new Error('Forbidden property'); rejectDangerousKeys(value[key], depth + 1); } }
+  function assertProtectedNote(note) { if (!object(note) || !note.protected) return true; if (note.title !== '' || note.body !== '' || !Array.isArray(note.items) || note.items.length || note.kind !== 'protected' || !cryptoModule?.isValidSecurePayload(note.secure)) throw new Error('Protected note invariant failed'); return true; }
+  function assertPersistentState(state) { if (!object(state) || !Array.isArray(state.tasks) || !Array.isArray(state.notes) || !Array.isArray(state.habits)) throw new Error('Planner state is invalid'); state.notes.forEach(assertProtectedNote); rejectDangerousKeys(state); return true; }
+  function persistentState(state) { assertPersistentState(state); const result = copy(state); result.notes = result.notes.map(note => { if (!note.protected) { delete note.secure; return note; } return { id: note.id, folderId: note.folderId || '', title: '', body: '', kind: 'protected', items: [], done: false, protected: true, secure: note.secure, createdAt: note.createdAt || null, updatedAt: note.updatedAt || null }; }); assertPersistentState(result); return result; }
+  const createBackup = (state, createdAt = new Date().toISOString()) => ({ format: BACKUP_FORMAT, version: BACKUP_VERSION, createdAt, data: persistentState(state) });
+  function createVaultExport(state, createdAt = new Date().toISOString()) { const safe = persistentState(state); return { format: VAULT_FORMAT, version: VAULT_VERSION, createdAt, notes: safe.notes.filter(note => note.protected).map(note => ({ id: note.id, folderId: note.folderId || '', protected: true, secure: note.secure, createdAt: note.createdAt || null, updatedAt: note.updatedAt || null })) }; }
+  function validateState(state) { if (!object(state)) throw new Error('Backup data must be an object'); for (const key of ['tasks', 'notes', 'habits']) if (!Array.isArray(state[key])) throw new Error(`Invalid ${key}`); if (state.tasks.length > 100000 || state.notes.length > 50000 || state.habits.length > 10000) throw new Error('Too many records'); assertPersistentState(state); return state; }
+  function parseBackupText(text) { if (typeof text !== 'string' || !text.trim()) throw new Error('Backup is empty'); if (new TextEncoder().encode(text).byteLength > MAX_BACKUP_BYTES) throw new Error('Backup is too large'); const parsed = JSON.parse(text); rejectDangerousKeys(parsed); if (parsed?.format === BACKUP_FORMAT) { if (parsed.version !== BACKUP_VERSION) throw new Error('Unsupported backup version'); return copy(validateState(parsed.data)); } if (parsed?.format) throw new Error('Unknown backup format'); return copy(validateState(parsed)); }
+  function assertCloudOperation(operation) { if (!object(operation) || typeof operation.collection !== 'string' || !object(operation.record)) throw new Error('Invalid cloud operation'); if (operation.collection === 'notes' && operation.record.protected) assertProtectedNote(operation.record); rejectDangerousKeys(operation); return true; }
+  function normalizeSecuritySettings(value) { const minutes = Number(value?.protectedNotesAutoLockMinutes); return { protectedNotesAutoLockMinutes: AUTO_LOCK_MINUTES.includes(minutes) ? minutes : 5, lockInBackground: value?.lockInBackground !== false }; }
+  function shouldAutoLock(session, settings, now = Date.now()) { const normalized = normalizeSecuritySettings(settings), activity = Number(session?.lastActivityAt || session?.unlockedAt || 0); return !activity || now - activity >= normalized.protectedNotesAutoLockMinutes * 60000; }
+  return Object.freeze({ AUTO_LOCK_MINUTES, normalizeSecuritySettings, shouldAutoLock, BACKUP_FORMAT, BACKUP_VERSION, VAULT_FORMAT, VAULT_VERSION, MAX_BACKUP_BYTES, assertProtectedNote, assertPersistentState, persistentState, createBackup, createVaultExport, parseBackupText, assertCloudOperation, rejectDangerousKeys });
+});
