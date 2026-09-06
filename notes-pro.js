@@ -34,6 +34,15 @@ function renderFolderSelect(selected = '') {
 function renderFolders() {
   ensureNoteCollections();
   if (activeFolderId !== 'all' && activeFolderId !== 'none' && !state.folders.some(folder => folder.id === activeFolderId)) activeFolderId = 'all';
+  const notesContext = $('#notesContext');
+  if (notesContext) {
+    const activeFolder = state.folders.find(folder => folder.id === activeFolderId);
+    notesContext.textContent = activeFolderId === 'all'
+      ? 'МЫСЛИ И РЕЗУЛЬТАТЫ'
+      : activeFolderId === 'none'
+        ? 'ПАПКА · БЕЗ ПАПКИ'
+        : `ПАПКА · ${activeFolder?.name || 'ЗАМЕТКИ'}`;
+  }
   $('#manageFolder').classList.toggle('hidden', activeFolderId === 'all' || activeFolderId === 'none');
   const root = $('#folderTabs');
   root.innerHTML = '';

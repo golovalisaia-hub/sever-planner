@@ -9,14 +9,14 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="style.css?v=37">
-  <link rel="stylesheet" href="qa.css?v=37">
-  <link rel="stylesheet" href="responsive.css?v=37">
-  <link rel="stylesheet" href="design-system.css?v=37">
-  <link rel="stylesheet" href="mobile-system.css?v=37">
-  <link rel="stylesheet" href="onboarding.css?v=37">
+  <link rel="stylesheet" href="style.css?v=38">
+  <link rel="stylesheet" href="qa.css?v=38">
+  <link rel="stylesheet" href="responsive.css?v=38">
+  <link rel="stylesheet" href="design-system.css?v=38">
+  <link rel="stylesheet" href="mobile-system.css?v=38">
+  <link rel="stylesheet" href="onboarding.css?v=38">
   <title>SEVER</title>
-  <script src="js/theme-init.js?v=37"></script>
+  <script src="js/theme-init.js?v=38"></script>
 </head>
 <body>
   <aside class="desktop-sidebar" aria-label="Основная навигация">
@@ -38,7 +38,7 @@
     <button id="localProfileBtn" class="local-profile" type="button" aria-label="Открыть локальный профиль"><span class="profile-mark" aria-hidden="true">S</span><span><b id="localProfileName">SEVER</b><small id="cloudStatus">Локально</small></span><i aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.04 1.56V20.3h-3v-.08A1.7 1.7 0 0 0 10.66 18.66a1.7 1.7 0 0 0-1.88.34l-.06.06-2.12-2.12.06-.06A1.7 1.7 0 0 0 7 15a1.7 1.7 0 0 0-1.56-1.04h-.08v-3h.08A1.7 1.7 0 0 0 7 9.92a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.12-2.12.06.06a1.7 1.7 0 0 0 1.88.34 1.7 1.7 0 0 0 1.04-1.56v-.08h3v.08a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.12 2.12-.06.06A1.7 1.7 0 0 0 19.4 9.92a1.7 1.7 0 0 0 1.56 1.04h.08v3h-.08A1.7 1.7 0 0 0 19.4 15Z"/></svg></i></button>
   </aside>
   <header class="topbar">
-    <div id="mobileHeaderTitle" class="wordmark mobile-wordmark" aria-live="polite">SEVER</div>
+    <div id="mobileHeaderTitle" class="wordmark mobile-wordmark">SEVER</div>
     <div class="top-actions">
       <button id="installBtn" class="ghost hidden">Установить</button>
       <button id="globalAddBtn" class="icon-btn global-add" aria-label="Создать"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Создать</span></button>
@@ -49,8 +49,8 @@
   </header>
 
   <div class="app-shell"><main>
-    <section id="todayView" class="view active">
-      <div class="heading"><div><small id="todayLabel"></small><h1>Сегодня</h1></div><button id="openAdd" class="add-btn" aria-label="Добавить задачу"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <section id="todayView" class="view active" aria-labelledby="todayPageTitle">
+      <div class="heading"><div><small id="todayLabel"></small><h1 id="todayPageTitle">Сегодня</h1></div><button id="openAdd" class="add-btn" aria-label="Добавить задачу"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></div>
       <section id="todayDashboard" class="today-dashboard" aria-label="Сводка дня">
         <article class="dashboard-card dashboard-progress"><div><small>ПРОГРЕСС ДНЯ</small><b id="dashboardProgressValue">0%</b><span id="dashboardProgressMeta">Пока задач нет</span></div><div class="dashboard-ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40"></circle><circle id="dashboardProgressArc" class="dashboard-arc" cx="50" cy="50" r="40"></circle></svg><i id="dashboardProgressCount">0</i></div></article>
         <article class="dashboard-card"><small>ФОКУС</small><b id="dashboardFocusValue">0 мин</b><span id="dashboardFocusMeta">Сегодня сессий ещё не было</span><div id="dashboardFocusChart" class="focus-sparkline" aria-label="Фокус за последние семь дней"></div></article>
@@ -73,25 +73,25 @@
       <article id="todayFocusWidget" class="today-focus-widget"><div><small>ФОКУС-ТАЙМЕР</small><b id="todayFocusDisplay">25:00</b><span id="todayFocusTask">Выберите задачу и начните спокойную работу</span></div><button id="todayFocusToggle" type="button" class="primary">Начать</button></article>
     </section>
 
-    <section id="calendarView" class="view">
-      <div class="heading"><div><small>ОБЗОР МЕСЯЦА</small><h1 id="monthTitle"></h1></div><div><button id="prevMonth" class="icon-btn" aria-label="Предыдущий месяц"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><button id="nextMonth" class="icon-btn" aria-label="Следующий месяц"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></div></div>
+    <section id="calendarView" class="view" aria-labelledby="calendarPageTitle">
+      <div class="heading"><div><small id="monthTitle">ТЕКУЩИЙ МЕСЯЦ</small><h1 id="calendarPageTitle">Календарь</h1></div><div><button id="prevMonth" class="icon-btn" aria-label="Предыдущий месяц"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><button id="nextMonth" class="icon-btn" aria-label="Следующий месяц"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></div></div>
       <div class="week"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div><div id="calendar" class="calendar"></div>
     </section>
 
-    <section id="progressView" class="view">
-      <div class="heading progress-heading"><div><small>ДВИЖЕНИЕ ПО КУРСУ</small><h1>Прогресс</h1></div><div class="month-switcher" aria-label="Выбор месяца"><button id="prevProgressMonth" class="icon-btn" type="button" aria-label="Предыдущий месяц"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><b id="progressMonthTitle" aria-live="polite"></b><button id="nextProgressMonth" class="icon-btn" type="button" aria-label="Следующий месяц"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></div></div>
+    <section id="progressView" class="view" aria-labelledby="progressPageTitle">
+      <div class="heading progress-heading"><div><small>ДВИЖЕНИЕ ПО КУРСУ</small><h1 id="progressPageTitle">Прогресс</h1></div><div class="month-switcher" aria-label="Выбор месяца"><button id="prevProgressMonth" class="icon-btn" type="button" aria-label="Предыдущий месяц"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><b id="progressMonthTitle" aria-live="polite"></b><button id="nextProgressMonth" class="icon-btn" type="button" aria-label="Следующий месяц"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></div></div>
       <div class="stats"><article><span>Выполнено</span><b id="allDone">0</b></article><article><span>Серия</span><b id="streak">0 дней</b></article><article><span>Реальный фокус</span><b id="focusMinutes">0 мин</b><small id="focusSessions">0 сессий</small></article><article><span>Объём задач</span><b id="plannedMinutes">0 мин</b><small>по завершённым задачам</small></article></div>
       <article class="heat-card"><div><h2>Карта движения</h2><span>Каждая клетка — конкретный день выбранного месяца</span></div><div id="heatmap" class="heatmap" aria-label="Карта выполнения задач за месяц"></div></article>
       <article class="review"><small>ИТОГ НЕДЕЛИ</small><h2 id="reviewTitle"></h2><p id="reviewText"></p></article>
     </section>
 
-    <section id="habitsView" class="view">
-      <div class="heading"><div><small>ПОВТОРЯЙ И УКРЕПЛЯЙ</small><h1>Привычки</h1></div><button id="openHabit" class="add-btn" aria-label="Добавить привычку"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <section id="habitsView" class="view" aria-labelledby="habitsPageTitle">
+      <div class="heading"><div><small>ПОВТОРЯЙ И УКРЕПЛЯЙ</small><h1 id="habitsPageTitle">Привычки</h1></div><button id="openHabit" class="add-btn" aria-label="Добавить привычку"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></div>
       <div id="habitList" class="habit-list"></div>
     </section>
 
-    <section id="notesView" class="view">
-      <div class="heading"><div><small>МЫСЛИ И РЕЗУЛЬТАТЫ</small><h1>Заметки</h1></div><div class="note-heading-actions"><button id="manageFolder" class="folder-add hidden" type="button" aria-label="Управление папкой"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg><span>Папка</span></button><button id="openNote" class="add-btn" aria-label="Создать заметку или папку"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+    <section id="notesView" class="view" aria-labelledby="notesPageTitle">
+      <div class="heading"><div><small id="notesContext">МЫСЛИ И РЕЗУЛЬТАТЫ</small><h1 id="notesPageTitle">Заметки</h1></div><div class="note-heading-actions"><button id="manageFolder" class="folder-add hidden" type="button" aria-label="Управление папкой"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg><span>Папка</span></button><button id="openNote" class="add-btn" aria-label="Создать заметку или папку"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
       <p class="view-intro">Сохраняй обычные записи или создавай чек-листы с автоматическим прогрессом.</p>
       <label class="note-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg><input id="noteSearch" type="search" autocomplete="off" placeholder="Поиск по заметкам"></label>
       <div id="folderTabs" class="folder-tabs" aria-label="Папки заметок"></div>
@@ -99,8 +99,8 @@
     </section>
 
 
-    <section id="settingsView" class="view settings-view">
-      <div class="heading settings-heading"><div><small>УПРАВЛЕНИЕ ПЛАНЕРОМ</small><h1>Настройки</h1></div></div>
+    <section id="settingsView" class="view settings-view" aria-labelledby="settingsPageTitle">
+      <div class="heading settings-heading"><div><small>УПРАВЛЕНИЕ ПЛАНЕРОМ</small><h1 id="settingsPageTitle">Настройки</h1></div></div>
       <div class="settings-list">
         <section class="settings-section"><small>АККАУНТ</small><button id="settingsAccountButton" class="settings-row" type="button"><span><b>Аккаунт</b><em id="settingsAccountEmail">Локальный режим</em></span><i aria-hidden="true">›</i></button></section>
         <section class="settings-section"><small>СИНХРОНИЗАЦИЯ</small><div class="settings-row settings-sync-row"><span><b>Статус</b><em id="settingsSyncStatus">Локально</em></span><button id="settingsSyncRetry" type="button" class="text-action">Повторить</button></div></section>
@@ -108,11 +108,11 @@
         <section class="settings-section"><small>БЕЗОПАСНОСТЬ</small><label class="settings-row settings-time-row"><span><b>Автоблокировка заметок</b><em>После бездействия</em></span><select id="protectedNotesAutoLock" aria-label="Время автоблокировки защищённых заметок"><option value="1">1 минута</option><option value="5" selected>5 минут</option><option value="15">15 минут</option><option value="30">30 минут</option></select></label><label class="settings-row settings-switch-row"><span><b>Блокировать в фоне</b><em>При переходе в другое приложение</em></span><span class="switch"><input id="protectedNotesBackgroundLock" type="checkbox" checked><i></i></span></label><button id="lockProtectedNotesNow" class="settings-row" type="button"><span><b>Заблокировать защищённые заметки</b><em>Очистить расшифрованные данные из интерфейса</em></span><i aria-hidden="true">›</i></button><div class="settings-row security-status"><span><b>Проверка безопасности</b><em id="securityCheckStatus">Проверяем…</em></span></div></section>
         <section class="settings-section"><small>ДАННЫЕ</small><div class="settings-storage"><span>Хранилище</span><b id="settingsStorageStatus">Проверяем сохранение…</b></div><button id="settingsExport" class="settings-row" type="button"><span><b>Создать резервную копию</b><em>Скачать проверенный файл с данными</em></span><i aria-hidden="true">›</i></button><button id="settingsVaultExport" class="settings-row" type="button"><span><b>Экспорт защищённых данных</b><em>Только зашифрованные заметки</em></span><i aria-hidden="true">›</i></button><label class="settings-row file-row" for="importInput"><span><b>Восстановить из файла</b><em>Импортировать резервную копию</em></span><i aria-hidden="true">›</i></label></section>
         <section class="settings-section settings-danger-zone"><small>ОПАСНАЯ ЗОНА</small><button id="settingsReset" class="settings-row danger-row" type="button"><span><b>Начать заново</b><em>Удалить планерные данные</em></span><i aria-hidden="true">›</i></button></section>
-        <section class="settings-section"><small>ПОМОЩЬ</small><button id="settingsGuide" class="settings-row" type="button"><span><b>Гид по Северу</b><em>Коротко покажем основные возможности</em></span><i aria-hidden="true">›</i></button></section><p class="settings-version">SEVER · версия 0.36 · данные сохраняются локально и синхронизируются только после входа.</p>
+        <section class="settings-section"><small>ПОМОЩЬ</small><button id="settingsGuide" class="settings-row" type="button"><span><b>Гид по Северу</b><em>Коротко покажем основные возможности</em></span><i aria-hidden="true">›</i></button></section><p class="settings-version">SEVER · версия 0.38 · данные сохраняются локально и синхронизируются только после входа.</p>
       </div>
     </section>
-    <section id="timerView" class="view">
-      <div class="heading"><div><small>СПОКОЙНАЯ РАБОТА</small><h1>Таймер</h1></div></div>
+    <section id="timerView" class="view" aria-labelledby="timerPageTitle">
+      <div class="heading"><div><small>СПОКОЙНАЯ РАБОТА</small><h1 id="timerPageTitle">Таймер</h1></div></div>
       <article class="focus-card"><div class="timer-ring"><svg viewBox="0 0 180 180" aria-hidden="true"><circle class="timer-track" cx="90" cy="90" r="78"></circle><circle id="timerProgress" class="timer-progress" cx="90" cy="90" r="78"></circle></svg><div class="timer-center"><small>ФОКУС</small><h2 id="timerDisplay">25:00</h2><button id="timerToggle" type="button">Начать</button></div></div><div class="timer-panel"><small>ФОКУС-ТАЙМЕР</small><h3>Время для одного дела</h3><p id="timerStatus">Выбери время и начни спокойную работу</p><div id="activeTimerTask" class="active-timer-task hidden"><span>СЕЙЧАС В ФОКУСЕ</span><b id="timerTaskTitle"></b><div class="active-timer-actions"><button id="completeTimerTask" type="button">Завершить задачу</button><button id="cancelTimerTask" type="button">Отменить фокус</button></div></div><div class="timer-presets"><button type="button" data-minutes="15" aria-label="Установить 15 минут">15</button><button type="button" data-minutes="25" class="active" aria-label="Установить 25 минут">25</button><button type="button" data-minutes="30" aria-label="Установить 30 минут">30</button><button type="button" data-minutes="60" aria-label="Установить 60 минут">60</button></div><form id="customTimerForm" class="custom-timer"><label for="customMinutes">Своё время</label><div><input id="customMinutes" type="number" min="1" max="600" inputmode="numeric" placeholder="Например, 45" required><button type="submit">Задать время</button></div></form><button id="timerReset" class="timer-reset" type="button">↺ Сбросить таймер</button></div></article>
       <p class="timer-tip">Можно перейти в другую вкладку — отсчёт продолжится.</p>
     </section>
@@ -146,13 +146,13 @@
   <div id="pwaSecurityUpdate" class="pwa-security-update hidden" role="status"><span>Доступно обновление безопасности</span><button id="applyPwaUpdate" type="button">Обновить</button></div>
   <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
   <script src="vendor/supabase.min.js?v=2.57.4" defer></script>
-  <script src="supabase-config.js?v=37" defer></script>
-  <script src="js/protected-notes-crypto.js?v=37" defer></script>
-  <script src="js/security-core.js?v=37" defer></script>
-  <script src="js/supabase-client.js?v=37" defer></script>
-  <script src="app.js?v=37" defer></script>
-  <script src="notes-pro.js?v=37" defer></script>
-  <script src="mobile-ui.js?v=37" defer></script>
-  <script type="module" src="js/cloud-runtime.js?v=37"></script>
+  <script src="supabase-config.js?v=38" defer></script>
+  <script src="js/protected-notes-crypto.js?v=38" defer></script>
+  <script src="js/security-core.js?v=38" defer></script>
+  <script src="js/supabase-client.js?v=38" defer></script>
+  <script src="app.js?v=38" defer></script>
+  <script src="notes-pro.js?v=38" defer></script>
+  <script src="mobile-ui.js?v=38" defer></script>
+  <script type="module" src="js/cloud-runtime.js?v=38"></script>
 </body>
 </html>

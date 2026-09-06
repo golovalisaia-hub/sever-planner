@@ -128,9 +128,9 @@ const guideReducedMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduc
 const guideIsPhone=()=>window.matchMedia?.('(max-width: 900px)').matches;
 function guideTargetFor(slide){
   if(!slide.target)return null;
-  if(slide.target==='today')return document.querySelector(guideIsPhone()?'.bottom-nav button[data-view="today"]':'.side-nav button[data-view="today"]');
+  if(slide.target==='today')return document.querySelector('#todayPageTitle');
   if(slide.target==='create')return document.querySelector(guideIsPhone()?'#mobileHeaderAction':'#globalAddBtn');
-  if(slide.target==='timer')return document.querySelector(guideIsPhone()?'.bottom-nav button[data-view="timer"]':'.side-nav button[data-view="timer"]');
+  if(slide.target==='timer')return document.querySelector('#timerView .timer-ring');
   return null;
 }
 function positionGuideTarget(){

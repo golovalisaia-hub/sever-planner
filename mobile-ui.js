@@ -18,8 +18,6 @@
   function setText(element, value) { if (element && element.textContent !== value) element.textContent = value; }
   function updateHeader() {
     const name = currentView();
-    const heading = $('#mobileHeaderTitle');
-    setText(heading, 'SEVER');
     const action = $('#mobileHeaderAction');
     if (action) {
       const show = Boolean(actions[name]);
