@@ -1,0 +1,252 @@
+/* SEVER Reference Theme v41 — preserves the app logic and changes only presentation. */
+html[data-theme="aurora"] body,
+html[data-theme="polar"] body {
+  background:
+    linear-gradient(180deg, rgba(0, 8, 20, .24), rgba(0, 8, 19, .84)),
+    url("aurora.webp") center top / cover fixed no-repeat,
+    #020914;
+}
+
+html[data-theme="aurora"] body::before,
+html[data-theme="polar"] body::before {
+  inset: 0;
+  height: auto;
+  background:
+    radial-gradient(circle at 67% 3%, rgba(94, 255, 220, .11), transparent 25%),
+    linear-gradient(90deg, rgba(0, 7, 18, .3), transparent 48%, rgba(0, 5, 15, .22));
+  filter: none;
+  opacity: 1;
+  animation: severSkyBreath 18s ease-in-out infinite alternate;
+}
+
+@keyframes severSkyBreath {
+  to { opacity: .82; transform: scale(1.015); }
+}
+
+html[data-theme="aurora"] .desktop-sidebar,
+html[data-theme="polar"] .desktop-sidebar {
+  background:
+    linear-gradient(180deg, rgba(2, 14, 27, .92), rgba(1, 10, 21, .96)),
+    url("aurora.webp") 39% center / auto 100% no-repeat;
+  border-right-color: rgba(104, 220, 255, .24);
+  box-shadow: inset -1px 0 rgba(151, 241, 255, .08), 18px 0 52px rgba(0, 5, 18, .28);
+  backdrop-filter: blur(22px) saturate(1.3);
+}
+
+.desktop-sidebar::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #7beeff, transparent);
+  filter: drop-shadow(0 0 8px #4bdfff);
+  opacity: .75;
+  pointer-events: none;
+}
+
+.wordmark {
+  letter-spacing: .4em;
+  text-shadow: 0 0 22px rgba(126, 224, 255, .4);
+}
+
+.side-nav button {
+  min-height: 48px;
+  border-radius: 13px;
+  transition: transform .18s cubic-bezier(.2,.8,.2,1), color .2s ease,
+    background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+.side-nav button:hover { transform: translateX(2px); }
+.side-nav button:active { transform: translateX(2px) scale(.975); }
+.side-nav button.active {
+  border-color: rgba(97, 225, 255, .62);
+  background: linear-gradient(90deg, rgba(56, 152, 230, .45), rgba(36, 216, 202, .19));
+  box-shadow: inset 0 0 24px rgba(79, 203, 255, .1), 0 0 22px rgba(38, 188, 243, .15);
+}
+
+.sidebar-scenic,
+.northern-quote-card,
+.today-hero,
+.today-focus-widget,
+#timerView .focus-card,
+.course-card {
+  background-image:
+    linear-gradient(90deg, rgba(2, 12, 24, .94), rgba(3, 15, 29, .58), rgba(1, 9, 19, .32)),
+    url("aurora.webp") !important;
+  background-size: cover !important;
+}
+
+.sidebar-scenic { background-position: 38% center !important; }
+.today-hero { background-position: center 31% !important; }
+.course-card { background-position: center 48% !important; }
+.today-focus-widget, #timerView .focus-card { background-position: center 62% !important; }
+
+.today-hero {
+  min-height: 244px;
+  border-color: rgba(114, 224, 255, .28);
+  box-shadow: 0 24px 70px rgba(0, 4, 14, .48), inset 0 1px rgba(219, 255, 255, .08);
+}
+
+.today-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0 12% auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(117, 244, 255, .96), transparent);
+  filter: drop-shadow(0 0 8px #4bdfff);
+  opacity: .78;
+}
+
+.today-hero h1 {
+  text-shadow: 0 5px 28px rgba(0, 5, 17, .85);
+}
+
+.dashboard-card,
+.quick,
+.task,
+.today-focus-widget,
+.stats article,
+.heat-card,
+.review,
+.habit,
+.note-card,
+.settings-section,
+.desktop-side-card {
+  border-color: rgba(130, 214, 248, .2);
+  background: linear-gradient(145deg, rgba(8, 29, 47, .82), rgba(3, 15, 28, .84));
+  box-shadow: 0 16px 42px rgba(0, 5, 17, .36), inset 0 1px rgba(225, 253, 255, .035);
+  backdrop-filter: blur(18px) saturate(1.25);
+}
+
+.dashboard-card:hover,
+.task:hover,
+.note-card:hover,
+.habit:hover {
+  border-color: rgba(108, 232, 255, .5);
+  box-shadow: 0 18px 46px rgba(0, 5, 17, .46), 0 0 20px rgba(55, 191, 235, .1);
+}
+
+.metric-success { color: #72f6c4; }
+.metric-focus { color: #68c6ff; }
+.metric-streak { color: #ffab6d; }
+.dashboard-ring .dashboard-arc,
+.course-score .arc,
+.timer-progress {
+  stroke: #7cf7df;
+  filter: drop-shadow(0 0 7px rgba(103, 248, 224, .7));
+}
+
+.icon-btn.global-add,
+.primary,
+.course-copy button,
+.timer-center button,
+.timer-presets button.active,
+.note-card .note-toggle-all {
+  background: linear-gradient(135deg, #c4fff4, #73efd7 56%, #65c5ff);
+  color: #03131f;
+  box-shadow: 0 8px 28px rgba(70, 234, 207, .24), 0 0 0 1px rgba(211,255,249,.2);
+}
+
+.quick:focus-within,
+.note-search:focus-within {
+  border-color: rgba(113, 240, 224, .64);
+  box-shadow: 0 0 0 3px rgba(91, 230, 220, .09), 0 15px 40px rgba(0, 5, 17, .34);
+}
+
+.task.done .check,
+.habit-day.done,
+.heat.rate-4,
+.heat.full {
+  background: #71f0bf !important;
+  border-color: #71f0bf !important;
+  color: #03140e !important;
+  box-shadow: 0 0 15px rgba(113, 240, 191, .3);
+}
+
+.topbar {
+  border-color: rgba(126, 218, 250, .2);
+  background: rgba(2, 14, 27, .78);
+  backdrop-filter: blur(24px) saturate(1.32);
+}
+
+dialog:not(.guide-dialog),
+.mobile-sheet {
+  background: linear-gradient(145deg, rgba(7, 30, 48, .97), rgba(2, 14, 27, .98));
+  border-color: rgba(117, 223, 247, .3);
+  box-shadow: 0 30px 90px rgba(0, 4, 15, .74), 0 0 30px rgba(57, 197, 231, .1);
+}
+
+#toast {
+  border: 1px solid rgba(112, 240, 215, .36);
+  background: rgba(5, 31, 47, .95);
+  color: #efffff;
+  box-shadow: 0 16px 45px rgba(0, 5, 17, .55), 0 0 20px rgba(75, 225, 211, .12);
+  backdrop-filter: blur(18px);
+}
+
+@media (min-width: 1180px) {
+  .app-shell { grid-template-columns: minmax(0, 1fr) 300px; }
+  .today-dashboard { gap: 13px; }
+  .dashboard-card { min-height: 154px; }
+}
+
+@media (max-width: 900px) {
+  html[data-theme="aurora"] body,
+  html[data-theme="polar"] body {
+    background-position: 64% top;
+    background-attachment: scroll;
+  }
+
+  .topbar {
+    background: rgba(2, 14, 27, .86);
+    box-shadow: 0 10px 30px rgba(0, 5, 16, .26);
+  }
+
+  .bottom-nav {
+    left: 7px;
+    right: 7px;
+    bottom: calc(6px + env(safe-area-inset-bottom));
+    width: auto;
+    height: calc(70px + env(safe-area-inset-bottom));
+    border: 1px solid rgba(120, 218, 246, .23);
+    border-radius: 20px;
+    background: rgba(2, 17, 31, .9);
+    box-shadow: 0 18px 52px rgba(0, 5, 16, .65), inset 0 1px rgba(255,255,255,.05);
+    backdrop-filter: blur(24px) saturate(1.35);
+  }
+
+  .bottom-nav button.active {
+    color: #8dffe7;
+    background: linear-gradient(180deg, rgba(57, 203, 216, .16), transparent) !important;
+  }
+
+  .bottom-nav button::before {
+    content: "";
+    position: absolute;
+    inset: 0 23% auto;
+    height: 2px;
+    border-radius: 2px;
+    background: transparent;
+  }
+
+  .bottom-nav button.active::before {
+    background: #75f3da;
+    box-shadow: 0 0 10px rgba(117, 243, 218, .8);
+  }
+
+  .bottom-nav button { position: relative; min-height: 58px; }
+  .bottom-nav .nav-indicator { display: none; }
+  .today-hero { min-height: 215px; background-position: 58% 32% !important; }
+}
+
+@media (max-width: 650px) {
+  .today-hero { min-height: 188px; }
+  .today-dashboard, #todayView .today-dashboard { gap: 7px; }
+  .dashboard-card { border-radius: 15px; }
+  .app-shell main { padding-bottom: calc(98px + env(safe-area-inset-bottom)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="aurora"] body::before,
+  html[data-theme="polar"] body::before { animation: none; }
+}
