@@ -1,4 +1,4 @@
-import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState, settleCloudOperations, changedCollections, changedRecordIds } from './sync-core.mjs?v=41';
+import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState, settleCloudOperations, changedCollections, changedRecordIds } from './sync-core.mjs?v=42';
 
 const QUEUE_PREFIX = 'sever-cloud-queue-v2';
 const MARKER_PREFIX = 'sever-cloud-migration-v2';
@@ -70,7 +70,11 @@ class SeverCloud {
     this.hydrated = false;
     this.localOnly = false;
     this.pullQueued = false;
+    this.pullPromise = null;
+    this.pullRequested = false;
+    this.pullRetryTimer = null;
     this.poller = null;
+    this.realtimeReconnectTimer = null;
     this.lastErrorCode = null;
     this.authReachable = false;
     this.realtimeStatus = 'idle';
@@ -134,8 +138,10 @@ class SeverCloud {
   }
 
   clearRealtime() {
-    try { this.subscription?.unsubscribe(); } catch {}
-    try { this.channel?.close(); } catch {}
+    clearTimeout(this.realtimeReconnectTimer);
+    this.realtimeReconnectTimer = null;
+    const activeChannel = this.channel || this.subscription;
+    try { activeChannel?.unsubscribe(); } catch {}
     this.subscription = null;
     this.realtimeStarting = null;
     this.channel = null;
@@ -380,22 +386,53 @@ class SeverCloud {
   async pull() {
     if (!this.user || !this.hydrated || this.localOnly || !navigator.onLine) return;
     if (this.running) { this.pullQueued = true; return; }
-    try {
-      const local = this.app.getState();
-      const remote = rowsToState(local, rowCollections(await this.fetchAll()));
-      const merged = mergeStates(local, remote);
-      const collections = changedCollections(local, merged);
-      await this.app.replaceState(merged, { collections, recordIds: changedRecordIds(local, merged, collections), source: 'background-sync' });
-      this.baseline = collectionsFor(merged);
-      this.setStatus('synced');
-    } catch (reason) {
-      this.lastErrorCode = errorCode(reason) === 'SESSION_ERROR' ? 'SYNC_ERROR' : errorCode(reason);
-      this.setStatus(navigator.onLine ? 'pending' : 'offline');
-    }
+    if (this.pullPromise) { this.pullRequested = true; return this.pullPromise; }
+    const userId = this.user.id;
+    this.pullPromise = (async () => {
+      try {
+        const local = this.app.getState();
+        const remote = rowsToState(local, rowCollections(await this.fetchAll()));
+        if (!this.user || this.user.id !== userId || this.localOnly) return;
+        const merged = mergeStates(local, remote);
+        const collections = changedCollections(local, merged);
+        await this.app.replaceState(merged, { collections, recordIds: changedRecordIds(local, merged, collections), source: 'background-sync' });
+
+        // Keep the server snapshot as the baseline. Any newer local record is
+        // then re-queued instead of being silently treated as already synced.
+        this.baseline = collectionsFor(remote);
+        this.capture();
+        clearTimeout(this.pullRetryTimer);
+        this.pullRetryTimer = null;
+        this.retryIndex = 0;
+        if (this.queued.length) this.syncSoon(0);
+        else this.setStatus('synced');
+        this.lastErrorCode = null;
+      } catch (reason) {
+        if (!this.user || this.user.id !== userId) return;
+        this.lastErrorCode = errorCode(reason) === 'SESSION_ERROR' ? 'SYNC_ERROR' : errorCode(reason);
+        this.setStatus(navigator.onLine ? 'pending' : 'offline');
+        this.schedulePullRetry();
+      }
+    })().finally(() => {
+      this.pullPromise = null;
+      if (this.pullRequested) {
+        this.pullRequested = false;
+        queueMicrotask(() => this.pull());
+      }
+    });
+    return this.pullPromise;
   }
 
   syncSoon(delay = 300) { clearTimeout(this.timer); this.timer = setTimeout(() => this.flush(), delay); }
   scheduleRetry() { this.syncSoon(RETRIES[Math.min(this.retryIndex++, RETRIES.length - 1)]); }
+  schedulePullRetry() {
+    clearTimeout(this.pullRetryTimer);
+    const delay = RETRIES[Math.min(this.retryIndex++, RETRIES.length - 1)];
+    this.pullRetryTimer = window.setTimeout(() => {
+      this.pullRetryTimer = null;
+      this.pull();
+    }, delay);
+  }
 
   subscribe() {
     if (this.subscription || this.realtimeStarting || !this.user || this.localOnly) return;
@@ -408,8 +445,27 @@ class SeverCloud {
       tables.forEach(table => channel.on('postgres_changes', { event: '*', schema: 'public', table, filter: `user_id=eq.${userId}` }, () => this.pull()));
       this.subscription = channel.subscribe(status => {
         if (!this.user || this.user.id !== userId) return;
-        this.realtimeStatus = status === 'SUBSCRIBED' ? 'connected' : status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' ? 'error' : String(status || 'connecting').toLocaleLowerCase('en-US');
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') this.lastErrorCode = 'REALTIME_ERROR';
+        const failed = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED';
+        this.realtimeStatus = status === 'SUBSCRIBED' ? 'connected' : failed ? 'error' : String(status || 'connecting').toLocaleLowerCase('en-US');
+        if (status === 'SUBSCRIBED') {
+          clearTimeout(this.realtimeReconnectTimer);
+          this.realtimeReconnectTimer = null;
+          if (this.lastErrorCode === 'REALTIME_ERROR') this.lastErrorCode = null;
+        } else if (failed) {
+          this.lastErrorCode = 'REALTIME_ERROR';
+          if (this.channel === channel) {
+            this.subscription = null;
+            this.channel = null;
+          }
+          if (status !== 'CLOSED') {
+            try { channel.unsubscribe(); } catch {}
+          }
+          clearTimeout(this.realtimeReconnectTimer);
+          this.realtimeReconnectTimer = window.setTimeout(() => {
+            this.realtimeReconnectTimer = null;
+            if (this.user?.id === userId && navigator.onLine && !this.localOnly) this.subscribe();
+          }, 3000);
+        }
         window.dispatchEvent(new CustomEvent('sever:cloud-status', { detail: this.health() }));
       });
     }).catch(reason => {

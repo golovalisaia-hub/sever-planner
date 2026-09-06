@@ -416,6 +416,8 @@ async function pullCloudState(application, makeRemote = local => clone(local)) {
   const statuses = [];
   const cloudContext = {
     navigator: { onLine: true },
+    clearTimeout() {},
+    queueMicrotask,
     __deps: {
       rowsToState: local => makeRemote(local),
       mergeStates: (_local, remote) => clone(remote),
@@ -436,6 +438,8 @@ async function pullCloudState(application, makeRemote = local => clone(local)) {
   cloud.running = false;
   cloud.fetchAll = async () => ({});
   cloud.setStatus = status => statuses.push(status);
+  cloud.capture = () => { cloud.baseline = cloudContext.__deps.collectionsFor(application.window.SeverApp.getState()); };
+  Object.defineProperty(cloud, 'queued', { configurable: true, get: () => [] });
   await cloud.pull();
   assert.deepEqual(statuses, ['synced'], 'The cloud pull failed inside the test harness');
 }

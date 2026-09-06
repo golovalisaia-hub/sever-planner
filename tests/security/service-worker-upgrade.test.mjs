@@ -7,7 +7,7 @@ import vm from 'node:vm';
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 
-test('v41 r2 service worker installs atomically and removes stale caches', async () => {
+test('v42 service worker installs atomically and removes stale caches', async () => {
   const handlers = new Map();
   const deleted = [];
   let cachedAssets = [];
@@ -20,8 +20,8 @@ test('v41 r2 service worker installs atomically and removes stale caches', async
     addEventListener: (type, handler) => handlers.set(type, handler)
   };
   const caches = {
-    open: async name => ({ addAll: async assets => { assert.equal(name, 'sever-v41-global-rebuild-r2'); cachedAssets = assets; }, put: async () => {} }),
-    keys: async () => ['sever-v35', 'sever-v36-security', 'sever-v37-auth', 'sever-v38-brand', 'sever-v39-northern', 'sever-v40-northern', 'sever-v41-global-rebuild', 'sever-v41-global-rebuild-r2'],
+    open: async name => ({ addAll: async assets => { assert.equal(name, 'sever-v42-sync-calendar-r1'); cachedAssets = assets; }, put: async () => {} }),
+    keys: async () => ['sever-v35', 'sever-v36-security', 'sever-v37-auth', 'sever-v38-brand', 'sever-v39-northern', 'sever-v40-northern', 'sever-v41-global-rebuild', 'sever-v41-global-rebuild-r2', 'sever-v42-sync-calendar-r1'],
     delete: async name => { deleted.push(name); return true; },
     match: async () => null
   };
@@ -31,16 +31,16 @@ test('v41 r2 service worker installs atomically and removes stale caches', async
   handlers.get('install')({ waitUntil: promise => { installWork = promise; } });
   await installWork;
   assert.ok(cachedAssets.includes('./index.html'));
-  assert.ok(cachedAssets.includes('./js/cloud-runtime.js?v=41'));
-  assert.ok(cachedAssets.includes('./sever-v41.css?v=41'));
-  assert.ok(cachedAssets.includes('./reference-theme.css?v=41'));
+  assert.ok(cachedAssets.includes('./js/cloud-runtime.js?v=42'));
+  assert.ok(cachedAssets.includes('./sever-v41.css?v=42'));
+  assert.ok(cachedAssets.includes('./reference-theme.css?v=42'));
   assert.ok(cachedAssets.includes('./aurora.webp'));
   assert.ok(cachedAssets.includes('./assets/sever/mountain-night.svg'));
 
   let activateWork;
   handlers.get('activate')({ waitUntil: promise => { activateWork = promise; } });
   await activateWork;
-  assert.deepEqual(deleted.sort(), ['sever-v35', 'sever-v36-security', 'sever-v37-auth', 'sever-v38-brand', 'sever-v39-northern', 'sever-v40-northern', 'sever-v41-global-rebuild']);
+  assert.deepEqual(deleted.sort(), ['sever-v35', 'sever-v36-security', 'sever-v37-auth', 'sever-v38-brand', 'sever-v39-northern', 'sever-v40-northern', 'sever-v41-global-rebuild', 'sever-v41-global-rebuild-r2']);
   assert.equal(claimed, true);
 
   handlers.get('message')({ data: { type: 'SKIP_WAITING' } });
