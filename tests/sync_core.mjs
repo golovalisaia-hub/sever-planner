@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { collectionsFor, diffCollections, mergeStates, prepareState, queueLatest, rowsToState, settleCloudOperations, sortCloudOperations } from '../js/sync-core.mjs';
 
-const base = () => ({ version: 9, tasks: [], habits: [], checks: {}, notes: [], folders: [], focusSessions: [], taskMemory: [], stats: { focusMs: 0, sessions: 0 }, reminders: {}, profile: {} });
+const base = () => ({ version: 9, tasks: [], habits: [], checks: {}, notes: [], folders: [], focusSessions: [], taskMemory: [], stats: { focusMs: 0, sessions: 0 }, reminders: {}, profile: {}, appearance: { theme: 'aurora' } });
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
 
@@ -13,6 +13,7 @@ test('projects planner data to stable cloud collections', () => {
   assert.equal(data.tasks.get('task-1').title, 'Python');
   assert.equal(data.habitEntries.get('habit-1:2026-09-04').completed, true);
   assert.deepEqual(data.settings.get('settings').data.stats, { focusMs: 0, sessions: 0 });
+  assert.deepEqual(data.settings.get('settings').data.appearance, { theme: 'aurora' });
 });
 
 test('restores every synced planner section on a second device', () => {
@@ -23,7 +24,7 @@ test('restores every synced planner section on a second device', () => {
     folders: [{ id: 'folder', name: 'Работа', created_at: '2026-09-05T08:00:00Z', updated_at: '2026-09-05T08:00:00Z' }],
     notes: [{ id: 'note', folder_id: 'folder', title: 'Идея', body: 'Текст', kind: 'text', items: [], done: false, protected: false, secure: null, created_at: '2026-09-05T08:00:00Z', updated_at: '2026-09-05T08:00:00Z' }],
     focusSessions: [{ id: 'focus', task_id: 'task', duration_minutes: 20, started_at: '2026-09-05T08:00:00Z', completed_at: '2026-09-05T08:20:00Z', status: 'completed', created_at: '2026-09-05T08:00:00Z', updated_at: '2026-09-05T08:20:00Z' }],
-    settings: [{ data: { challengeName: 'Курс', stats: { focusMs: 1200000, sessions: 1 }, profile: { name: 'Пользователь' } }, updated_at: '2026-09-05T08:20:00Z' }]
+    settings: [{ data: { challengeName: 'Курс', stats: { focusMs: 1200000, sessions: 1 }, profile: { name: 'Пользователь' }, appearance: { theme: 'polar' } }, updated_at: '2026-09-05T08:20:00Z' }]
   });
   assert.equal(restored.tasks[0].title, 'Задача');
   assert.equal(restored.notes[0].folderId, 'folder');
@@ -32,6 +33,7 @@ test('restores every synced planner section on a second device', () => {
   assert.equal(restored.focusSessions[0].durationMinutes, 20);
   assert.equal(restored.stats.focusMs, 1200000);
   assert.equal(restored.profile.name, 'Пользователь');
+  assert.equal(restored.appearance.theme, 'polar');
 });
 
 test('protected note projects only ciphertext', () => {

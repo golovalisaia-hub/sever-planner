@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Северные горы под сиянием">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#020713"/><stop offset=".55" stop-color="#081a2c"/><stop offset="1" stop-color="#09131f"/></linearGradient>
+    <radialGradient id="glow" cx="70%" cy="5%" r="75%"><stop stop-color="#72fbd0" stop-opacity=".3"/><stop offset=".45" stop-color="#568dff" stop-opacity=".12"/><stop offset="1" stop-color="#020713" stop-opacity="0"/></radialGradient>
+    <linearGradient id="aurora" x1="0" y1="0" x2="1" y2=".25"><stop stop-color="#63f8cf" stop-opacity="0"/><stop offset=".25" stop-color="#63f8cf" stop-opacity=".68"/><stop offset=".55" stop-color="#72a8ff" stop-opacity=".22"/><stop offset=".78" stop-color="#927aff" stop-opacity=".4"/><stop offset="1" stop-color="#927aff" stop-opacity="0"/></linearGradient>
+    <linearGradient id="snow" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c8e9ff"/><stop offset=".25" stop-color="#5d7894"/><stop offset="1" stop-color="#101d2c"/></linearGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="28"/></filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <rect width="1600" height="900" fill="url(#glow)"/>
+  <path d="M-80 260C180 90 390 190 610 75s420 95 660-20 420 70 520 120" fill="none" stroke="url(#aurora)" stroke-width="100" stroke-linecap="round" filter="url(#blur)" opacity=".65"/>
+  <path d="M-50 325C220 105 410 250 650 105S1070 270 1300 95s350 5 430 65" fill="none" stroke="url(#aurora)" stroke-width="26" stroke-linecap="round" opacity=".5"/>
+  <g fill="#dff4ff" opacity=".72"><circle cx="115" cy="125" r="2"/><circle cx="205" cy="75" r="1"/><circle cx="330" cy="158" r="1.5"/><circle cx="470" cy="84" r="1"/><circle cx="615" cy="170" r="1.5"/><circle cx="780" cy="78" r="1"/><circle cx="930" cy="145" r="2"/><circle cx="1110" cy="70" r="1"/><circle cx="1240" cy="148" r="1.5"/><circle cx="1420" cy="92" r="2"/></g>
+  <path d="M0 720 180 568l105 55 175-245 135 152 145-280 190 261 115-147 260 294 130-104 161 166v180H0Z" fill="url(#snow)"/>
+  <path d="m460 378-68 214 68-60 52 32 83-34-75-77 75 77-145 130-112 60 130-342Zm280-128-95 278 95-78 63 48 72-18-135 198 240 40-50-209-190-261Zm569 408-82 28 62 5-70 83 201-54-111-62Z" fill="#e8f7ff" opacity=".42"/>
+  <path d="M0 744c230-42 420 70 650 16s428-38 620 22 280-9 330-26v144H0Z" fill="#040b13" opacity=".88"/>
+  <path d="M0 786c250-30 410 54 654 13s420-30 623 18 268 3 323-16" fill="none" stroke="#7fffe0" stroke-opacity=".12" stroke-width="4"/>
+</svg>

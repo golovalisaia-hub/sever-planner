@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Ледяные горы на рассвете">
+  <defs>
+    <linearGradient id="dsky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#121728"/><stop offset=".52" stop-color="#314860"/><stop offset=".75" stop-color="#c18b79"/><stop offset="1" stop-color="#1b2937"/></linearGradient>
+    <radialGradient id="sun" cx="70%" cy="54%" r="30%"><stop stop-color="#ffe3b6" stop-opacity=".72"/><stop offset=".4" stop-color="#e8a58e" stop-opacity=".18"/><stop offset="1" stop-color="#e8a58e" stop-opacity="0"/></radialGradient>
+    <linearGradient id="ice" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f2f8ff"/><stop offset=".32" stop-color="#adc5da"/><stop offset="1" stop-color="#25394a"/></linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#dsky)"/><rect width="1600" height="900" fill="url(#sun)"/>
+  <g fill="#fff" opacity=".45"><circle cx="125" cy="110" r="1.5"/><circle cx="290" cy="180" r="1"/><circle cx="510" cy="95" r="1.5"/><circle cx="850" cy="135" r="1"/><circle cx="1360" cy="120" r="1.5"/></g>
+  <path d="M0 760 240 560l112 80 245-330 210 253 125-130 170 160 158-249 340 416v140H0Z" fill="url(#ice)"/>
+  <path d="m597 310-91 265 91-66 79 65 131-11-210 197-205 50 205-500Zm663 34-108 329 108-96 82 60 101-8-183 173 340-42-340-416Z" fill="#fff" opacity=".42"/>
+  <path d="M0 765c280-45 438 62 710 17s400-53 650 9c100 25 180 22 240 5v104H0Z" fill="#111d28" opacity=".86"/>
+</svg>

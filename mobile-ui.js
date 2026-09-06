@@ -6,6 +6,7 @@
     notes: () => openSheet('noteCreateSheet'),
     habits: () => $('#openHabit')?.click()
   };
+  const primaryMobileViews = new Set(['today', 'calendar', 'notes']);
   let pointerStart = null;
   let initialized = false;
 
@@ -25,6 +26,13 @@
       action.setAttribute('aria-label', name === 'notes' ? 'Создать заметку или папку' : name === 'habits' ? 'Добавить привычку' : 'Добавить задачу');
       action.onclick = show ? actions[name] : null;
     }
+    const activeView = currentView();
+    document.querySelectorAll('.bottom-nav button').forEach(button => {
+      const direct = button.dataset.view === activeView;
+      const more = button.dataset.mobileMore === 'true' && !primaryMobileViews.has(activeView);
+      button.classList.toggle('active', direct || more);
+      if (direct || more) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
+    });
   }
   function openSettings() {
     closeDialog('mobileMenuSheet');
@@ -79,15 +87,16 @@
     $('#noteCreateNote').onclick = () => { closeDialog('noteCreateSheet'); window.SeverNotes?.openNote?.(); };
     $('#noteCreateFolder').onclick = () => { closeDialog('noteCreateSheet'); window.SeverNotes?.openFolderDialog?.(); };
 
-    // Mobile gets a concise sheet; desktop keeps the established settings dialog.
+    // Mobile gets a concise sheet; desktop opens the full settings page.
     $('#moreBtn').onclick = () => {
       if (isPhone()) openSheet('mobileMenuSheet');
-      else $('#moreDialog')?.showModal();
+      else openSettings();
     };
     $('#openSettingsMenu').onclick = openSettings;
+    document.querySelectorAll('[data-menu-view]').forEach(button => button.addEventListener('click', () => { closeDialog('mobileMenuSheet'); window.SeverApp?.switchView?.(button.dataset.menuView); updateHeader(); }));
     $('#menuAccount').onclick = () => { closeDialog('mobileMenuSheet'); window.SeverCloudUI?.openAccount?.(); };
     $('#menuSync').onclick = async () => { syncSettings(); try { await window.SeverCloud?.restoreSession?.(); } finally { syncSettings(); } };
-    $('#menuTheme').onclick = () => { $('#themeBtn')?.click(); closeDialog('mobileMenuSheet'); };
+    $('#menuTheme').onclick = () => { openSettings(); requestAnimationFrame(() => document.querySelector('.settings-appearance')?.scrollIntoView({ behavior: 'smooth', block: 'start' })); };
 
     $('#settingsAccountButton').onclick = () => window.SeverCloudUI?.openAccount?.();
     $('#settingsSyncRetry').onclick = async () => { const button = $('#settingsSyncRetry'); button.disabled = true; button.textContent = 'Проверяем…'; try { await window.SeverCloud?.restoreSession?.(); } finally { button.disabled = false; button.textContent = 'Повторить'; syncSettings(); } };
@@ -99,6 +108,7 @@
     $('#settingsVaultExport').onclick = () => window.SeverApp?.exportProtectedVault?.();
     $('#settingsReset').onclick = requestReset;
     $('#confirmReset').onclick = async () => { closeDialog('resetConfirmDialog'); await window.SeverApp?.resetPlanner?.(); };
+    document.querySelector('.bottom-nav button[data-mobile-more="true"]')?.addEventListener('click', event => { event.preventDefault(); openSheet('mobileMenuSheet'); updateHeader(); });
 
     const update = () => { updateHeader(); syncSettings(); };
     new MutationObserver(update).observe(document.querySelector('main'), { subtree: true, attributes: true, attributeFilter: ['class'] });
