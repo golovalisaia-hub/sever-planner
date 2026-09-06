@@ -1,8 +1,10 @@
 (function () {
   'use strict';
-  const allowed = new Set(['aurora', 'polar', 'dawn', 'minimal']);
+  const allowed = new Set(['black', 'light', 'north', 'motion', 'aurora']);
+  const aliases = { dark: 'black', minimal: 'black', polar: 'north', dawn: 'light' };
   try {
     const saved = localStorage.getItem('sever-theme');
-    document.documentElement.dataset.theme = allowed.has(saved) ? saved : saved === 'light' ? 'dawn' : 'aurora';
+    const normalized = aliases[saved] || saved;
+    document.documentElement.dataset.theme = allowed.has(normalized) ? normalized : 'aurora';
   } catch { document.documentElement.dataset.theme = 'aurora'; }
 })();

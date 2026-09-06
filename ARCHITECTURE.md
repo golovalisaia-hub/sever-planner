@@ -53,3 +53,9 @@ The static PWA talks directly to Supabase only with its public browser key. It h
 The data source of truth is primary records: tasks, habits + habit entries, folders, notes, encrypted note ciphertext and completed focus sessions. Progress is calculated from them. Remote deletes are soft tombstones, conflict resolution is last-write-wins by `updated_at`, and the SQL trigger rejects a stale offline retry.
 
 Local browser stores are scoped as `sever-cloud-state-v1:<user-id>` after sign-in. Legacy `sever-data-v2` data is retained only long enough for an explicit initial migration; logout switches to a fresh anonymous state, not the last account cache.
+
+## UI reconciliation in v0.41
+
+`js/ui-state.js` separates transient editor state from persistent planner state. Before a meaningful cloud reconciliation it captures the active dialog, form values, dirty controls, focus, selection/cursor and scroll position in memory, then restores them after domain-scoped rendering. A semantic no-op pull performs no render and does not trigger a protected-note lock. Same-record remote changes preserve the local draft and are marked as a conflict instead of silently replacing user input.
+
+Themes use one markup and the same interaction model. The canonical theme IDs are `black`, `light`, `north`, `motion` and `aurora`; legacy IDs are migrated to their closest canonical replacement. Theme, animation mode and reduced-effects preference belong to `user_settings` and do not alter task, note, habit or timer data.

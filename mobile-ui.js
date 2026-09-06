@@ -1,11 +1,6 @@
 (() => {
   const $ = selector => document.querySelector(selector);
   const isPhone = () => window.matchMedia('(max-width: 900px)').matches;
-  const actions = {
-    today: () => $('#openAdd')?.click(),
-    notes: () => openSheet('noteCreateSheet'),
-    habits: () => $('#openHabit')?.click()
-  };
   const primaryMobileViews = new Set(['today', 'calendar', 'notes']);
   let pointerStart = null;
   let initialized = false;
@@ -18,14 +13,6 @@
   function currentView() { return document.querySelector('.view.active')?.id.replace(/View$/, '') || 'today'; }
   function setText(element, value) { if (element && element.textContent !== value) element.textContent = value; }
   function updateHeader() {
-    const name = currentView();
-    const action = $('#mobileHeaderAction');
-    if (action) {
-      const show = Boolean(actions[name]);
-      action.classList.toggle('hidden', !show);
-      action.setAttribute('aria-label', name === 'notes' ? 'Создать заметку или папку' : name === 'habits' ? 'Добавить привычку' : 'Добавить задачу');
-      action.onclick = show ? actions[name] : null;
-    }
     const activeView = currentView();
     document.querySelectorAll('.bottom-nav button').forEach(button => {
       const direct = button.dataset.view === activeView;
@@ -75,7 +62,7 @@
   function setup() {
     if (initialized) return;
     initialized = true;
-    ['noteCreateSheet', 'mobileMenuSheet', 'resetConfirmDialog'].forEach(id => attachSheetBehavior(document.getElementById(id)));
+    ['noteCreateSheet', 'mobileMenuSheet', 'resetConfirmDialog', 'habitDeleteDialog'].forEach(id => attachSheetBehavior(document.getElementById(id)));
     document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => closeDialog(button.dataset.close)));
 
     // Desktop retains its direct editor. On phones this single visible action
@@ -87,11 +74,6 @@
     $('#noteCreateNote').onclick = () => { closeDialog('noteCreateSheet'); window.SeverNotes?.openNote?.(); };
     $('#noteCreateFolder').onclick = () => { closeDialog('noteCreateSheet'); window.SeverNotes?.openFolderDialog?.(); };
 
-    // Mobile gets a concise sheet; desktop opens the full settings page.
-    $('#moreBtn').onclick = () => {
-      if (isPhone()) openSheet('mobileMenuSheet');
-      else openSettings();
-    };
     $('#openSettingsMenu').onclick = openSettings;
     document.querySelectorAll('[data-menu-view]').forEach(button => button.addEventListener('click', () => { closeDialog('mobileMenuSheet'); window.SeverApp?.switchView?.(button.dataset.menuView); updateHeader(); }));
     $('#menuAccount').onclick = () => { closeDialog('mobileMenuSheet'); window.SeverCloudUI?.openAccount?.(); };

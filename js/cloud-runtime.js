@@ -1,4 +1,4 @@
-import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState, settleCloudOperations } from './sync-core.mjs?v=38';
+import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState, settleCloudOperations, changedCollections, changedRecordIds } from './sync-core.mjs?v=41';
 
 const QUEUE_PREFIX = 'sever-cloud-queue-v2';
 const MARKER_PREFIX = 'sever-cloud-migration-v2';
@@ -293,7 +293,8 @@ class SeverCloud {
       // A truly fresh device gets remote state directly, preventing an empty local cache
       // from receiving timestamps and racing to overwrite the account.
       const merged = !cloudEmpty && !localHasPlannerData && !local.syncMeta?.seededAt ? remote : mergeStates(local, remote);
-      await this.app.replaceState(merged);
+      const collections = changedCollections(local, merged);
+      await this.app.replaceState(merged, { collections, recordIds: changedRecordIds(local, merged, collections), source: 'initial-sync' });
       this.baseline = collectionsFor(remote);
       this.hydrated = true;
       this.capture();
@@ -383,7 +384,8 @@ class SeverCloud {
       const local = this.app.getState();
       const remote = rowsToState(local, rowCollections(await this.fetchAll()));
       const merged = mergeStates(local, remote);
-      await this.app.replaceState(merged);
+      const collections = changedCollections(local, merged);
+      await this.app.replaceState(merged, { collections, recordIds: changedRecordIds(local, merged, collections), source: 'background-sync' });
       this.baseline = collectionsFor(merged);
       this.setStatus('synced');
     } catch (reason) {
@@ -486,6 +488,7 @@ function setupUi(cloud) {
         : 'Войдите, чтобы безопасно синхронизировать план между устройствами.';
   };
   const open = () => {
+    window.SeverUiState?.begin('accountDialog');
     for (const id of ['localProfileDialog', 'moreDialog']) { const parent = document.querySelector(`#${id}`); if (parent?.open) parent.close(); }
     register = false;
     form.reset();
@@ -564,7 +567,7 @@ function boot() {
   booted = true;
   const cloud = new SeverCloud(window.SeverApp);
   window.SeverCloud = cloud;
-  window.SeverApp.onLocalSave = () => cloud.capture();
+  window.SeverApp.beforeLocalSave = () => cloud.capture();
   setupUi(cloud);
   cloud.start().catch(() => cloud.setStatus('pending'));
   return true;

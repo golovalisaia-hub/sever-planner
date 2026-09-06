@@ -187,6 +187,7 @@ openNote = async function (note = null) {
     return;
   }
   const data = note?.protected ? unlockedNotes.get(note.id).payload : note;
+  window.SeverUiState?.begin('noteDialog', { domain: 'notes', entityId: note?.id || '' });
   $('#noteDialogTitle').textContent = note ? 'Изменить заметку' : 'Новая заметка';
   $('#noteId').value = note?.id || '';
   $('#noteTitle').value = data?.title || '';
@@ -228,13 +229,14 @@ $('#noteForm').onsubmit = async event => {
 
   try {
     if (wantsProtection && !crypto?.subtle) throw new Error('Шифрование не поддерживается этим браузером');
-    if (wantsProtection && !existing?.protected && !newPassword) throw new Error('Введите пароль для защищённой заметки');
+    if (wantsProtection && !existing?.protected && !newPassword && !unlockedNotes.has(id)) throw new Error('Введите пароль для защищённой заметки');
     if (wantsProtection && newPassword && newPassword.length < 12 && !confirm('Короткий пароль легче подобрать. Рекомендуем 12 или больше символов. Сохранить с этим паролем?')) return;
 
     let note = existing;
     if (!note) {
-      note = { id: uid(), folderId, createdAt: Date.now(), updatedAt: Date.now() };
+      note = { id: id || uid(), folderId, createdAt: Date.now(), updatedAt: Date.now() };
       state.notes.push(note);
+      clearSyncTombstone('notes', note.id);
     }
     note.folderId = folderId;
     note.updatedAt = Date.now();
@@ -255,9 +257,10 @@ $('#noteForm').onsubmit = async event => {
       unlockedNotes.delete(note.id);
     }
     await save();
+    const hadConflict = window.SeverUiState?.consumeConflict('noteDialog');
     $('#noteDialog').close();
     renderNotes();
-    toast(wantsProtection ? 'Заметка зашифрована' : editingNoteType === 'checklist' ? 'Чек-лист сохранён' : 'Заметка сохранена');
+    toast(hadConflict ? 'Заметка сохранена. Изменение с другого устройства заменено.' : wantsProtection ? 'Заметка зашифрована' : editingNoteType === 'checklist' ? 'Чек-лист сохранён' : 'Заметка сохранена');
   } catch (error) {
     toast(error.message || 'Не удалось сохранить заметку');
   }
@@ -266,9 +269,9 @@ $('#noteForm').onsubmit = async event => {
 $('#deleteNote').onclick = () => {
   const id = $('#noteId').value;
   const note = state.notes.find(item => item.id === id); const index = state.notes.findIndex(item => item.id === id); if (!note) return;
-  unlockedNotes.delete(id); state.notes.splice(index, 1); save(); renderNotes();
+  const snapshot = cloneValue(note); unlockedNotes.delete(id); state.notes.splice(index, 1); save(); renderNotes();
   $('#noteDialog').close();
-  toast('Заметка удалена', () => { state.notes.splice(Math.min(index, state.notes.length), 0, note); save(); renderNotes(); });
+  toast('Заметка удалена', { type: 'note-delete', note: snapshot, index });
 };
 
 $('#unlockForm').onsubmit = async event => {
@@ -295,12 +298,33 @@ $('#unlockForm').onsubmit = async event => {
 };
 
 function openFolderDialog() {
+  window.SeverUiState?.begin('folderDialog', { domain: 'folders' });
   $('#folderForm').reset();
   $('#folderDialog').showModal();
   requestAnimationFrame(() => $('#folderName').focus());
 }
+function openQuickNote() {
+  window.SeverUiState?.begin('quickNoteDialog', { domain: 'notes' });
+  $('#quickNoteForm').reset();
+  $('#quickNoteDialog').showModal();
+  requestAnimationFrame(() => $('#quickNoteText').focus());
+}
+$('#quickNoteForm').onsubmit = async event => {
+  event.preventDefault();
+  const text = $('#quickNoteText').value.trim();
+  if (!text) return;
+  const firstLine = text.split(/\r?\n/, 1)[0].trim();
+  const title = (firstLine || 'Быстрая заметка').slice(0, 100);
+  const now = Date.now();
+  state.notes.push({ id: uid(), folderId: '', title, body: text === title ? '' : text, kind: 'text', items: [], done: false, protected: false, createdAt: now, updatedAt: now });
+  await save();
+  window.SeverUiState?.clear('quickNoteDialog');
+  $('#quickNoteDialog').close();
+  renderNotes();
+  toast('Заметка сохранена');
+};
 $('#openFolder')?.addEventListener('click', openFolderDialog);
-window.SeverNotes = { ...(window.SeverNotes || {}), openNote, openFolderDialog };
+window.SeverNotes = { ...(window.SeverNotes || {}), openNote, openFolderDialog, openQuickNote, syncSecuritySettings: syncProtectedNoteSecuritySettings };
 
 $('#folderForm').onsubmit = async event => {
   event.preventDefault();
@@ -311,7 +335,7 @@ $('#folderForm').onsubmit = async event => {
     activeFolderId = existing.id;
     toast('Такая папка уже есть');
   } else {
-    const folder = { id: uid(), name, createdAt: Date.now() };
+    const folder = { id: uid(), name, createdAt: Date.now(), updatedAt: Date.now() };
     state.folders.push(folder);
     activeFolderId = folder.id;
     await save();
@@ -334,6 +358,7 @@ function currentFolder() {
 $('#manageFolder').onclick = () => {
   const folder = currentFolder();
   if (!folder) return;
+  window.SeverUiState?.begin('folderManagerDialog', { domain: 'folders', entityId: folder.id });
   $('#folderManagerName').value = folder.name;
   $('#folderManagerDialog').showModal();
   requestAnimationFrame(() => $('#folderManagerName').focus());
@@ -346,27 +371,28 @@ $('#folderManagerForm').onsubmit = async event => {
   if (!folder || !name) return;
   const duplicate = state.folders.find(item => item.id !== folder.id && item.name.toLocaleLowerCase('ru-RU') === name.toLocaleLowerCase('ru-RU'));
   if (duplicate) return toast('Такая папка уже есть');
-  const previousName = folder.name;
+  const before = { name: folder.name };
   folder.name = name;
+  folder.updatedAt = Date.now();
   await save();
   $('#folderManagerDialog').close();
   renderNotes();
-  toast('Папка переименована', () => { folder.name = previousName; save(); renderNotes(); });
+  toast('Папка переименована', { type: 'folder-state', id: folder.id, before });
 };
 
 function removeFolder(withNotes) {
   const folder = currentFolder();
   if (!folder) return;
-  const notes = state.notes.filter(note => note.folderId === folder.id);
+  const notes = state.notes.filter(note => note.folderId === folder.id), snapshots = notes.map(note => cloneValue(note));
   const index = state.folders.findIndex(item => item.id === folder.id);
   state.folders.splice(index, 1);
   if (withNotes) state.notes = state.notes.filter(note => note.folderId !== folder.id);
-  else notes.forEach(note => { note.folderId = ''; });
+  else notes.forEach(note => { note.folderId = ''; note.updatedAt = Date.now(); });
   activeFolderId = 'all';
   $('#folderManagerDialog').close();
   save();
   renderNotes();
-  toast(withNotes ? 'Папка и заметки удалены' : 'Папка удалена', () => { state.folders.splice(Math.min(index, state.folders.length), 0, folder); if (withNotes) state.notes.push(...notes); else notes.forEach(note => { note.folderId = folder.id; }); save(); renderNotes(); });
+  toast(withNotes ? 'Папка и заметки удалены' : 'Папка удалена', { type: 'folder-delete', folder: cloneValue(folder), index, notes: snapshots });
 }
 
 $('#deleteFolderOnly').onclick = () => removeFolder(false);
@@ -384,5 +410,6 @@ document.querySelector('#lockProtectedNotesNow')?.addEventListener('click',()=>l
 document.querySelector('#noteDialog')?.addEventListener('close',()=>{const id=document.querySelector('#noteId')?.value;if(id&&state.notes.find(note=>note.id===id)?.protected)lockProtectedNote(id);else clearProtectedForm()});
 document.querySelector('#unlockDialog')?.addEventListener('close',()=>{const password=document.querySelector('#unlockPassword');if(password)password.value='';pendingUnlockNote=null;pendingUnlockEdit=false});
 window.addEventListener('sever:lock-protected-notes',()=>lockAllProtectedNotes(false));
+window.SeverNotes.handleRemoteProtectedChanges=noteIds=>{(noteIds||[]).forEach(noteId=>{const note=state.notes.find(item=>item.id===noteId);if(!note?.protected||!unlockedNotes.has(noteId))return;if(document.querySelector('#noteDialog')?.open&&document.querySelector('#noteId')?.value===noteId&&window.SeverUiState?.isDirty('noteDialog'))return;lockProtectedNote(noteId)})};
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&state.security?.lockInBackground!==false)lockAllProtectedNotes(false);checkProtectedNoteTimeouts()});
 document.addEventListener('pointerdown',()=>{const id=document.querySelector('#noteId')?.value;if(id)touchUnlockedNote(id)},{passive:true});document.addEventListener('keydown',()=>{const id=document.querySelector('#noteId')?.value;if(id)touchUnlockedNote(id)},{passive:true});setInterval(checkProtectedNoteTimeouts,15000);syncProtectedNoteSecuritySettings();

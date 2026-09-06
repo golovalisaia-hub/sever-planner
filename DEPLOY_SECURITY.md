@@ -22,6 +22,6 @@ For the separate browser-SDK Auth smoke test, add one disposable confirmed user 
 - Offline static assets load after one online visit.
 - A protected-note marker is absent from localStorage, IndexedDB, backup and sync queue.
 - RLS A→B and B→A tests have been run with disposable users.
-- Service worker updates to `sever-v40-northern` without manual cache clearing.
+- Service worker updates to `sever-v41-global-rebuild` without manual cache clearing.
 
 The FastAPI folder is a future foundation. Its development-only `X-SEVER-User-Id` identity must be replaced by verified Supabase JWT authentication before it stores private production data.
