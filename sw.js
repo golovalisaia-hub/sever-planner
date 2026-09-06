@@ -1,4 +1,4 @@
-const CACHE = 'sever-v41-global-rebuild';
+const CACHE = 'sever-v41-global-rebuild-r2';
 const ASSETS = [
   './',
   './index.html',
@@ -11,6 +11,8 @@ const ASSETS = [
   './northern.css?v=41',
   './northern-components.css?v=41',
   './sever-v41.css?v=41',
+  './reference-theme.css?v=41',
+  './aurora.webp',
   './assets/sever/mountain-night.svg',
   './assets/sever/ice-dawn.svg',
   './app.js?v=41',
@@ -46,6 +48,8 @@ const CORE_PATHS = [
   '/northern.css',
   '/northern-components.css',
   '/sever-v41.css',
+  '/reference-theme.css',
+  '/aurora.webp',
   '/assets/sever/mountain-night.svg',
   '/assets/sever/ice-dawn.svg',
   '/mobile-ui.js',

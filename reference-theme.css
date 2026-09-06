@@ -1,0 +1,89 @@
+/*
+ * SEVER Aurora reference layer.
+ *
+ * This file is intentionally additive: it may replace Aurora artwork and
+ * atmosphere, but it must not redefine product geometry, navigation, or any
+ * of the other four themes.
+ */
+html[data-theme="aurora"] body {
+  background:
+    linear-gradient(180deg, rgba(0, 8, 20, .28), rgba(0, 8, 19, .88)),
+    url("aurora.webp") center top / cover fixed no-repeat,
+    #020914;
+}
+
+html[data-theme="aurora"] body::before {
+  inset: 0;
+  height: auto;
+  background:
+    radial-gradient(circle at 67% 3%, rgba(94, 255, 220, .11), transparent 25%),
+    linear-gradient(90deg, rgba(0, 7, 18, .3), transparent 48%, rgba(0, 5, 15, .22));
+  filter: none;
+  opacity: .9;
+  animation: sever-reference-sky 18s ease-in-out infinite alternate;
+}
+
+@keyframes sever-reference-sky {
+  to {
+    opacity: .78;
+    transform: scale(1.015);
+  }
+}
+
+html[data-theme="aurora"] .today-hero {
+  background-image:
+    linear-gradient(90deg, rgba(2, 12, 24, .96), rgba(3, 15, 29, .62), rgba(1, 9, 19, .34)),
+    url("aurora.webp");
+  background-position: center 31%;
+  background-size: cover;
+  border-color: rgba(114, 224, 255, .28);
+  box-shadow: 0 18px 52px rgba(0, 4, 14, .4), inset 0 1px rgba(219, 255, 255, .08);
+}
+
+html[data-theme="aurora"] .today-hero h1 {
+  text-shadow: 0 5px 28px rgba(0, 5, 17, .85);
+}
+
+html[data-theme="aurora"] .today-focus-widget {
+  background-image:
+    linear-gradient(90deg, rgba(2, 12, 24, .96), rgba(3, 15, 29, .58), rgba(1, 9, 19, .34)),
+    url("aurora.webp");
+  background-position: center 62%;
+  background-size: cover;
+}
+
+html[data-theme="aurora"] #timerView .focus-card {
+  background-image:
+    linear-gradient(90deg, rgba(2, 12, 24, .94), rgba(3, 15, 29, .55), rgba(1, 9, 19, .3)),
+    url("aurora.webp");
+  background-position: center 62%;
+  background-size: cover;
+}
+
+html[data-theme="aurora"] .theme-preview.theme-aurora {
+  background:
+    linear-gradient(rgba(3, 13, 24, .2), rgba(3, 13, 24, .72)),
+    url("aurora.webp") center 34% / cover no-repeat;
+}
+
+@media (max-width: 900px) {
+  html[data-theme="aurora"] body {
+    background-position: 64% top;
+    background-attachment: scroll;
+  }
+
+  html[data-theme="aurora"] .today-hero {
+    background-position: 58% 32%;
+  }
+}
+
+html[data-theme="aurora"][data-motion="reduced"] body::before {
+  display: none;
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="aurora"] body::before {
+    animation: none;
+  }
+}
