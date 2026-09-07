@@ -16,9 +16,10 @@
   <link rel="stylesheet" href="mobile-system.css?v=43">
   <link rel="stylesheet" href="onboarding.css?v=43">
   <link rel="stylesheet" href="northern.css?v=43">
-  <link rel="stylesheet" href="northern-components.css?v=43">
+  <link rel="stylesheet" href="northern-components.css?v=47">
   <link rel="stylesheet" href="sever-v41.css?v=43">
   <link rel="stylesheet" href="reference-theme.css?v=43">
+  <link rel="stylesheet" href="mobile-home.css?v=47">
   <link rel="stylesheet" href="sever-ai.css?v=45">
   <title>SEVER</title>
   <script src="js/theme-init.js?v=43"></script>
@@ -50,6 +51,7 @@
   <div class="app-shell"><main>
     <section id="todayView" class="view active" aria-labelledby="todayPageTitle">
       <header class="today-hero"><div class="today-hero-copy"><small id="todayLabel"></small><h1 id="todayGreeting">Доброе утро</h1><p id="todayMotto">Новый день — новые вершины.</p></div></header>
+      <article class="today-motivation" aria-label="Мысль дня"><span aria-hidden="true">✦</span><p>Небольшие шаги каждый день приводят к большим результатам.</p></article>
       <h2 id="todayPageTitle" class="visually-hidden">Сегодня</h2>
       <section id="todayDashboard" class="today-dashboard" aria-label="Сводка дня">
         <article class="dashboard-card dashboard-progress"><div><small>ПРОГРЕСС ДНЯ</small><b id="dashboardProgressValue">0%</b><span id="dashboardProgressMeta">Пока задач нет</span></div><div class="dashboard-ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40"></circle><circle id="dashboardProgressArc" class="dashboard-arc" cx="50" cy="50" r="40"></circle></svg><i id="dashboardProgressCount">0</i></div></article>
@@ -66,11 +68,11 @@
         <div id="challengeProgress" class="progress-grid"></div>
       </div>
       <form id="quickForm" class="quick"><span class="quick-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.64 5.64l2.83 2.83M15.53 15.53l2.83 2.83M18.36 5.64l-2.83 2.83M8.47 15.53l-2.83 2.83"/><circle cx="12" cy="12" r="2.5"/></svg></span><input id="quickInput" list="taskSuggestions" autocomplete="off" placeholder="Например: завтра английский 20 минут"><button>Добавить</button></form>
-      <div class="list-head today-list-head"><span>МОИ ДЕЛА СЕГОДНЯ</span><b id="todayLoad">0 мин</b></div>
+      <div class="list-head today-list-head"><span>ЗАДАЧИ СЕГОДНЯ</span><button id="todayViewAll" type="button">Посмотреть все <i aria-hidden="true">›</i></button><b id="todayLoad">0 мин</b></div>
       <div id="todayFilters" class="task-filters" aria-label="Фильтр задач"><button type="button" class="active" data-filter="all">Все <b id="todayFilterAll">0</b></button><button type="button" data-filter="pending">Не выполнено <b id="todayFilterPending">0</b></button><button type="button" data-filter="done">Выполнено <b id="todayFilterDone">0</b></button></div>
       <div id="todayTasks" class="task-list"></div>
-      <article id="todayFocusWidget" class="today-focus-widget"><div><small>ФОКУС-ТАЙМЕР</small><b id="todayFocusDisplay">25:00</b><span id="todayFocusTask">Выберите задачу и начните спокойную работу</span></div><button id="todayFocusToggle" type="button" class="primary">Начать</button></article>
-      <button id="mobileQuickNote" class="mobile-quick-note" type="button"><span aria-hidden="true">✦</span><span><b>Быстрая заметка</b><small>Записать мысль, не покидая Главную</small></span><i aria-hidden="true">›</i></button>
+      <div class="today-utilities"><article id="todayFocusWidget" class="today-focus-widget"><div><small>ФОКУС-ТАЙМЕР</small><b id="todayFocusDisplay">25:00</b><span id="todayFocusTask">Выберите задачу и начните спокойную работу</span></div><button id="todayFocusToggle" type="button" class="primary" aria-label="Запустить фокус-таймер">▶</button></article><button id="mobileQuickNote" class="mobile-quick-note" type="button"><span class="utility-icon" aria-hidden="true">▣</span><span><b>Быстрая заметка</b><small>Записать мысль…</small></span></button></div>
+      <p class="today-quote">“Дисциплина сегодня — свобода завтра.”</p>
     </section>
 
     <section id="calendarView" class="view" aria-labelledby="calendarPageTitle">
@@ -158,7 +160,7 @@
   <script src="js/security-core.js?v=43" defer></script>
   <script src="js/supabase-client.js?v=43" defer></script>
   <script src="js/ui-state.js?v=43" defer></script>
-  <script src="app.js?v=46" defer></script>
+  <script src="app.js?v=47" defer></script>
   <script src="notes-pro.js?v=43" defer></script>
   <script src="mobile-ui.js?v=43" defer></script>
   <script src="js/sever-ai.js?v=45" defer></script>

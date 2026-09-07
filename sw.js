@@ -1,4 +1,4 @@
-const CACHE = 'sever-v46-cloud-diagnostics';
+const CACHE = 'sever-v47-mobile-home';
 const ASSETS = [
   './',
   './index.html',
@@ -9,14 +9,15 @@ const ASSETS = [
   './mobile-system.css?v=43',
   './onboarding.css?v=43',
   './northern.css?v=43',
-  './northern-components.css?v=43',
+  './northern-components.css?v=47',
   './sever-v41.css?v=43',
   './reference-theme.css?v=43',
+  './mobile-home.css?v=47',
   './sever-ai.css?v=45',
   './aurora.webp',
   './assets/sever/mountain-night.svg',
   './assets/sever/ice-dawn.svg',
-  './app.js?v=46',
+  './app.js?v=47',
   './notes-pro.js?v=43',
   './mobile-ui.js?v=43',
   './supabase-config.js?v=43',
