@@ -345,7 +345,9 @@ function switchStorageScope(userId,localFallback=null){
 function updateCloudStatus(status,user=null){
   const label=$('#cloudStatus'),settingsLabel=$('#cloudStatusSettings'),email=$('#accountEmail'),button=$('#localProfileBtn'),rail=$('#railSyncStatus'),railCard=$('.desktop-sync-card');
   const messages={local:'Локально',offline:'Офлайн · изменения сохраняются',pending:'Ожидает синхронизации',syncing:'Синхронизация…',synced:'✓ Синхронизировано','signed-out':'Войдите для синхронизации',migration:'Нужен выбор данных',unavailable:'Модуль синхронизации недоступен'};
-  if(label)label.textContent=messages[status]||messages.local;if(settingsLabel)settingsLabel.textContent=messages[status]||messages.local;
+  const diagnostic=window.SeverCloud?.lastErrorCode;
+  const statusText=(messages[status]||messages.local)+(status==='pending'&&diagnostic&&diagnostic.startsWith('SYNC_TABLE_')?` · не удалось прочитать ${diagnostic.slice('SYNC_TABLE_'.length).toLowerCase().replaceAll('_',' ')}`:'');
+  if(label)label.textContent=statusText;if(settingsLabel)settingsLabel.textContent=statusText;
   if(rail)rail.textContent=messages[status]||messages.local;if(railCard)railCard.dataset.syncState=status;
   if(email)email.textContent=user?.email||'Данные только на этом устройстве';
   if(button)button.dataset.cloudStatus=status;

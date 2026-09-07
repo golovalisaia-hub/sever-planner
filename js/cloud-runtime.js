@@ -378,7 +378,12 @@ class SeverCloud {
         if (this.user?.id !== userId || this.sessionVersion !== version) throw new Error('Session changed');
         const { data, error } = await client.from(table).select('*').eq('user_id', userId)
           .order(table === 'user_settings' ? 'user_id' : 'id').range(offset, offset + pageSize - 1);
-        if (error) throw error;
+        if (error) {
+          // Preserve the failing collection for a useful, non-sensitive UI
+          // diagnosis instead of leaving the user at a generic pending state.
+          error.code = `SYNC_TABLE_${table.toUpperCase().replace(/[^A-Z0-9]+/g, '_')}`;
+          throw error;
+        }
         rows.push(...(data || []));
         if (!data || data.length < pageSize) break;
       }
