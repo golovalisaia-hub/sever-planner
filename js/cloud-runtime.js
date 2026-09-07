@@ -12,6 +12,10 @@ const cloudTime = value => { const parsed = typeof value === 'number' ? value : 
 const keyFor = (prefix, userId) => `${prefix}:${userId}`;
 
 const authRedirectUrl = () => new URL('./', window.location.href).href;
+const hasInvalidRefreshToken = reason => {
+  const source = String(reason?.message || reason || '').toLocaleLowerCase('en-US');
+  return source.includes('invalid refresh token') || source.includes('refresh token not found');
+};
 const errorCode = reason => {
   if (reason?.code && /^[A-Z][A-Z0-9_]+$/.test(reason.code)) return reason.code;
   const source = String(reason?.message || reason || '').toLocaleLowerCase('en-US');
@@ -95,6 +99,15 @@ class SeverCloud {
     window.dispatchEvent(new CustomEvent('sever:cloud-status', { detail: this.health() }));
   }
   async client() { return window.SeverSupabase.getClient(); }
+
+  async recoverInvalidRefreshToken(reason) {
+    if (!hasInvalidRefreshToken(reason)) return false;
+    try { await (await this.client()).auth.signOut({ scope: 'local' }); } catch {}
+    await this.applySession(null);
+    this.authReachable = true;
+    this.lastErrorCode = null;
+    return true;
+  }
 
   health() {
     const base = window.SeverSupabase?.health?.() || { configured: false, sdkLoaded: false, clientReady: false, lastErrorCode: 'BOOTSTRAP_PENDING' };
@@ -182,17 +195,19 @@ class SeverCloud {
       await this.applySession(session?.user || null);
       this.bindAuthListener(client, true);
     } catch (reason) {
-      this.authReachable = false;
-      this.lastErrorCode = errorCode(reason);
-      const hint = read(ACTIVE_USER_KEY, null);
-      if (hint?.id) {
-        this.user = hint;
-        this.hydrated = false;
-        this.app.switchStorageScope(hint.id, this.app.freshState());
-        this.baseline = collectionsFor(this.app.getState());
-        this.app.render();
-        this.setStatus(this.lastErrorCode === 'SDK_LOAD_FAILED' ? 'unavailable' : 'offline');
-      } else this.setStatus(this.lastErrorCode === 'SDK_LOAD_FAILED' ? 'unavailable' : 'offline');
+      if (!await this.recoverInvalidRefreshToken(reason)) {
+        this.authReachable = false;
+        this.lastErrorCode = errorCode(reason);
+        const hint = read(ACTIVE_USER_KEY, null);
+        if (hint?.id) {
+          this.user = hint;
+          this.hydrated = false;
+          this.app.switchStorageScope(hint.id, this.app.freshState());
+          this.baseline = collectionsFor(this.app.getState());
+          this.app.render();
+          this.setStatus(this.lastErrorCode === 'SDK_LOAD_FAILED' ? 'unavailable' : 'offline');
+        } else this.setStatus(this.lastErrorCode === 'SDK_LOAD_FAILED' ? 'unavailable' : 'offline');
+      }
     }
     window.addEventListener('online', () => this.restoreSession());
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') this.restoreSession(); });
@@ -231,6 +246,7 @@ class SeverCloud {
       this.syncSoon(0);
       return true;
     } catch (reason) {
+      if (await this.recoverInvalidRefreshToken(reason)) return true;
       this.authReachable = false;
       this.lastErrorCode = errorCode(reason);
       this.setStatus(this.lastErrorCode === 'SDK_LOAD_FAILED' ? 'unavailable' : navigator.onLine ? 'pending' : 'offline');
