@@ -1,4 +1,4 @@
-const CACHE = 'sever-v44-ai-r1';
+const CACHE = 'sever-v45-ai-r1';
 const ASSETS = [
   './',
   './index.html',
@@ -12,7 +12,7 @@ const ASSETS = [
   './northern-components.css?v=43',
   './sever-v41.css?v=43',
   './reference-theme.css?v=43',
-  './sever-ai.css?v=44',
+  './sever-ai.css?v=45',
   './aurora.webp',
   './assets/sever/mountain-night.svg',
   './assets/sever/ice-dawn.svg',
@@ -28,7 +28,7 @@ const ASSETS = [
   './js/ui-state.js?v=43',
   './js/sync-core.mjs?v=43',
   './js/cloud-runtime.js?v=43',
-  './js/sever-ai.js?v=44',
+  './js/sever-ai.js?v=45',
   './manifest.webmanifest',
   './icon.svg',
   './icon-192.png',
