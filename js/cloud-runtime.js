@@ -45,7 +45,7 @@ const authMessage = reason => {
 
 function rowFor(collection, record, userId) {
   const base = { user_id: userId, updated_at: cloudTime(record.updatedAt), deleted_at: record.deletedAt ? cloudTime(record.deletedAt) : null };
-  if (collection === 'tasks') return { ...base, id: record.id, title: record.title, scheduled_for: record.date || null, duration_minutes: record.duration, category: record.category, priority: record.priority, challenge: record.challenge, completed: record.completed, completed_at: record.completedAt ? cloudTime(record.completedAt) : null };
+  if (collection === 'tasks') return { ...base, id: record.id, title: record.title, scheduled_for: record.date || null, scheduled_time: record.time || null, duration_minutes: record.duration, category: record.category, priority: record.priority, challenge: record.challenge, completed: record.completed, completed_at: record.completedAt ? cloudTime(record.completedAt) : null };
   if (collection === 'habits') return { ...base, id: record.id, title: record.title };
   if (collection === 'habitEntries') return { ...base, habit_id: record.habitId, entry_date: record.date, completed: !record.deletedAt && Boolean(record.completed) };
   if (collection === 'notes') return { ...base, id: record.id, folder_id: record.folderId || null, title: record.protected ? '' : record.title || '', body: record.protected ? '' : record.body || '', kind: record.kind, items: record.protected ? [] : record.items || [], done: Boolean(record.done), protected: Boolean(record.protected), secure: record.protected ? record.secure || null : null };

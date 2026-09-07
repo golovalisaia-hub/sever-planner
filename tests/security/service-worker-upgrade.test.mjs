@@ -7,7 +7,7 @@ import vm from 'node:vm';
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 
-test('v43 service worker installs atomically and removes stale caches', async () => {
+test('v44 service worker installs AI assets atomically and removes stale caches', async () => {
   const handlers = new Map();
   const deleted = [];
   let cachedAssets = [];
@@ -20,7 +20,7 @@ test('v43 service worker installs atomically and removes stale caches', async ()
     addEventListener: (type, handler) => handlers.set(type, handler)
   };
   const caches = {
-    open: async name => ({ addAll: async assets => { assert.equal(name, 'sever-v43-sync-audit-r1'); cachedAssets = assets; }, put: async () => {} }),
+    open: async name => ({ addAll: async assets => { assert.equal(name, 'sever-v44-ai-r1'); cachedAssets = assets; }, put: async () => {} }),
     keys: async () => ['sever-v35', 'sever-v36-security', 'sever-v37-auth', 'sever-v38-brand', 'sever-v39-northern', 'sever-v40-northern', 'sever-v41-global-rebuild', 'sever-v41-global-rebuild-r2', 'sever-v42-sync-calendar-r1', 'sever-v43-sync-audit-r1'],
     delete: async name => { deleted.push(name); return true; },
     match: async () => null
@@ -34,13 +34,15 @@ test('v43 service worker installs atomically and removes stale caches', async ()
   assert.ok(cachedAssets.includes('./js/cloud-runtime.js?v=43'));
   assert.ok(cachedAssets.includes('./sever-v41.css?v=43'));
   assert.ok(cachedAssets.includes('./reference-theme.css?v=43'));
+  assert.ok(cachedAssets.includes('./sever-ai.css?v=44'));
+  assert.ok(cachedAssets.includes('./js/sever-ai.js?v=44'));
   assert.ok(cachedAssets.includes('./aurora.webp'));
   assert.ok(cachedAssets.includes('./assets/sever/mountain-night.svg'));
 
   let activateWork;
   handlers.get('activate')({ waitUntil: promise => { activateWork = promise; } });
   await activateWork;
-  assert.deepEqual(deleted.sort(), ['sever-v35', 'sever-v36-security', 'sever-v37-auth', 'sever-v38-brand', 'sever-v39-northern', 'sever-v40-northern', 'sever-v41-global-rebuild', 'sever-v41-global-rebuild-r2', 'sever-v42-sync-calendar-r1']);
+  assert.deepEqual(deleted.sort(), ['sever-v35', 'sever-v36-security', 'sever-v37-auth', 'sever-v38-brand', 'sever-v39-northern', 'sever-v40-northern', 'sever-v41-global-rebuild', 'sever-v41-global-rebuild-r2', 'sever-v42-sync-calendar-r1', 'sever-v43-sync-audit-r1']);
   assert.equal(claimed, true);
 
   handlers.get('message')({ data: { type: 'SKIP_WAITING' } });

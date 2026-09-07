@@ -324,7 +324,7 @@ $('#quickNoteForm').onsubmit = async event => {
   toast('Заметка сохранена');
 };
 $('#openFolder')?.addEventListener('click', openFolderDialog);
-window.SeverNotes = { ...(window.SeverNotes || {}), openNote, openFolderDialog, openQuickNote, syncSecuritySettings: syncProtectedNoteSecuritySettings };
+window.SeverNotes = { ...(window.SeverNotes || {}), openNote, openFolderDialog, openQuickNote, syncSecuritySettings: syncProtectedNoteSecuritySettings, getContext:()=>({activeFolderId,selectedNoteId:document.querySelector('#noteId')?.value||''}) };
 
 $('#folderForm').onsubmit = async event => {
   event.preventDefault();
