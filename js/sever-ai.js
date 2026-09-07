@@ -35,6 +35,13 @@
     $('#severAiConfirm').classList.add('hidden');busy(false);close();
     queueMicrotask(syncSettings);
   }
+  function fallbackContext() {
+    const active=document.querySelector('.view.active')?.id?.replace(/View$/,'')||'today';
+    const day=document.querySelector('#taskDialog[open] #taskDate')?.value||
+      (active==='calendar'?document.querySelector('#dayDialog[open]')?.dataset?.date:'')||
+      new Date().toLocaleDateString('sv-SE');
+    return {currentPage:active,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'Europe/Moscow',selectedDate:day};
+  }
   function busy(value) {
     $('#severAiSend').disabled=value;$('#severAiConfirm').disabled=value;
     $('#severAiCancel').classList.toggle('hidden',!value);
@@ -139,7 +146,10 @@
     const input=$('#severAiInput'),message=input.value.trim();
     if(!confirmationToken&&!message)return;
     const id=sessionId(),version=generation;
-    const capturedContext=window.SeverApp.getContext();
+    // The assistant must remain usable during an app-module reload.  Context
+    // is advisory only and the server still validates every selected object.
+    const capturedContext=typeof window.SeverApp?.getContext==='function'
+      ?window.SeverApp.getContext():fallbackContext();
     const requestController=new AbortController();controller=requestController;busy(true);
     if(!confirmationToken){pending=null;$('#severAiConfirm').classList.add('hidden');addMessage('user',message);input.value='';}
     const status=addMessage('assistant','Соединяюсь…');
