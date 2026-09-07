@@ -7,7 +7,7 @@ import vm from 'node:vm';
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 
-test('v45 service worker installs AI assets atomically and removes stale caches', async () => {
+test('v46 service worker installs AI assets atomically and removes stale caches', async () => {
   const handlers = new Map();
   const deleted = [];
   let cachedAssets = [];
@@ -20,7 +20,7 @@ test('v45 service worker installs AI assets atomically and removes stale caches'
     addEventListener: (type, handler) => handlers.set(type, handler)
   };
   const caches = {
-    open: async name => ({ addAll: async assets => { assert.equal(name, 'sever-v45-ai-r1'); cachedAssets = assets; }, put: async () => {} }),
+    open: async name => ({ addAll: async assets => { assert.equal(name, 'sever-v46-cloud-diagnostics'); cachedAssets = assets; }, put: async () => {} }),
     keys: async () => ['sever-v35', 'sever-v36-security', 'sever-v37-auth', 'sever-v38-brand', 'sever-v39-northern', 'sever-v40-northern', 'sever-v41-global-rebuild', 'sever-v41-global-rebuild-r2', 'sever-v42-sync-calendar-r1', 'sever-v43-sync-audit-r1'],
     delete: async name => { deleted.push(name); return true; },
     match: async () => null
@@ -31,7 +31,7 @@ test('v45 service worker installs AI assets atomically and removes stale caches'
   handlers.get('install')({ waitUntil: promise => { installWork = promise; } });
   await installWork;
   assert.ok(cachedAssets.includes('./index.html'));
-  assert.ok(cachedAssets.includes('./js/cloud-runtime.js?v=43'));
+  assert.ok(cachedAssets.includes('./js/cloud-runtime.js?v=46'));
   assert.ok(cachedAssets.includes('./sever-v41.css?v=43'));
   assert.ok(cachedAssets.includes('./reference-theme.css?v=43'));
   assert.ok(cachedAssets.includes('./sever-ai.css?v=45'));

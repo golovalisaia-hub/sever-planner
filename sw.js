@@ -1,4 +1,4 @@
-const CACHE = 'sever-v45-ai-r1';
+const CACHE = 'sever-v46-cloud-diagnostics';
 const ASSETS = [
   './',
   './index.html',
@@ -16,7 +16,7 @@ const ASSETS = [
   './aurora.webp',
   './assets/sever/mountain-night.svg',
   './assets/sever/ice-dawn.svg',
-  './app.js?v=43',
+  './app.js?v=46',
   './notes-pro.js?v=43',
   './mobile-ui.js?v=43',
   './supabase-config.js?v=43',
@@ -27,7 +27,7 @@ const ASSETS = [
   './js/supabase-client.js?v=43',
   './js/ui-state.js?v=43',
   './js/sync-core.mjs?v=43',
-  './js/cloud-runtime.js?v=43',
+  './js/cloud-runtime.js?v=46',
   './js/sever-ai.js?v=45',
   './manifest.webmanifest',
   './icon.svg',

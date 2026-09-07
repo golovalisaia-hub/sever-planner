@@ -79,6 +79,7 @@ class SeverCloud {
     this.poller = null;
     this.realtimeReconnectTimer = null;
     this.lastErrorCode = null;
+    this.syncStage = 'idle';
     this.authReachable = false;
     this.realtimeStatus = 'idle';
     this.authSubscription = null;
@@ -305,11 +306,13 @@ class SeverCloud {
     const current = () => this.user?.id === userId && this.sessionVersion === version;
     this.setStatus('syncing');
     try {
+      this.syncStage = 'download';
       const remoteRows = await this.fetchAll();
       if (!current()) return;
       const cloudEmpty = tables.every(table => !(remoteRows[table] || []).length);
       const local = this.app.getState();
       const marker = read(this.markerKey, null);
+      this.syncStage = 'decode';
       const remote = rowsToState(local, rowCollections(remoteRows));
       const localHasPlannerData = hasPlannerData(local);
       this.baseline = collectionsFor(remote);
@@ -329,13 +332,17 @@ class SeverCloud {
 
       // A truly fresh device gets remote state directly, preventing an empty local cache
       // from receiving timestamps and racing to overwrite the account.
+      this.syncStage = 'merge';
       const merged = !cloudEmpty && !localHasPlannerData && !local.syncMeta?.seededAt ? remote : mergeStates(local, remote);
       const collections = changedCollections(local, merged);
+      this.syncStage = 'apply';
       await this.app.replaceState(merged, { collections, recordIds: changedRecordIds(local, merged, collections), source: 'initial-sync' });
       if (!current()) return;
       this.baseline = collectionsFor(remote);
       this.hydrated = true;
+      this.syncStage = 'queue';
       this.capture();
+      this.syncStage = 'upload';
       await this.flush();
       if (current()) this.subscribe();
     } catch (reason) {
@@ -417,6 +424,9 @@ class SeverCloud {
         return sentRecord === undefined || stableStringify(operation.record) !== sentRecord;
       }));
       if (failed.length) {
+        const failure = failed[0];
+        const code = String(failure.error?.code || 'UNKNOWN');
+        this.lastErrorCode = `SYNC_WRITE_${CLOUD_TABLES[failure.operation.collection].toUpperCase()}_${/^[A-Z0-9_]+$/.test(code) ? code : 'UNKNOWN'}`;
         this.setStatus('pending');
         this.scheduleRetry();
         retryScheduled = true;
