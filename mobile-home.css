@@ -15,3 +15,29 @@
 }
 @media (max-width:350px){#todayView .today-hero{min-height:146px;padding:16px}#todayView .today-dashboard{grid-template-columns:repeat(2,minmax(0,1fr))}#todayView .dashboard-card{min-height:76px}#todayView .task-filters button{padding:0 7px;font-size:.59rem}#todayView .today-utilities{gap:6px}}
 @media (prefers-reduced-motion:reduce){#todayView .today-hero,#todayView .dashboard-card,#todayView .task,#todayView .task-filters button{transition:none!important}}
+
+/* Final shared mobile navigation geometry: safe on Safari and installed PWAs. */
+@media (max-width:900px){
+  :root{--mobile-bottom-nav-height:74px}
+  .bottom-nav{height:calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom))}
+  .app-shell main{padding-bottom:calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom) + 58px)}
+  .sever-ai-launch{right:16px;bottom:calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom) + 16px);width:56px;height:56px}
+  body:has(#severAiPanel.open) .sever-ai-launch{opacity:0;pointer-events:none}
+}
+
+/* Mobile-only home sections must not alter the established desktop dashboard. */
+@media (min-width:901px){
+  #todayView>.today-motivation,
+  #todayView>.today-quote,
+  #todayView .today-list-head button{display:none}
+  #todayView>.today-utilities{display:contents}
+  #todayView #todayFocusWidget{margin-top:12px}
+  #todayView #todayTasks .empty{min-height:156px;padding:24px}
+}
+
+/* Keep an empty desktop day compact; the large illustrated empty state belongs to phone. */
+@media (min-width:901px){
+  #todayView #todayTasks .empty{min-height:112px;padding:20px 24px}
+  #todayView #todayTasks .empty-icon{display:none}
+  #todayView #todayTasks .empty p{margin:4px 0 12px}
+}

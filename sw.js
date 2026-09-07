@@ -1,4 +1,4 @@
-const CACHE = 'sever-v47-mobile-home';
+const CACHE = 'sever-v49-mobile-home';
 const ASSETS = [
   './',
   './index.html',
@@ -12,7 +12,7 @@ const ASSETS = [
   './northern-components.css?v=47',
   './sever-v41.css?v=43',
   './reference-theme.css?v=43',
-  './mobile-home.css?v=47',
+  './mobile-home.css?v=49',
   './sever-ai.css?v=45',
   './aurora.webp',
   './assets/sever/mountain-night.svg',
