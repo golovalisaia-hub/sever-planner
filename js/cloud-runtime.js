@@ -1,4 +1,4 @@
-import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState, settleCloudOperations, changedCollections, changedRecordIds } from './sync-core.mjs?v=42';
+import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState, settleCloudOperations, changedCollections, changedRecordIds, stableStringify } from './sync-core.mjs?v=43';
 
 const QUEUE_PREFIX = 'sever-cloud-queue-v2';
 const MARKER_PREFIX = 'sever-cloud-migration-v2';
@@ -11,7 +11,6 @@ const write = (key, value) => localStorage.setItem(key, JSON.stringify(value));
 const cloudTime = value => { const parsed = typeof value === 'number' ? value : Date.parse(value || ''); return new Date(Number.isFinite(parsed) && parsed > 0 ? parsed : Date.now()).toISOString(); };
 const keyFor = (prefix, userId) => `${prefix}:${userId}`;
 
-const operationTime = operation => Date.parse(operation.record?.updatedAt || operation.record?.deletedAt || '') || 0;
 const authRedirectUrl = () => new URL('./', window.location.href).href;
 const errorCode = reason => {
   if (reason?.code && /^[A-Z][A-Z0-9_]+$/.test(reason.code)) return reason.code;
@@ -82,6 +81,7 @@ class SeverCloud {
     this.skipNextInitialSession = false;
     this.sessionTask = null;
     this.sessionTarget = undefined;
+    this.sessionVersion = 0;
   }
 
   get configured() { return Boolean(window.SeverSupabase?.configured()); }
@@ -111,6 +111,7 @@ class SeverCloud {
   applySession(user) {
     const target = user?.id || null;
     if (this.sessionTask && this.sessionTarget === target) return this.sessionTask;
+    if (target !== (this.sessionTask ? this.sessionTarget : this.user?.id || null)) this.sessionVersion += 1;
     const previous = this.sessionTask?.catch(() => {}) || Promise.resolve();
     this.sessionTarget = target;
     let current;
@@ -140,21 +141,25 @@ class SeverCloud {
   clearRealtime() {
     clearTimeout(this.realtimeReconnectTimer);
     this.realtimeReconnectTimer = null;
-    const activeChannel = this.channel || this.subscription;
-    try { activeChannel?.unsubscribe(); } catch {}
+    const activeChannel = this.subscription;
+    const broadcast = this.channel;
     this.subscription = null;
     this.realtimeStarting = null;
     this.channel = null;
     this.realtimeStatus = 'idle';
+    try { activeChannel?.unsubscribe()?.catch(() => {}); } catch {}
+    try { broadcast?.close(); } catch {}
   }
 
   queue(operations) {
-    if (!this.user || !operations.length || this.localOnly) return;
+    if (!this.user || !operations.length || this.localOnly) return true;
     try { operations.forEach(operation => window.SeverSecurityCore.assertCloudOperation(operation)); }
-    catch { this.setStatus('pending'); return; }
-    write(this.queueKey, queueLatest([...this.queued, ...operations]));
+    catch { this.setStatus('pending'); return false; }
+    try { write(this.queueKey, queueLatest([...this.queued, ...operations])); }
+    catch { this.lastErrorCode = 'LOCAL_QUEUE_ERROR'; this.setStatus('pending'); return false; }
     this.setStatus(navigator.onLine ? 'pending' : 'offline');
     this.syncSoon(550);
+    return true;
   }
 
   capture() {
@@ -163,8 +168,7 @@ class SeverCloud {
     if (!this.user || !this.hydrated) return;
     const next = prepareState(this.app.getState(), this.baseline);
     const changes = diffCollections(this.baseline, next);
-    this.baseline = next;
-    this.queue(changes);
+    if (this.queue(changes)) this.baseline = next;
   }
 
   async start() {
@@ -238,6 +242,12 @@ class SeverCloud {
   async handleSession(user) {
     const nextUserId = user?.id || null;
     if (this.user?.id !== nextUserId) {
+      this.sessionVersion += 1;
+      clearTimeout(this.timer);
+      clearTimeout(this.pullRetryTimer);
+      this.pullRetryTimer = null;
+      this.pullQueued = false;
+      this.pullRequested = false;
       this.app.lockProtectedNotes('account-change');
       this.clearRealtime();
     }
@@ -266,6 +276,7 @@ class SeverCloud {
     this.localOnly = false;
     localStorage.setItem(ACTIVE_USER_KEY, JSON.stringify({ id: user.id, email: user.email || '' }));
     this.app.switchStorageScope(user.id, this.app.getLegacyStateFor(user.id));
+    this.channel?.close();
     this.channel = 'BroadcastChannel' in window ? new BroadcastChannel(`${CHANNEL_PREFIX}:${user.id}`) : null;
     this.channel?.addEventListener('message', () => this.pull());
     this.app.render();
@@ -273,9 +284,13 @@ class SeverCloud {
   }
 
   async initialSync() {
+    const userId = this.user?.id, version = this.sessionVersion;
+    if (!userId) return;
+    const current = () => this.user?.id === userId && this.sessionVersion === version;
     this.setStatus('syncing');
     try {
       const remoteRows = await this.fetchAll();
+      if (!current()) return;
       const cloudEmpty = tables.every(table => !(remoteRows[table] || []).length);
       const local = this.app.getState();
       const marker = read(this.markerKey, null);
@@ -301,12 +316,14 @@ class SeverCloud {
       const merged = !cloudEmpty && !localHasPlannerData && !local.syncMeta?.seededAt ? remote : mergeStates(local, remote);
       const collections = changedCollections(local, merged);
       await this.app.replaceState(merged, { collections, recordIds: changedRecordIds(local, merged, collections), source: 'initial-sync' });
+      if (!current()) return;
       this.baseline = collectionsFor(remote);
       this.hydrated = true;
       this.capture();
       await this.flush();
-      this.subscribe();
+      if (current()) this.subscribe();
     } catch (reason) {
+      if (!current()) return;
       this.lastErrorCode = errorCode(reason) === 'SESSION_ERROR' ? 'SYNC_ERROR' : errorCode(reason);
       this.hydrated = false;
       this.setStatus(navigator.onLine ? 'pending' : 'offline');
@@ -337,11 +354,19 @@ class SeverCloud {
   }
 
   async fetchAll() {
+    const userId = this.user?.id, version = this.sessionVersion;
     const client = await this.client();
     const entries = await Promise.all(tables.map(async table => {
-      const { data, error } = await client.from(table).select('*');
-      if (error) throw error;
-      return [table, data || []];
+      const rows = [], pageSize = 500;
+      for (let offset = 0; ; offset += pageSize) {
+        if (this.user?.id !== userId || this.sessionVersion !== version) throw new Error('Session changed');
+        const { data, error } = await client.from(table).select('*').eq('user_id', userId)
+          .order(table === 'user_settings' ? 'user_id' : 'id').range(offset, offset + pageSize - 1);
+        if (error) throw error;
+        rows.push(...(data || []));
+        if (!data || data.length < pageSize) break;
+      }
+      return [table, rows];
     }));
     return Object.fromEntries(entries);
   }
@@ -350,35 +375,44 @@ class SeverCloud {
     if (!this.user || !this.hydrated || this.localOnly || !navigator.onLine || this.running) return;
     const operations = this.queued;
     if (!operations.length) { this.setStatus('synced'); return; }
+    const userId = this.user.id, queueKey = this.queueKey, version = this.sessionVersion;
+    const current = () => this.user?.id === userId && this.sessionVersion === version && !this.localOnly;
+    let retryScheduled = false;
     this.running = true;
     this.setStatus('syncing');
     try {
       const client = await this.client();
       const { succeeded, failed } = await settleCloudOperations(operations, async operation => {
+        if (!current()) throw new Error('Session changed');
         const table = CLOUD_TABLES[operation.collection];
         const conflict = operation.collection === 'habitEntries' ? 'user_id,habit_id,entry_date' : operation.collection === 'settings' ? 'user_id' : 'id';
-        const { error } = await client.from(table).upsert(rowFor(operation.collection, operation.record, this.user.id), { onConflict: conflict });
+        const { error } = await client.from(table).upsert(rowFor(operation.collection, operation.record, userId), { onConflict: conflict });
         if (error) throw error;
       });
-      const sent = new Map(succeeded.map(operation => [`${operation.collection}:${operation.id}`, operationTime(operation)]));
-      write(this.queueKey, this.queued.filter(operation => {
-        const sentAt = sent.get(`${operation.collection}:${operation.id}`);
-        return sentAt === undefined || operationTime(operation) > sentAt;
+      if (!current()) return;
+      const sent = new Map(succeeded.map(operation => [`${operation.collection}:${operation.id}`, stableStringify(operation.record)]));
+      write(queueKey, read(queueKey, []).filter(operation => {
+        const sentRecord = sent.get(`${operation.collection}:${operation.id}`);
+        return sentRecord === undefined || stableStringify(operation.record) !== sentRecord;
       }));
       if (failed.length) {
         this.setStatus('pending');
         this.scheduleRetry();
+        retryScheduled = true;
         return;
       }
       this.retryIndex = 0;
-      this.setStatus('synced');
+      this.setStatus(this.queued.length ? 'pending' : 'synced');
       this.channel?.postMessage({ syncedAt: Date.now() });
     } catch (reason) {
+      if (!current()) return;
       this.lastErrorCode = errorCode(reason) === 'SESSION_ERROR' ? 'SYNC_ERROR' : errorCode(reason);
       this.setStatus(navigator.onLine ? 'pending' : 'offline');
       this.scheduleRetry();
+      retryScheduled = true;
     } finally {
       this.running = false;
+      if (!retryScheduled && this.user && this.hydrated && !this.localOnly && this.queued.length) this.syncSoon(0);
       if (this.pullQueued) { this.pullQueued = false; this.pull(); }
     }
   }
@@ -388,14 +422,17 @@ class SeverCloud {
     if (this.running) { this.pullQueued = true; return; }
     if (this.pullPromise) { this.pullRequested = true; return this.pullPromise; }
     const userId = this.user.id;
+    const version = this.sessionVersion;
     this.pullPromise = (async () => {
       try {
+        const remoteRows = await this.fetchAll();
+        if (!this.user || this.user.id !== userId || this.sessionVersion !== version || this.localOnly) return;
         const local = this.app.getState();
-        const remote = rowsToState(local, rowCollections(await this.fetchAll()));
-        if (!this.user || this.user.id !== userId || this.localOnly) return;
+        const remote = rowsToState(local, rowCollections(remoteRows));
         const merged = mergeStates(local, remote);
         const collections = changedCollections(local, merged);
         await this.app.replaceState(merged, { collections, recordIds: changedRecordIds(local, merged, collections), source: 'background-sync' });
+        if (this.user?.id !== userId || this.sessionVersion !== version || this.localOnly) return;
 
         // Keep the server snapshot as the baseline. Any newer local record is
         // then re-queued instead of being silently treated as already synced.
@@ -408,7 +445,7 @@ class SeverCloud {
         else this.setStatus('synced');
         this.lastErrorCode = null;
       } catch (reason) {
-        if (!this.user || this.user.id !== userId) return;
+        if (!this.user || this.user.id !== userId || this.sessionVersion !== version) return;
         this.lastErrorCode = errorCode(reason) === 'SESSION_ERROR' ? 'SYNC_ERROR' : errorCode(reason);
         this.setStatus(navigator.onLine ? 'pending' : 'offline');
         this.schedulePullRetry();
@@ -424,7 +461,13 @@ class SeverCloud {
   }
 
   syncSoon(delay = 300) { clearTimeout(this.timer); this.timer = setTimeout(() => this.flush(), delay); }
-  scheduleRetry() { this.syncSoon(RETRIES[Math.min(this.retryIndex++, RETRIES.length - 1)]); }
+  scheduleRetry() {
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => {
+      if (!this.user || this.localOnly) return;
+      return this.hydrated ? this.flush() : this.restoreSession();
+    }, RETRIES[Math.min(this.retryIndex++, RETRIES.length - 1)]);
+  }
   schedulePullRetry() {
     clearTimeout(this.pullRetryTimer);
     const delay = RETRIES[Math.min(this.retryIndex++, RETRIES.length - 1)];
@@ -437,14 +480,16 @@ class SeverCloud {
   subscribe() {
     if (this.subscription || this.realtimeStarting || !this.user || this.localOnly) return;
     const userId = this.user.id;
-    this.realtimeStarting = userId;
+    const attempt = { userId, version: this.sessionVersion };
+    this.realtimeStarting = attempt;
     this.realtimeStatus = 'connecting';
     this.client().then(client => {
-      if (!this.user || this.user.id !== userId || this.localOnly) return;
+      if (!this.user || this.user.id !== userId || this.localOnly || this.realtimeStarting !== attempt || this.sessionVersion !== attempt.version) return;
       const channel = client.channel(`sever:${userId}`);
       tables.forEach(table => channel.on('postgres_changes', { event: '*', schema: 'public', table, filter: `user_id=eq.${userId}` }, () => this.pull()));
-      this.subscription = channel.subscribe(status => {
-        if (!this.user || this.user.id !== userId) return;
+      this.subscription = channel;
+      channel.subscribe(status => {
+        if (!this.user || this.user.id !== userId || this.subscription !== channel || this.sessionVersion !== attempt.version) return;
         const failed = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED';
         this.realtimeStatus = status === 'SUBSCRIBED' ? 'connected' : failed ? 'error' : String(status || 'connecting').toLocaleLowerCase('en-US');
         if (status === 'SUBSCRIBED') {
@@ -453,26 +498,28 @@ class SeverCloud {
           if (this.lastErrorCode === 'REALTIME_ERROR') this.lastErrorCode = null;
         } else if (failed) {
           this.lastErrorCode = 'REALTIME_ERROR';
-          if (this.channel === channel) {
-            this.subscription = null;
-            this.channel = null;
-          }
+          this.subscription = null;
           if (status !== 'CLOSED') {
-            try { channel.unsubscribe(); } catch {}
+            try { channel.unsubscribe()?.catch(() => {}); } catch {}
           }
           clearTimeout(this.realtimeReconnectTimer);
           this.realtimeReconnectTimer = window.setTimeout(() => {
             this.realtimeReconnectTimer = null;
-            if (this.user?.id === userId && navigator.onLine && !this.localOnly) this.subscribe();
+            if (this.user?.id === userId && this.sessionVersion === attempt.version && navigator.onLine && !this.localOnly) this.subscribe();
           }, 3000);
         }
         window.dispatchEvent(new CustomEvent('sever:cloud-status', { detail: this.health() }));
       });
     }).catch(reason => {
-      if (!this.user || this.user.id !== userId) return;
+      if (!this.user || this.user.id !== userId || this.realtimeStarting !== attempt) return;
       this.lastErrorCode = errorCode(reason) === 'SESSION_ERROR' ? 'REALTIME_ERROR' : errorCode(reason);
       this.setStatus('pending');
-    }).finally(() => { if (this.realtimeStarting === userId) this.realtimeStarting = null; });
+      clearTimeout(this.realtimeReconnectTimer);
+      this.realtimeReconnectTimer = window.setTimeout(() => {
+        this.realtimeReconnectTimer = null;
+        if (this.user?.id === userId && this.sessionVersion === attempt.version && !this.localOnly) this.subscribe();
+      }, 3000);
+    }).finally(() => { if (this.realtimeStarting === attempt) this.realtimeStarting = null; });
   }
 
   async signIn(email, password, register) {
