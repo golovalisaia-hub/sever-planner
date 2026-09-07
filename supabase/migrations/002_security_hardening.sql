@@ -9,17 +9,17 @@ set search_path = public
 as $$
 begin
   if tg_table_name = 'habit_entries' and not exists (
-    select 1 from public.habits where id = new.habit_id and user_id = new.user_id
+    select 1 from public.habits where id = (to_jsonb(new)->>'habit_id')::uuid and user_id = (to_jsonb(new)->>'user_id')::uuid
   ) then
     raise exception 'habit ownership mismatch' using errcode = '42501';
   end if;
-  if tg_table_name = 'notes' and new.folder_id is not null and not exists (
-    select 1 from public.note_folders where id = new.folder_id and user_id = new.user_id
+  if tg_table_name = 'notes' and (to_jsonb(new)->>'folder_id') is not null and not exists (
+    select 1 from public.note_folders where id = (to_jsonb(new)->>'folder_id')::uuid and user_id = (to_jsonb(new)->>'user_id')::uuid
   ) then
     raise exception 'folder ownership mismatch' using errcode = '42501';
   end if;
-  if tg_table_name = 'focus_sessions' and new.task_id is not null and not exists (
-    select 1 from public.tasks where id = new.task_id and user_id = new.user_id
+  if tg_table_name = 'focus_sessions' and (to_jsonb(new)->>'task_id') is not null and not exists (
+    select 1 from public.tasks where id = (to_jsonb(new)->>'task_id')::uuid and user_id = (to_jsonb(new)->>'user_id')::uuid
   ) then
     raise exception 'task ownership mismatch' using errcode = '42501';
   end if;
