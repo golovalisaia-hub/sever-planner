@@ -13,7 +13,7 @@
   .today-motivation>span{display:grid;flex:0 0 28px;width:28px;height:28px;place-items:center;border-radius:9px;background:color-mix(in srgb,var(--sever-blue) 17%,transparent);color:var(--sever-ice);font-size:.9rem}
   .today-motivation p{margin:0;font-size:.74rem;line-height:1.35}
   #todayView .today-dashboard{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:4px 0}
-  #todayView .dashboard-card{display:grid;grid-template-columns:20px minmax(0,1fr);column-gap:8px;min-width:0;min-height:64px;padding:8px;border:0;border-radius:10px;background:var(--surface-1);box-shadow:none}
+  #todayView .dashboard-card{display:grid;grid-template-columns:20px minmax(0,1fr);grid-template-rows:auto auto;align-content:center;column-gap:8px;min-width:0;min-height:64px;padding:8px;border:0;border-radius:10px;background:var(--surface-1);box-shadow:none}
   #todayView .dashboard-card>div:first-child{min-width:0}
   #todayView .dashboard-card small{font-size:.6875rem;letter-spacing:0;white-space:normal}
   #todayView .dashboard-card>b,#todayView .dashboard-progress b{margin:4px 0 0;font-size:1rem;line-height:1.05}
@@ -31,7 +31,7 @@
   #todayView .task-filters button.active{background:var(--sever-ice);border-color:var(--sever-ice);color:#06101c}
   #todayView .task-filters b{margin-left:3px;font-size:.6875rem}
   #todayView:has(#todayTasks .empty):has([data-filter="all"].active) .task-filters{display:none}
-  #todayView .dashboard-card>b{grid-column:2}
+  #todayView .dashboard-card>b{grid-column:2;margin:0}
   #todayView .task-list{gap:8px}
   #todayView .task{min-height:62px;padding:9px 10px;border-radius:14px}
   #todayView .task .check{width:44px;height:44px;min-width:44px;border-radius:9px}
@@ -79,6 +79,7 @@
   #todayView #todayTasks .empty{min-height:112px;padding:20px 24px}
   #todayView #todayTasks .empty-icon{display:none}
   #todayView #todayTasks .empty p{margin:4px 0 12px}
+  #todayView .today-add-task{min-height:44px;padding:10px 16px;border:1px solid var(--v41-border-strong);border-radius:10px;background:var(--v41-panel-raised);color:var(--v41-text);font:inherit;cursor:pointer}
 }
 @media (prefers-reduced-motion:reduce){
   #todayView .today-hero,#todayView .dashboard-card,#todayView .task,#todayView .task-filters button{transition:none!important}
