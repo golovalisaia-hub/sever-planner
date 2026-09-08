@@ -16,10 +16,10 @@
   <link rel="stylesheet" href="mobile-system.css?v=43">
   <link rel="stylesheet" href="onboarding.css?v=43">
   <link rel="stylesheet" href="northern.css?v=43">
-  <link rel="stylesheet" href="northern-components.css?v=47">
+  <link rel="stylesheet" href="northern-components.css?v=48">
   <link rel="stylesheet" href="sever-v41.css?v=43">
   <link rel="stylesheet" href="reference-theme.css?v=43">
-  <link rel="stylesheet" href="mobile-home.css?v=49">
+  <link rel="stylesheet" href="mobile-home.css?v=50">
   <link rel="stylesheet" href="sever-ai.css?v=45">
   <title>SEVER</title>
   <script src="js/theme-init.js?v=43"></script>
@@ -54,7 +54,7 @@
       <article class="today-motivation" aria-label="Мысль дня"><span aria-hidden="true">✦</span><p>Небольшие шаги каждый день приводят к большим результатам.</p></article>
       <h2 id="todayPageTitle" class="visually-hidden">Сегодня</h2>
       <section id="todayDashboard" class="today-dashboard" aria-label="Сводка дня">
-        <article class="dashboard-card dashboard-progress"><div><small>ПРОГРЕСС ДНЯ</small><b id="dashboardProgressValue">0%</b><span id="dashboardProgressMeta">Пока задач нет</span></div><div class="dashboard-ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40"></circle><circle id="dashboardProgressArc" class="dashboard-arc" cx="50" cy="50" r="40"></circle></svg><i id="dashboardProgressCount">0</i></div></article>
+        <article class="dashboard-card dashboard-progress"><span class="metric-icon metric-progress" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></svg></span><div><small>ПРОГРЕСС ДНЯ</small><b id="dashboardProgressValue">0%</b><span id="dashboardProgressMeta">Пока задач нет</span></div><div class="dashboard-ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40"></circle><circle id="dashboardProgressArc" class="dashboard-arc" cx="50" cy="50" r="40"></circle></svg><i id="dashboardProgressCount">0</i></div></article>
         <article class="dashboard-card dashboard-completed"><span class="metric-icon metric-success" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-9"/></svg></span><small>ВЫПОЛНЕНО</small><b id="dashboardCompletedValue">0</b><span id="dashboardCompletedMeta">Начните с первого дела</span></article>
         <article class="dashboard-card dashboard-focus"><span class="metric-icon metric-focus" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="7"/><path d="M12 9v4l3 2M9 3h6"/></svg></span><small>ФОКУС-ВРЕМЯ</small><b id="dashboardFocusValue">0 мин</b><span id="dashboardFocusMeta">Сегодня сессий ещё не было</span><div id="dashboardFocusChart" class="focus-sparkline" aria-label="Фокус за последние семь дней"></div></article>
         <article class="dashboard-card dashboard-streak"><span class="metric-icon metric-streak" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 3c1 4-2 5-2 8 0 2 1 3 3 3 3 0 4-3 3-6 3 3 4 6 3 9-1 3-4 5-8 4-5-1-7-5-6-9 1-3 3-5 6-8Z"/></svg></span><small>ДНЕЙ ПОДРЯД</small><b id="dashboardStreakValue">0</b><span id="dashboardStreakMeta">Каждый шаг имеет значение</span></article>
@@ -71,7 +71,7 @@
       <div class="list-head today-list-head"><span>ЗАДАЧИ СЕГОДНЯ</span><button id="todayViewAll" type="button">Посмотреть все <i aria-hidden="true">›</i></button><b id="todayLoad">0 мин</b></div>
       <div id="todayFilters" class="task-filters" aria-label="Фильтр задач"><button type="button" class="active" data-filter="all">Все <b id="todayFilterAll">0</b></button><button type="button" data-filter="pending">Не выполнено <b id="todayFilterPending">0</b></button><button type="button" data-filter="done">Выполнено <b id="todayFilterDone">0</b></button></div>
       <div id="todayTasks" class="task-list"></div>
-      <div class="today-utilities"><article id="todayFocusWidget" class="today-focus-widget"><div><small>ФОКУС-ТАЙМЕР</small><b id="todayFocusDisplay">25:00</b><span id="todayFocusTask">Выберите задачу и начните спокойную работу</span></div><button id="todayFocusToggle" type="button" class="primary" aria-label="Запустить фокус-таймер">▶</button></article><button id="mobileQuickNote" class="mobile-quick-note" type="button"><span class="utility-icon" aria-hidden="true">▣</span><span><b>Быстрая заметка</b><small>Записать мысль…</small></span></button></div>
+      <div class="today-utilities"><article id="todayFocusWidget" class="today-focus-widget" role="button" tabindex="0" aria-label="Открыть фокус-таймер"><div><small>ФОКУС-ТАЙМЕР</small><b id="todayFocusDisplay">25:00</b><span id="todayFocusTask">Выберите задачу и начните спокойную работу</span></div><button id="todayFocusToggle" type="button" class="primary" aria-label="Запустить фокус-таймер">▶</button></article><button id="mobileQuickNote" class="mobile-quick-note" type="button"><span class="utility-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"></path><path d="M15 3v4h4M9 12h6M9 16h4"></path></svg></span><span><b>Быстрая заметка</b><small>Записать мысль…</small></span></button></div>
       <p class="today-quote">“Дисциплина сегодня — свобода завтра.”</p>
     </section>
 
@@ -160,10 +160,10 @@
   <script src="js/security-core.js?v=43" defer></script>
   <script src="js/supabase-client.js?v=43" defer></script>
   <script src="js/ui-state.js?v=43" defer></script>
-  <script src="app.js?v=47" defer></script>
+  <script src="app.js?v=48" defer></script>
   <script src="notes-pro.js?v=43" defer></script>
   <script src="mobile-ui.js?v=43" defer></script>
   <script src="js/sever-ai.js?v=45" defer></script>
-  <script type="module" src="js/cloud-runtime.js?v=46"></script>
+  <script type="module" src="js/cloud-runtime.js?v=47"></script>
 </body>
 </html>

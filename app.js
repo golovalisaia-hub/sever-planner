@@ -17,14 +17,14 @@ async function writeStorageBackup(value,key=storageKey){const db=await openStora
 async function readStorageBackup(key=storageKey){const db=await openStorageDb();return new Promise((resolve,reject)=>{const tx=db.transaction(STORAGE_STORE,'readonly'),request=tx.objectStore(STORAGE_STORE).get(key);request.onsuccess=()=>{db.close();resolve(request.result)};request.onerror=()=>{db.close();reject(request.error)}})}
 function storageStatus(text,kind='ok'){const el=$('#storageStatus');if(!el)return;el.textContent=text;el.className=kind}
 
-let storageKey=KEY;
+let storageKey=ANONYMOUS_KEY;
 const SEVER_THEME_IDS=Object.freeze(['black','light','north','motion','aurora']);
 const SEVER_THEME_ALIASES=Object.freeze({dark:'black',minimal:'black',polar:'north',dawn:'light'});
 function canonicalTheme(theme){const candidate=SEVER_THEME_ALIASES[theme]||theme;return SEVER_THEME_IDS.includes(candidate)?candidate:'aurora'}
 function freshState(){return{version:11,onboarded:false,challengeStart:TODAY,challengeDays:0,challengeName:'',tasks:[],notes:[],habits:[],checks:{},taskMemory:[],profile:{name:''},appearance:{theme:'aurora',animations:'auto',reduceEffects:false},focusSessions:[],stats:{focusMs:0,sessions:0},reminders:{enabled:false,time:'19:00',lastDate:''},security:{protectedNotesAutoLockMinutes:5,lockInBackground:true}}}
 function migrate(data){if(!data?.tasks)return freshState();data.notes=Array.isArray(data.notes)?data.notes.map(note=>{if(note?.protected)return{...note,title:'',body:'',kind:'protected',items:[],done:false,protected:true};const items=Array.isArray(note.items)?note.items.map(item=>({id:item.id||uid(),text:String(item.text||''),done:Boolean(item.done)})):[];return{...note,kind:['text','checklist'].includes(note.kind)?note.kind:items.length?'checklist':'text',items,done:note.done??Number(note.progress)>=100,protected:false}}):[];data.habits=Array.isArray(data.habits)?data.habits:[];data.checks=data.checks&&typeof data.checks==='object'&&!Array.isArray(data.checks)?data.checks:{};data.taskMemory=Array.isArray(data.taskMemory)?data.taskMemory:[];data.focusSessions=Array.isArray(data.focusSessions)?data.focusSessions:[];data.profile=data.profile&&typeof data.profile==='object'?data.profile:{name:''};const legacyTheme=localStorage.getItem('sever-theme');data.appearance=data.appearance&&typeof data.appearance==='object'?data.appearance:{};data.appearance.theme=canonicalTheme(data.appearance.theme||legacyTheme);data.appearance.animations=['auto','on','off'].includes(data.appearance.animations)?data.appearance.animations:'auto';data.appearance.reduceEffects=Boolean(data.appearance.reduceEffects);data.stats={focusMs:Math.max(0,Number(data.stats?.focusMs)||0),sessions:Math.max(0,Math.floor(Number(data.stats?.sessions)||0))};if(!data.focusSessions.length&&data.stats.focusMs>0)data.focusSessions=[{id:uid(),taskId:null,durationMinutes:Math.max(1,Math.round(data.stats.focusMs/60000)),startedAt:null,completedAt:data._savedAt||Date.now(),status:'completed',createdAt:data._savedAt||Date.now(),updatedAt:data._savedAt||Date.now(),legacy:true}];data.reminders=data.reminders&&typeof data.reminders==='object'?data.reminders:{enabled:false,time:'19:00',lastDate:''};data.security={protectedNotesAutoLockMinutes:[1,5,15,30].includes(Number(data.security?.protectedNotesAutoLockMinutes))?Number(data.security.protectedNotesAutoLockMinutes):5,lockInBackground:data.security?.lockInBackground!==false};data.challengeStart??=TODAY;const challenge=data.tasks.filter(t=>t.challenge);data.challengeDays??=(new Set(challenge.map(t=>t.date)).size||30);data.challengeName??=[...new Set(challenge.map(t=>t.category))].join(' + ');data.onboarded??=true;data.version=11;return data}
 function readState(key=storageKey){try{const raw=localStorage.getItem(key);return raw?migrate(JSON.parse(raw)):freshState()}catch{return freshState()}}
-let state=readState();
+let state=localStorage.getItem(ANONYMOUS_KEY)?readState(ANONYMOUS_KEY):readState(KEY);
 function persistLocal({announce=true}={}){try{state._savedAt=Date.now();if(!window.SeverSecurityCore)throw new Error('Security core unavailable');const persistent=window.SeverSecurityCore.persistentState(state),serialized=JSON.stringify(persistent);let localSaved=true;try{localStorage.setItem(storageKey,serialized)}catch{localSaved=false}return writeStorageBackup(persistent).then(()=>{if(announce)storageStatus(localSaved?'Две копии сохранены':'Резервная копия сохранена')}).catch(()=>{if(!announce)return;if(localSaved)storageStatus('Основная копия сохранена');else{storageStatus('Не удалось сохранить','error');setTimeout(()=>toast('Ошибка сохранения. Скачай резервную копию.'),0)}})}catch{if(announce){storageStatus('Сохранение заблокировано проверкой безопасности','error');setTimeout(()=>toast('Не удалось безопасно сохранить данные'),0)}return Promise.reject(new Error('Security invariant failed'))}}
 function save(){try{window.SeverApp?.beforeLocalSave?.()}catch{if(window.SeverCloud){window.SeverCloud.lastErrorCode='LOCAL_CAPTURE_ERROR';window.SeverCloud.setStatus('pending')}}return persistLocal()}
 async function recoverLatestState(){const key=storageKey,original=state;try{const backup=await readStorageBackup(key);if(storageKey!==key||state!==original)return;if(backup&&Number(backup._savedAt)>Number(state._savedAt||0)){state=migrate(backup);const persistent=window.SeverSecurityCore.persistentState(state);try{localStorage.setItem(storageKey,JSON.stringify(persistent))}catch{}toast('Данные восстановлены из резервной копии')}}catch{} }
@@ -334,7 +334,7 @@ function renderChangedCollections(collections=[]){
 function switchStorageScope(userId,localFallback=null){
   window.dispatchEvent(new CustomEvent('sever:lock-protected-notes',{detail:{reason:'account-change'}}));
   const nextKey=userId?`sever-cloud-state-v1:${userId}`:ANONYMOUS_KEY;
-  const existing=userId?localStorage.getItem(nextKey):null;
+  const existing=localStorage.getItem(nextKey);
   storageKey=nextKey;
   state=existing?readState(storageKey):migrate(localFallback||freshState());
 
@@ -363,6 +363,8 @@ $$('[data-quick-action]').forEach(button=>button.addEventListener('click',()=>{c
 $('#desktopOpenCalendar')?.addEventListener('click',()=>switchView('calendar'));$('#desktopOpenHabits')?.addEventListener('click',()=>switchView('habits'));$('#desktopOpenProgress')?.addEventListener('click',()=>switchView('progress'));
 $('#railOpenNote')?.addEventListener('click',()=>window.SeverNotes?.openQuickNote?.());$('#mobileQuickNote')?.addEventListener('click',()=>window.SeverNotes?.openQuickNote?.());$('#railSyncRetry')?.addEventListener('click',async event=>{const button=event.currentTarget;button.disabled=true;button.textContent='Проверяем…';try{await window.SeverCloud?.restoreSession?.()}finally{button.disabled=false;button.textContent='Проверить'}});
 $('#todayViewAll')?.addEventListener('click',()=>switchView('calendar'));
+$('#todayFocusWidget')?.addEventListener('click',event=>{if(event.target.closest('button'))return;switchView('timer')});
+$('#todayFocusWidget')?.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&!event.target.closest('button')){event.preventDefault();switchView('timer')}});
 $('#desktopPrevMonth')?.addEventListener('click',()=>{dashboardCursor=new Date(dashboardCursor.getFullYear(),dashboardCursor.getMonth()-1,1);refreshDesktopContext()});$('#desktopNextMonth')?.addEventListener('click',()=>{dashboardCursor=new Date(dashboardCursor.getFullYear(),dashboardCursor.getMonth()+1,1);refreshDesktopContext()});
 const baseSwitchView=switchView;
 switchView=function(name){baseSwitchView(name);$$('.app-nav button').forEach(button=>{const active=button.dataset.view===name;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current')})};
@@ -383,7 +385,8 @@ window.SeverApp={
   exportProtectedVault,
   persist:()=>persistLocal(),
   switchStorageScope,
-  getLegacyStateFor:userId=>{const owner=localStorage.getItem(LEGACY_OWNER_KEY);if(owner&&owner!==userId)return freshState();localStorage.setItem(LEGACY_OWNER_KEY,userId);return readState(KEY)},
+  getLegacyStateFor:()=>freshState(),
+  getAnonymousImportCandidate:()=>{const anonymous=readState(ANONYMOUS_KEY);if(anonymous.tasks.length||anonymous.notes.length||anonymous.habits.length||anonymous.focusSessions.length)return anonymous;return readState(KEY)},
   render:()=>{render();renderSuggestions()},
   setCloudStatus:updateCloudStatus,
   resetPlanner,

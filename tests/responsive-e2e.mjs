@@ -64,6 +64,23 @@ try {
       assert.ok(metrics.dashboard.height <= 100, `${width}x${height}: metrics too tall`);
       assert.ok(metrics.tasksHead.top < 360, `${width}x${height}: tasks start below the first-screen target`);
       assert.ok(metrics.nav.bottom <= height + 1 && metrics.nav.height <= 86, `${width}x${height}: bottom navigation geometry invalid`);
+      const assertSingleView = async expected => {
+        const views = await page.evaluate(() => [...document.querySelectorAll('.view')].map(view => ({ id: view.id, display: getComputedStyle(view).display })));
+        assert.deepEqual(views.filter(view => view.display !== 'none').map(view => view.id), [expected], `${width}x${height}: exactly one view must be visible`);
+        assert.equal(views.find(view => view.id === 'todayView')?.display, expected === 'todayView' ? 'grid' : 'none', `${width}x${height}: Home must not remain under ${expected}`);
+      };
+      await assertSingleView('todayView');
+      await page.locator('.bottom-nav button[data-view="calendar"]').click();
+      await assertSingleView('calendarView');
+      await page.locator('.bottom-nav button[data-view="notes"]').click();
+      await assertSingleView('notesView');
+      await page.locator('.bottom-nav button[data-view="today"]').click();
+      await page.locator('#todayFocusWidget').click();
+      await assertSingleView('timerView');
+      await page.locator('#mobileNavMore').click();
+      await page.locator('#openSettingsMenu').click();
+      await assertSingleView('settingsView');
+
     } else {
       assert.ok(metrics.sidebar.width >= 170 && metrics.sidebar.width <= 195, `${width}x${height}: desktop sidebar width invalid`);
       assert.ok(metrics.hero.height <= 125, `${width}x${height}: desktop hero too tall`);

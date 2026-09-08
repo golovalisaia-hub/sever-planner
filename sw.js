@@ -1,4 +1,4 @@
-const CACHE = 'sever-v49-mobile-home';
+const CACHE = 'sever-v50-mobile-security';
 const ASSETS = [
   './',
   './index.html',
@@ -9,15 +9,15 @@ const ASSETS = [
   './mobile-system.css?v=43',
   './onboarding.css?v=43',
   './northern.css?v=43',
-  './northern-components.css?v=47',
+  './northern-components.css?v=48',
   './sever-v41.css?v=43',
   './reference-theme.css?v=43',
-  './mobile-home.css?v=49',
+  './mobile-home.css?v=50',
   './sever-ai.css?v=45',
   './aurora.webp',
   './assets/sever/mountain-night.svg',
   './assets/sever/ice-dawn.svg',
-  './app.js?v=47',
+  './app.js?v=48',
   './notes-pro.js?v=43',
   './mobile-ui.js?v=43',
   './supabase-config.js?v=43',
@@ -28,7 +28,7 @@ const ASSETS = [
   './js/supabase-client.js?v=43',
   './js/ui-state.js?v=43',
   './js/sync-core.mjs?v=43',
-  './js/cloud-runtime.js?v=46',
+  './js/cloud-runtime.js?v=47',
   './js/sever-ai.js?v=45',
   './manifest.webmanifest',
   './icon.svg',

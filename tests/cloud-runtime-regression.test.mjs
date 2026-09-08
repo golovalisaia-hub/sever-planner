@@ -52,15 +52,16 @@ function harness() {
     render() {},
     setCloudStatus() {},
     lockProtectedNotes() {},
+    getAnonymousImportCandidate: fresh,
     switchStorageScope: (_id, next) => { state = next; }
   };
-  const window = { setTimeout: setTimer, clearTimeout: clearTimer, dispatchEvent() {}, BroadcastChannel: Broadcast, SeverSupabase: { getClient: async () => client, configured: () => true }, SeverSecurityCore: { assertCloudOperation() {} } };
-  const context = vm.createContext({ ...core, window, localStorage, navigator: { onLine: true }, BroadcastChannel: Broadcast, setTimeout: setTimer, clearTimeout: clearTimer, queueMicrotask, CustomEvent: class {}, URL, app });
+  const window = { setTimeout: setTimer, clearTimeout: clearTimer, setInterval: setTimer, addEventListener() {}, dispatchEvent() {}, BroadcastChannel: Broadcast, SeverSupabase: { getClient: async () => client, configured: () => true }, SeverSecurityCore: { assertCloudOperation() {} } };
+  const context = vm.createContext({ ...core, window, document: { addEventListener() {}, visibilityState: 'visible' }, localStorage, navigator: { onLine: true }, BroadcastChannel: Broadcast, setTimeout: setTimer, clearTimeout: clearTimer, queueMicrotask, CustomEvent: class {}, Event: class {}, URL, app });
   const cloud = vm.runInContext(`${runtime}\nnew SeverCloud(app)`, context);
   cloud.user = { id: 'user-a' };
   cloud.hydrated = true;
   cloud.baseline = core.collectionsFor(state);
-  return { cloud, client, app, storage, timers, channels, broadcasts, localStorage, get state() { return state; }, set state(value) { state = value; }, async runTimer(id) { const timer = timers.get(id); assert.ok(timer, 'retry must be scheduled'); timers.delete(id); await timer.fn(); await turn(); } };
+  return { cloud, client, app, storage, timers, channels, broadcasts, localStorage, window, get state() { return state; }, set state(value) { state = value; }, async runTimer(id) { const timer = timers.get(id); assert.ok(timer, 'retry must be scheduled'); timers.delete(id); await timer.fn(); await turn(); } };
 }
 
 test('closing cloud resources closes both Realtime and BroadcastChannel', async () => {
@@ -252,4 +253,72 @@ test('pulls coalesce without overlapping network downloads', async () => {
   await turn();
   assert.equal(maxActive, 1);
   assert.equal(calls, 2);
+});
+
+test('anonymous planner changes never create a cloud queue or write to Supabase', async () => {
+  const h = harness();
+  let writes = 0;
+  h.client.from = () => ({ upsert: async () => { writes += 1; return { error: null }; } });
+  h.cloud.user = null;
+  h.cloud.hydrated = false;
+  h.state.tasks.push(task('anonymous-only'));
+  h.cloud.capture();
+  await h.cloud.flush();
+  assert.equal(h.storage.has('sever-cloud-queue-v2:user-a'), false);
+  assert.equal(writes, 0);
+  assert.equal(h.channels.length, 0);
+
+});
+test('ACTIVE_USER_KEY without an Auth session never opens account storage', async () => {
+  const h = harness();
+  const accountState = { ...fresh(), tasks: [task('account-a')] };
+  h.storage.set('sever-cloud-active-user-v1', JSON.stringify({ id: 'user-a' }));
+  h.storage.set('sever-cloud-state-v1:user-a', JSON.stringify(accountState));
+  h.cloud.user = null;
+  h.cloud.hydrated = false;
+  let openedAccountScope = false;
+  h.app.switchStorageScope = (userId, next) => {
+    openedAccountScope ||= Boolean(userId);
+    h.state = next;
+  };
+  h.window.SeverSupabase.ready = async () => { throw new Error('network unavailable'); };
+  await h.cloud.start();
+  assert.equal(openedAccountScope, false);
+  assert.equal(h.cloud.user, null);
+  assert.deepEqual(h.state.tasks, []);
+
+});
+test('account download stays visible until an anonymous import is explicitly accepted', async () => {
+  const h = harness();
+  const anonymous = { ...fresh(), tasks: [task('anonymous-task')] };
+  h.app.getAnonymousImportCandidate = () => anonymous;
+  h.cloud.fetchAll = async () => ({ tasks: [{ id: 'cloud-task', title: 'Cloud task', scheduled_for: '2026-09-07', duration_minutes: 25, category: 'Личное', priority: false, challenge: false, completed: false, completed_at: null, created_at: new Date(at).toISOString(), updated_at: new Date(at).toISOString(), deleted_at: null }] });
+  h.window.SeverCloudUI = { showMigration: (_candidate, options) => { h.migration = options; } };
+  await h.cloud.initialSync();
+  assert.deepEqual(h.state.tasks.map(row => row.id), ['cloud-task']);
+  assert.equal(h.migration?.anonymous, true);
+  assert.equal(h.cloud.queued.length, 0);
+});
+
+test('keeping anonymous data separate never uploads it', async () => {
+  const h = harness();
+  const anonymous = { ...fresh(), tasks: [task('anonymous-task')] };
+  h.app.getAnonymousImportCandidate = () => anonymous;
+  h.state = { ...fresh(), tasks: [task('cloud-task')] };
+
+  h.cloud.baseline = core.collectionsFor(h.state);
+  h.cloud.keepLocalOnly({ anonymous: true });
+  assert.equal(h.storage.has('sever-cloud-queue-v2:user-a'), false);
+  assert.equal(JSON.parse(h.storage.get(h.cloud.markerKey)).anonymousImportHandled, true);
+});
+test('anonymous data enters the account queue only after explicit import confirmation', async () => {
+  const h = harness();
+  const anonymous = { ...fresh(), tasks: [task('anonymous-task')] };
+  h.app.getAnonymousImportCandidate = () => anonymous;
+  h.state = fresh();
+  h.cloud.baseline = core.collectionsFor(h.state);
+  h.cloud.flush = async () => {};
+  await h.cloud.acceptMigration({ anonymous: true });
+  assert.ok(h.state.tasks.some(row => row.id === 'anonymous-task'));
+  assert.ok(h.cloud.queued.some(operation => operation.id === 'anonymous-task'));
 });

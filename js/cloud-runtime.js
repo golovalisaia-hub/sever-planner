@@ -199,16 +199,14 @@ class SeverCloud {
       if (!await this.recoverInvalidRefreshToken(reason)) {
         this.authReachable = false;
         this.lastErrorCode = errorCode(reason);
-        const hint = read(ACTIVE_USER_KEY, null);
-        if (hint?.id) {
-          this.user = hint;
-          this.hydrated = false;
-          this.app.switchStorageScope(hint.id, this.app.freshState());
-          this.baseline = collectionsFor(this.app.getState());
-          this.app.render();
-          this.setStatus(this.lastErrorCode === 'SDK_LOAD_FAILED' ? 'unavailable' : 'offline');
-        } else this.setStatus(this.lastErrorCode === 'SDK_LOAD_FAILED' ? 'unavailable' : 'offline');
-      }
+        // ACTIVE_USER_KEY is only a diagnostic hint. It never authorizes an account scope.
+        this.user = null;
+        this.hydrated = false;
+        this.app.switchStorageScope(null, this.app.freshState());
+        this.baseline = collectionsFor(this.app.getState());
+        this.app.render();
+        this.setStatus(this.lastErrorCode === 'SDK_LOAD_FAILED' ? 'unavailable' : 'offline');
+    }
     }
     window.addEventListener('online', () => this.restoreSession());
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') this.restoreSession(); });
@@ -235,10 +233,6 @@ class SeverCloud {
       const client = await this.client();
       const { data: { session }, error } = await client.auth.getSession();
       if (error) throw error;
-      if (!session?.user && !navigator.onLine && read(ACTIVE_USER_KEY, null)?.id) {
-        this.setStatus('offline');
-        return;
-      }
       this.authReachable = true;
       this.lastErrorCode = null;
       await this.applySession(session?.user || null);
@@ -292,7 +286,8 @@ class SeverCloud {
     this.hydrated = false;
     this.localOnly = false;
     localStorage.setItem(ACTIVE_USER_KEY, JSON.stringify({ id: user.id, email: user.email || '' }));
-    this.app.switchStorageScope(user.id, this.app.getLegacyStateFor(user.id));
+    // Anonymous and legacy data are never an account cache.
+    this.app.switchStorageScope(user.id, this.app.freshState());
     this.channel?.close();
     this.channel = 'BroadcastChannel' in window ? new BroadcastChannel(`${CHANNEL_PREFIX}:${user.id}`) : null;
     this.channel?.addEventListener('message', () => this.pull());
@@ -317,9 +312,24 @@ class SeverCloud {
       const localHasPlannerData = hasPlannerData(local);
       this.baseline = collectionsFor(remote);
 
+      const anonymousCandidate = this.app.getAnonymousImportCandidate?.();
+      const hasAnonymousCandidate = Boolean(anonymousCandidate && hasPlannerData(anonymousCandidate));
+      if (hasAnonymousCandidate && !marker?.anonymousImportHandled) {
+        this.syncStage = 'import-choice';
+        const collections = changedCollections(local, remote);
+        await this.app.replaceState(remote, { collections, recordIds: changedRecordIds(local, remote, collections), source: 'account-download' });
+        if (!current()) return;
+        this.baseline = collectionsFor(remote);
+        this.hydrated = true;
+        this.setStatus('migration');
+        window.SeverCloudUI?.showMigration(anonymousCandidate, { anonymous: true });
+        if (current()) this.subscribe();
+        return;
+      }
+
       if (cloudEmpty && localHasPlannerData && !marker) {
         this.setStatus('migration');
-        window.SeverCloudUI?.showMigration(local);
+        window.SeverCloudUI?.showMigration(local, { anonymous: false });
         return;
       }
       if (cloudEmpty && marker?.mode === 'local') {
@@ -354,20 +364,33 @@ class SeverCloud {
     }
   }
 
-  async acceptMigration() {
+  async acceptMigration({ anonymous = false } = {}) {
     if (!this.user) return;
-    write(this.markerKey, { mode: 'cloud', at: Date.now() });
+    write(this.markerKey, { mode: 'cloud', at: Date.now(), anonymousImportHandled: Boolean(anonymous) });
     this.localOnly = false;
+    if (anonymous) {
+      const candidate = this.app.getAnonymousImportCandidate?.() || this.app.freshState();
+      const before = this.app.getState();
+      const merged = mergeStates(before, candidate);
+      const collections = changedCollections(before, merged);
+      await this.app.replaceState(merged, { collections, recordIds: changedRecordIds(before, merged, collections), source: 'confirmed-anonymous-import' });
+    }
     this.hydrated = true;
-    this.baseline = { tasks: new Map(), habits: new Map(), habitEntries: new Map(), notes: new Map(), folders: new Map(), focusSessions: new Map(), settings: new Map() };
+    this.baseline = this.baseline || { tasks: new Map(), habits: new Map(), habitEntries: new Map(), notes: new Map(), folders: new Map(), focusSessions: new Map(), settings: new Map() };
     this.capture();
     await this.app.persist();
     await this.flush();
     this.subscribe();
   }
 
-  keepLocalOnly() {
+  keepLocalOnly({ anonymous = false } = {}) {
     if (!this.user) return;
+    if (anonymous) {
+      const marker = read(this.markerKey, {});
+      write(this.markerKey, { ...marker, anonymousImportHandled: true, at: Date.now() });
+      this.setStatus('synced');
+      return;
+    }
     write(this.markerKey, { mode: 'local', at: Date.now() });
     this.localOnly = true;
     this.hydrated = true;
@@ -375,7 +398,6 @@ class SeverCloud {
     this.app.persist();
     this.setStatus('local');
   }
-
   async fetchAll() {
     const userId = this.user?.id, version = this.sessionVersion;
     const client = await this.client();
@@ -685,14 +707,21 @@ function setupUi(cloud) {
       if (dialog.open && !error.classList.contains('success')) submit.textContent = idleLabel;
     }
   });
+  let migrationKind = 'account-cache';
   window.SeverCloudUI = {
     openAccount: open,
     health: () => cloud.health(),
     retry: () => cloud.retryBootstrap(),
-    showMigration(state) { const root = document.querySelector('#migrationCounts'); root.textContent = ''; counts(state).forEach(item => { const row = document.createElement('span'), value = document.createElement('b'); value.textContent = String(item.value); row.append(value, document.createTextNode(` ${item.label}`)); root.appendChild(row); }); document.querySelector('#migrationDialog').showModal(); }
+    showMigration(state, { anonymous = false } = {}) {
+      migrationKind = anonymous ? 'anonymous' : 'account-cache';
+      const root = document.querySelector('#migrationCounts');
+      root.textContent = '';
+      counts(state).forEach(item => { const row = document.createElement('span'), value = document.createElement('b'); value.textContent = String(item.value); row.append(value, document.createTextNode(` ${item.label}`)); root.appendChild(row); });
+      document.querySelector('#migrationDialog').showModal();
+    }
   };
-  document.querySelector('#acceptMigration').addEventListener('click', async () => { document.querySelector('#migrationDialog').close(); await cloud.acceptMigration(); });
-  document.querySelector('#keepLocalOnly').addEventListener('click', () => { cloud.keepLocalOnly(); document.querySelector('#migrationDialog').close(); });
+  document.querySelector('#acceptMigration').addEventListener('click', async () => { document.querySelector('#migrationDialog').close(); await cloud.acceptMigration({ anonymous: migrationKind === 'anonymous' }); });
+  document.querySelector('#keepLocalOnly').addEventListener('click', () => { cloud.keepLocalOnly({ anonymous: migrationKind === 'anonymous' }); document.querySelector('#migrationDialog').close(); });
 }
 
 let booted = false;
