@@ -4,6 +4,40 @@ import { collectionsFor, diffCollections, mergeStates, prepareState, queueLatest
 const base = () => ({ version: 9, tasks: [], habits: [], checks: {}, notes: [], folders: [], focusSessions: [], taskMemory: [], stats: { focusMs: 0, sessions: 0 }, reminders: {}, profile: {}, appearance: { theme: 'aurora' } });
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
+const withAdvancingClock = fn => {
+  const original = Date.now;
+  let now = Date.UTC(2026, 8, 4);
+  Date.now = () => ++now;
+  try { return fn(); } finally { Date.now = original; }
+};
+
+test('unchanged legacy snapshots are independent of the clock', () => withAdvancingClock(() => {
+  const state = base();
+  for (const key of ['tasks', 'habits', 'notes', 'folders', 'focusSessions']) state[key].push({ id: key });
+  state.checks.habits = ['2026-09-04'];
+  const original = structuredClone(state);
+  const before = collectionsFor(state), after = collectionsFor(state);
+  assert.deepEqual(after, before);
+  assert.deepEqual(diffCollections(before, after), []);
+  assert.deepEqual(state, original);
+}));
+
+test('settings projection preserves timestamp precedence and detects real edits', () => {
+  const state = base();
+  assert.equal(collectionsFor(state).settings.get('settings').updatedAt, new Date(0).toISOString());
+  state._savedAt = 1000;
+  assert.equal(collectionsFor(state).settings.get('settings').updatedAt, new Date(1000).toISOString());
+  state.syncMeta = { settingsUpdatedAt: 2000 };
+  const before = collectionsFor(state);
+  assert.equal(before.settings.get('settings').updatedAt, new Date(2000).toISOString());
+  state.profile.name = 'Changed';
+  const after = prepareState(state, before, 3000);
+  const changes = diffCollections(before, after, 3000);
+  assert.equal(changes.length, 1);
+  assert.equal(changes[0].collection, 'settings');
+  assert.equal(changes[0].record.updatedAt, new Date(3000).toISOString());
+  assert.deepEqual(diffCollections(after, prepareState(state, after, 4000), 4000), []);
+});
 
 test('projects planner data to stable cloud collections', () => {
   const state = base();
@@ -52,12 +86,13 @@ test('queues only the newest operation per record', () => {
   assert.equal(queued.length, 1); assert.equal(queued[0].record.completed, true);
 });
 
-test('deletion creates a tombstone operation', () => {
+test('deletion creates a tombstone operation', () => withAdvancingClock(() => {
   const before = base(); before.tasks.push({ id: 'gone', title: 'Удалить', updatedAt: 1 });
   const after = base();
   const changes = diffCollections(collectionsFor(before), collectionsFor(after), Date.UTC(2026, 8, 4));
   assert.equal(changes.length, 1); assert.equal(changes[0].type, 'delete'); assert.ok(changes[0].record.deletedAt);
-});
+  assert.equal(changes[0].collection, 'tasks'); assert.equal(changes[0].id, 'gone');
+}));
 
 test('last write wins during merge without duplicate tasks', () => {
   const local = base(); local.tasks.push({ id: 'same', title: 'Старое', completed: false, updatedAt: 10 });
