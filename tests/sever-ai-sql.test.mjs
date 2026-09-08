@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 const require=createRequire(import.meta.url);
-const packageRoot=process.env.SEVER_SQL_TEST_ROOT;
+const packageRoot=process.env.SEVER_SQL_TEST_ROOT || path.resolve('node_modules');
 test('migration executes in PostgreSQL and enforces role, RLS, quotas and atomic plans',{skip:!packageRoot?'Set SEVER_SQL_TEST_ROOT to a test-only pglite installation':false},async()=>{
   const {PGlite}=require(path.join(packageRoot,'@electric-sql/pglite'));
   const db=new PGlite();
@@ -12,7 +12,7 @@ test('migration executes in PostgreSQL and enforces role, RLS, quotas and atomic
   try {
     await db.exec("create role anon; create role authenticated; create role service_role bypassrls; create schema auth; create table auth.users(id uuid primary key,email text); create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$; grant usage on schema auth,public to authenticated,anon,service_role; grant execute on function auth.uid() to authenticated,anon,service_role; create publication supabase_realtime;");
     // pgcrypto is a Supabase preinstalled extension; gen_random_uuid is built into this PostgreSQL runtime.
-    for(const name of ['001_initial_cloud_sync.sql','002_security_hardening.sql','003_sever_ai.sql']){
+    for(const name of ['001_initial_cloud_sync.sql','002_security_hardening.sql','003_sever_ai.sql','004_fix_relation_owner_trigger.sql']){
       const sql=readFileSync(new URL('../supabase/migrations/'+name,import.meta.url),'utf8').replace('create extension if not exists pgcrypto;','');
       await db.exec(sql);
     }

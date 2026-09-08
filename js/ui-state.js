@@ -28,7 +28,7 @@
     const root = document.getElementById(id);
     const record = root && recordFor(root);
     if (!record) return;
-    Object.assign(record, { dirty: false, conflict: false, domain: meta.domain || '', entityId: meta.entityId || '' });
+    Object.assign(record, { dirty: false, conflict: false, domain: meta.domain || '', entityId: meta.entityId || '', storageScope: window.SeverApp?.getStorageScope?.() });
     root.querySelector('.draft-conflict')?.remove();
   }
 
@@ -110,6 +110,16 @@
     return conflict;
   }
 
+  // Keep drafts in place, but never submit one into a different account.
+  document.addEventListener('submit', event => {
+    const root = activeRoot(event.target), record = root && records.get(root.id);
+    if (!record?.storageScope || record.storageScope === window.SeverApp?.getStorageScope?.()) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    if (root.querySelector('.scope-conflict')) return;
+    const notice = document.createElement('p'); notice.className = 'scope-conflict'; notice.setAttribute('role', 'alert');
+    notice.textContent = 'Аккаунт изменился. Черновик оставлен здесь, но сохранение заблокировано. Вернитесь в исходный аккаунт или скопируйте текст.';
+    event.target.appendChild(notice);
+  }, true);
   document.addEventListener('input', markDirty, true);
   document.addEventListener('change', markDirty, true);
   document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('close', () => {

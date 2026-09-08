@@ -1,0 +1,12 @@
+{
+  "name": "sever-planner",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.mjs tests/security/*.test.* && node tests/qa_static.mjs && node tests/sync_core.mjs",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
+    "@playwright/test": "1.58.2"
+  }
+}

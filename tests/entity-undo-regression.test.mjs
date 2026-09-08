@@ -139,7 +139,7 @@ function undoHarness(initialState, now = RESTORED_AT) {
     cloneValue: clone,
     save: () => { calls.save += 1; },
     saveAndRender: () => { calls.save += 1; calls.render += 1; },
-    renderNotes: () => { calls.render += 1; },
+    window: { SeverNotes: { render: () => { calls.render += 1; } } },
     renderHabits: () => { calls.render += 1; },
     renderProgress: () => { calls.render += 1; },
     refreshDesktopContext: () => { calls.render += 1; },

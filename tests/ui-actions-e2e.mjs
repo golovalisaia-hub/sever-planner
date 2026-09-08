@@ -4,8 +4,7 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const playwrightRoot = process.env.SEVER_PLAYWRIGHT_ROOT;
-if (!playwrightRoot) throw new Error('SEVER_PLAYWRIGHT_ROOT is required');
-const { chromium } = require(path.join(playwrightRoot, 'index.js'));
+const { chromium } = playwrightRoot ? require(path.join(playwrightRoot, 'index.js')) : require('@playwright/test');
 const baseURL = process.env.SEVER_E2E_URL || 'http://127.0.0.1:41740/';
 
 const initialState = {
@@ -39,7 +38,7 @@ async function openSettings(page) {
   await page.locator('#settingsView').waitFor({ state: 'visible' });
 }
 
-const browser = await chromium.launch({ headless: true, channel: 'chrome' });
+const browser = await chromium.launch({ headless: true });
 try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
   const page = await context.newPage();

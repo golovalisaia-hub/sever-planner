@@ -4,3 +4,6 @@ __pycache__/
 sever-dev.db
 backend/sever-dev.db
 .env
+node_modules/
+test-results/
+playwright-report/

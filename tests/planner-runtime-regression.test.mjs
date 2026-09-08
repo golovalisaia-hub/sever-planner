@@ -46,7 +46,7 @@ test('cloud capture failure still allows local save', async () => {
 });
 
 test('extra timer tick after completion does not count another session', () => {
-  const context = vm.createContext({ timerRunning: true, timerTrackedAt: 1, timerLeft: 0, timerEnd: 1, timerInterval: 7, activeTaskId: '', state: { tasks: [], stats: { sessions: 0 } }, trackFocusElapsed() {}, renderTimer() {}, saveTimerState() {}, clearInterval() {}, save() {}, renderProgress() {}, toast() {}, notificationSupport: () => false });
+  const context = vm.createContext({ uid: () => "session-1", timerMinutes: 1, focusStartedAt: 1, render() {}, timerRunning: true, timerTrackedAt: 1, timerLeft: 0, timerEnd: 1, timerInterval: 7, activeTaskId: '', state: { tasks: [], stats: { sessions: 0 } }, trackFocusElapsed() {}, renderTimer() {}, saveTimerState() {}, clearInterval() {}, save() {}, renderProgress() {}, toast() {}, notificationSupport: () => false });
   vm.runInContext(declaration('timerTick'), context);
   vm.runInContext('timerTick(); timerTick();', context);
   assert.equal(context.state.stats.sessions, 1);

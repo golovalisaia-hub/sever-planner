@@ -1,4 +1,4 @@
-const CACHE = 'sever-v50-mobile-security';
+const CACHE = 'sever-v51-stability';
 const ASSETS = [
   './',
   './index.html',
@@ -12,13 +12,13 @@ const ASSETS = [
   './northern-components.css?v=48',
   './sever-v41.css?v=43',
   './reference-theme.css?v=43',
-  './mobile-home.css?v=50',
-  './sever-ai.css?v=45',
+  './mobile-home.css?v=51',
+  './sever-ai.css?v=51',
   './aurora.webp',
   './assets/sever/mountain-night.svg',
   './assets/sever/ice-dawn.svg',
-  './app.js?v=48',
-  './notes-pro.js?v=43',
+  './app.js?v=51',
+  './notes-pro.js?v=51',
   './mobile-ui.js?v=43',
   './supabase-config.js?v=43',
   './vendor/supabase.min.js?v=2.57.4',
@@ -26,7 +26,7 @@ const ASSETS = [
   './js/protected-notes-crypto.js?v=43',
   './js/security-core.js?v=43',
   './js/supabase-client.js?v=43',
-  './js/ui-state.js?v=43',
+  './js/ui-state.js?v=51',
   './js/sync-core.mjs?v=43',
   './js/cloud-runtime.js?v=47',
   './js/sever-ai.js?v=45',
@@ -53,6 +53,7 @@ const CORE_PATHS = [
   '/sever-v41.css',
   '/reference-theme.css',
   '/sever-ai.css',
+  '/mobile-home.css',
   '/aurora.webp',
   '/assets/sever/mountain-night.svg',
   '/assets/sever/ice-dawn.svg',
@@ -85,26 +86,21 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
+  const asset = ASSETS.find(asset => {
+    const cachedUrl = new URL(asset, self.registration.scope);
+    return cachedUrl.pathname === url.pathname;
+  });
   const core = event.request.mode === 'navigate' || CORE_PATHS.some(path => url.pathname.endsWith(path));
-  if (core) {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE).then(cache => cache.put(event.request, copy));
-          return response;
-        })
-        .catch(() => caches.match(event.request).then(hit => hit || caches.match('./index.html')))
-    );
+  if (core || asset) {
+    // An installed worker serves its immutable release, never a mixture from the network.
+    const key = event.request.mode === 'navigate' ? './index.html' : asset;
+    event.respondWith(caches.open(CACHE).then(async cache => {
+      const hit = key ? await cache.match(key) : null;
+      return hit || new Response('Release asset unavailable', { status: 503 });
+    }));
     return;
   }
-  event.respondWith(
-    caches.match(event.request).then(hit => hit || fetch(event.request).then(response => {
-      const copy = response.clone();
-      caches.open(CACHE).then(cache => cache.put(event.request, copy));
-      return response;
-    }))
-  );
+  event.respondWith(fetch(event.request));
 });
 
 self.addEventListener('notificationclick', event => {

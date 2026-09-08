@@ -1,14 +1,17 @@
 const NOTE_CRYPTO_ITERATIONS = 600000;
+let editingNoteItems=[];
+let editingNoteType='text';
+function noteProgress(note){const items=Array.isArray(note.items)?note.items:[];if(items.length)return Math.round(items.filter(item=>item.done).length/items.length*100);if(note.done)return 100;return Math.max(0,Math.min(100,Number(note.progress)||0))}
+function setAllNoteItems(note,done){(note.items||[]).forEach(item=>item.done=done);note.done=Boolean(done&&(note.items||[]).length);note.updatedAt=Date.now()}
+function setNoteType(type){editingNoteType=type==='checklist'?'checklist':'text';$$('[data-note-type]').forEach(button=>button.classList.toggle('active',button.dataset.noteType===editingNoteType));$('#checklistEditor').classList.toggle('hidden',editingNoteType!=='checklist');$('#noteBodyLabel').textContent=editingNoteType==='checklist'?'Описание — необязательно':'Текст заметки';$('#noteBody').placeholder=editingNoteType==='checklist'?'Например: дела на сегодня':'Запиши мысли или важную информацию';if(editingNoteType==='checklist'&&!editingNoteItems.length){editingNoteItems.push({id:uid(),text:'',done:false});renderNoteItemsEditor()}}
+function renderNoteItemsEditor(){const root=$('#noteItemsEditor');root.innerHTML='';editingNoteItems.forEach((item,index)=>{const row=document.createElement('div');row.className='note-item-editor';row.innerHTML='<input type="checkbox" aria-label="Пункт выполнен"><input type="text" maxlength="160" placeholder="Например: уборка"><button type="button" aria-label="Удалить пункт">×</button>';const checkbox=row.children[0],input=row.children[1],remove=row.children[2];checkbox.checked=Boolean(item.done);checkbox.onchange=()=>item.done=checkbox.checked;input.value=item.text;input.oninput=()=>item.text=input.value;input.onkeydown=event=>{if(event.key!=='Enter')return;event.preventDefault();item.text=input.value;editingNoteItems.splice(index+1,0,{id:uid(),text:'',done:false});renderNoteItemsEditor();$$('#noteItemsEditor input[type="text"]')[index+1]?.focus()};remove.onclick=()=>{editingNoteItems.splice(index,1);renderNoteItemsEditor()};root.appendChild(row)})}
+$$('[data-note-type]').forEach(button=>button.onclick=()=>setNoteType(button.dataset.noteType));$('#openNote').onclick=()=>openNote();$('#addNoteItem').onclick=()=>{editingNoteItems.push({id:uid(),text:'',done:false});renderNoteItemsEditor();const inputs=$$('#noteItemsEditor input[type="text"]');inputs.at(-1)?.focus()};
 const noteCrypto = window.SeverProtectedNotesCrypto;
 const unlockedNotes = new Map();
 let activeFolderId = 'all';
 let pendingUnlockNote = null;
 let pendingUnlockEdit = false;
 let noteSearchQuery = '';
-const originalFreshState = freshState;
-freshState = function () { return { ...originalFreshState(), folders: [] }; };
-const originalMigrate = migrate;
-migrate = function (data) { const migrated = originalMigrate(data); migrated.folders = Array.isArray(migrated.folders) ? migrated.folders : []; migrated.notes = migrated.notes.map(note => ({ ...note, folderId: note.folderId || '' })); return migrated; };
 function ensureNoteCollections() { state.folders = Array.isArray(state.folders) ? state.folders : []; state.notes.forEach(note => note.folderId ??= ''); }
 ensureNoteCollections();
 async function protectNotePayload(payload, password) { return noteCrypto.protect(payload, password, NOTE_CRYPTO_ITERATIONS); }
@@ -83,7 +86,7 @@ function visibleNoteData(note) {
   return note.protected ? unlockedNotes.get(note.id)?.payload || null : note;
 }
 
-renderNotes = function () {
+function renderNotes() {
   ensureNoteCollections();
   syncProtectedNoteSecuritySettings();
   renderFolders();
@@ -181,7 +184,7 @@ renderNotes = function () {
   });
 };
 
-openNote = async function (note = null) {
+async function openNote(note = null) {
   if (note?.protected && !unlockedNotes.has(note.id)) {
     askToUnlock(note, true);
     return;
@@ -324,7 +327,7 @@ $('#quickNoteForm').onsubmit = async event => {
   toast('Заметка сохранена');
 };
 $('#openFolder')?.addEventListener('click', openFolderDialog);
-window.SeverNotes = { ...(window.SeverNotes || {}), openNote, openFolderDialog, openQuickNote, syncSecuritySettings: syncProtectedNoteSecuritySettings, getContext:()=>({activeFolderId,selectedNoteId:document.querySelector('#noteId')?.value||''}) };
+window.SeverNotes = { ...(window.SeverNotes || {}), render: renderNotes, openNote, openFolderDialog, openQuickNote, syncSecuritySettings: syncProtectedNoteSecuritySettings, getContext:()=>({activeFolderId,selectedNoteId:document.querySelector('#noteId')?.value||''}) };
 
 $('#folderForm').onsubmit = async event => {
   event.preventDefault();

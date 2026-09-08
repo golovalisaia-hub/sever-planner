@@ -322,3 +322,37 @@ test('anonymous data enters the account queue only after explicit import confirm
   assert.ok(h.state.tasks.some(row => row.id === 'anonymous-task'));
   assert.ok(h.cloud.queued.some(operation => operation.id === 'anonymous-task'));
 });
+
+test('saved Auth session opens its account cache when cloud download is offline', async () => {
+  const h = harness(), cached = { ...fresh(), tasks: [task('cached-a')] };
+  h.cloud.user = null; h.cloud.hydrated = false;
+  h.client.auth = { getSession: async () => ({ data: { session: { user: { id: 'user-a' }, expires_at: Math.floor(Date.now()/1000)+3600 } }, error: null }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) };
+  h.window.SeverSupabase.ready = async () => h.client;
+  h.app.switchStorageScope = (id, next) => { h.state = id === 'user-a' ? cached : next; };
+  h.cloud.fetchAll = async () => { throw Error('network offline'); };
+  let writes = 0; h.client.from = () => ({ upsert: async () => { writes++; return { error: null }; } });
+  await h.cloud.start();
+  assert.equal(h.cloud.user.id, 'user-a');
+  assert.equal(h.state.tasks[0].id, 'cached-a');
+  assert.equal(h.cloud.hydrated, false);
+  await h.cloud.flush(); assert.equal(writes, 0);
+});
+
+test('two clients round-trip tasks, notes, folders, habits, focus and settings', async () => {
+  const a = harness(), b = harness(), server = {};
+  for (const h of [a,b]) {
+    h.client.from = table => ({ upsert: async row => { server[table] ||= []; const key = row.id || row.user_id; const index = server[table].findIndex(item => (item.id || item.user_id) === key); if(index<0) server[table].push(clone(row)); else server[table][index] = clone(row); return { error: null }; } });
+    h.cloud.fetchAll = async () => clone(server);
+  }
+  a.state.tasks.push(task('shared'));
+  a.state.folders.push({id:'folder', name:'Folder', createdAt:at, updatedAt:at});
+  a.state.notes.push({id:'note', title:'Note', body:'Body', folderId:'folder', kind:'text', items:[], createdAt:at, updatedAt:at});
+  a.state.habits.push({id:'habit',title:'Habit',createdAt:at,updatedAt:at}); a.state.checks.habit=['2026-09-07'];
+  a.state.focusSessions.push({id:'focus',taskId:'shared',durationMinutes:25,completedAt:at,startedAt:at-1500000,status:'completed',createdAt:at,updatedAt:at});
+  a.state.profile={name:'Synced profile'};
+  a.cloud.capture(); await a.cloud.flush(); await b.cloud.pull();
+  assert.equal(b.state.tasks[0].id,'shared'); assert.equal(b.state.notes[0].folderId,'folder'); assert.equal(b.state.folders[0].id,'folder');
+  assert.equal(b.state.habits[0].id,'habit'); assert.deepEqual(b.state.checks.habit,['2026-09-07']); assert.equal(b.state.focusSessions[0].id,'focus'); assert.equal(b.state.profile.name,'Synced profile');
+  Object.assign(b.state.tasks[0],{completed:true,completedAt:Date.now(),updatedAt:Date.now()+100}); b.cloud.capture(); await b.cloud.flush(); await a.cloud.pull();
+  assert.equal(a.state.tasks[0].completed,true); assert.ok(a.state.tasks[0].completedAt);
+});
