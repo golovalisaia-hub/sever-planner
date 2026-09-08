@@ -7,7 +7,7 @@ test('installed release reloads offline with one complete asset set', async ({ b
     await page.goto('http://127.0.0.1:41741/');
     await expect.poll(async () => { try { return await page.evaluate(() => Boolean(navigator.serviceWorker.controller && window.SeverApp)); } catch { return false; } }).toBe(true);
     const cached = await page.evaluate(async () => { const cache = await caches.open('sever-v52-ui-stabilization'); return (await cache.keys()).map(request => new URL(request.url).pathname + new URL(request.url).search); });
-    expect(cached).toContain('/mobile-home.css?v=52'); expect(cached).toContain('/app.js?v=51'); expect(cached).toContain('/notes-pro.js?v=51');
+    expect(cached).toContain('/mobile-home.css?v=52'); expect(cached).toContain('/app.js?v=51'); expect(cached).toContain('/notes-pro.js?v=52');
     await context.setOffline(true);
     await page.reload();
     await expect(page.locator('#todayView')).toBeVisible();

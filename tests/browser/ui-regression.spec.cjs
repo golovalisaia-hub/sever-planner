@@ -34,5 +34,46 @@ test('task completion, note save, habit check, AI and text zoom keep their flows
   await page.evaluate(()=>window.SeverApp.switchView('settings'));await page.addStyleTag({content:'html{font-size:200%}'});await page.locator('#severAiOpen').click();await expect(page.locator('#severAiInput')).toBeVisible();await page.locator('#severAiClose').click();expect(errors).toEqual([]);
 });
 
+test('200 percent text keeps primary actions and dialogs usable',async({page})=>{
+  await page.setViewportSize({width:320,height:568});
+  const errors=await boot(page);
+  await page.addStyleTag({content:'html{font-size:200%}'});
+  await page.locator('#mobileCreateBtn').click();
+  await page.locator('#quickAddTask').click();
+  await page.locator('#taskTitle').fill('Длинная задача при увеличенном тексте');
+  await page.locator('#taskForm .primary').click();
+  await expect(page.locator('#todayTasks')).toContainText('Длинная задача');
+  await page.locator('#todayTasks .check').click();
+  await page.locator('#mobileQuickNote').click();
+  await page.locator('#quickNoteText').fill('Заметка при увеличенном тексте');
+  await page.locator('#quickNoteForm .primary').click();
+  await page.locator('#severAiOpen').click();
+  const rect=await page.locator('#severAiClose').boundingBox();
+  expect(rect.x).toBeGreaterThanOrEqual(0);expect(rect.x+rect.width).toBeLessThanOrEqual(320);
+  await page.locator('#severAiClose').click();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(0);
+  expect(errors).toEqual([]);
+});
+
+test('task metadata and neutral checklist hints are presentation only',async({page})=>{
+  const errors=await boot(page);
+  const before=await page.evaluate(()=>{
+    const app=window.SeverApp,s=app.getState();
+    s.tasks=[{id:'metadata',title:'Своя задача',date:new Date().toLocaleDateString('sv-SE'),time:'18:30',duration:null,category:'Личное',completed:false}];
+    app.render();return JSON.stringify(s);
+  });
+  await expect(page.locator('#todayTasks .task-meta')).toHaveText('18:30 · Личное');
+  await page.evaluate(()=>window.SeverApp.render());
+  await expect(page.locator('#todayTasks .task-meta')).toHaveText('18:30 · Личное');
+  expect(await page.evaluate(()=>JSON.stringify(window.SeverApp.getState()))).toBe(before);
+  await page.locator('#todayTasks .edit').click();
+  await expect(page.locator('#taskActionDialog')).toBeVisible();
+  await page.locator('[data-close="taskActionDialog"]').click();
+  await page.evaluate(()=>window.SeverNotes.openNote());
+  await page.locator('[data-note-type="checklist"]').click();
+  await expect(page.locator('#noteItemsEditor input[type="text"]').first()).toHaveAttribute('placeholder','Название пункта');
+  expect(errors).toEqual([]);
+});
+
 
 

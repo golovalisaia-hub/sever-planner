@@ -407,12 +407,13 @@ html[data-theme="aurora"] .today-hero {
   background: transparent;
   color: #04120d;
 }
-.task.done .check { border-color: var(--v41-success); background: var(--v41-success); box-shadow: 0 0 14px color-mix(in srgb, var(--v41-success) 22%, transparent); }
+.task.done .check::after{content:"";width:20px;height:20px;background:currentColor;mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m5%2012%204%204L19%206%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat}
+.task.done .check { font-size:0;border-color: var(--v41-success); background: var(--v41-success); box-shadow: 0 0 14px color-mix(in srgb, var(--v41-success) 22%, transparent); }
 .task-name { color: var(--v41-text); font-size: .88rem; font-weight: 650; }
 .task-meta { margin-top: 1px; color: var(--v41-muted); font-size: .69rem; }
 .task .edit { width: 32px; height: 32px; color: var(--v41-muted); }
 .task .edit:hover { background: var(--v41-panel-raised); color: var(--v41-text); }
-.task .star { color: var(--v41-streak); }
+.task .star { display:inline-block;width:16px;height:16px;font-size:0;background:currentColor;mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m12%203%202.8%205.7%206.2.9-4.5%204.4%201.1%206.2L12%2017.3l-5.6%202.9%201.1-6.2L3%209.6l6.2-.9Z%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat;color:var(--v41-streak); }
 
 .today-focus-widget {
   min-height: 76px;
@@ -961,7 +962,7 @@ html[data-theme="aurora"] .today-focus-widget {
 .heat.future{border-color:var(--v41-border);background:transparent;color:var(--v41-soft)}
 
 .habit{padding:16px}.habit-card-head h3{color:var(--v41-text)}
-.habit-status,.habit-help,.habit-week-total{color:var(--v41-muted)}.habit-edit{color:var(--v41-muted)}
+.habit-status,.habit-help,.habit-week-total{color:var(--v41-muted)}.habit-edit{display:grid;place-items:center;min-width:44px;min-height:44px;font-size:0;color:var(--v41-muted)}.habit-edit::before{content:"";width:24px;height:24px;background:currentColor;mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2012h.01M12%2012h.01M20%2012h.01%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat}
 .habit-day{border-color:var(--v41-border);background:color-mix(in srgb,var(--v41-panel-raised) 72%,transparent);color:var(--v41-muted)}
 .habit-day.today{border-color:var(--v41-border-strong);color:var(--v41-accent)}
 .habit-day.done{border-color:var(--v41-success);background:color-mix(in srgb,var(--v41-success) 14%,var(--v41-panel));color:var(--v41-success)}

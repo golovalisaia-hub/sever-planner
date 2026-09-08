@@ -62,6 +62,17 @@
   function setup() {
     if (initialized) return;
     initialized = true;
+    // Presentation only: keep the task renderer and its event handlers intact.
+    const tidyTaskMetadata = root => root.querySelectorAll('.task-meta').forEach(meta => {
+      const parts = meta.textContent.split(' · ').filter(part => part && part !== 'Без времени');
+      const label = parts.join(' · ');
+      if (meta.textContent !== label) meta.textContent = label;
+    });
+    document.querySelectorAll('.task-list').forEach(root => {
+      tidyTaskMetadata(root);
+      // Observe row replacement only, so changing metadata cannot retrigger us.
+      new MutationObserver(() => tidyTaskMetadata(root)).observe(root, { childList: true });
+    });
     ['noteCreateSheet', 'mobileMenuSheet', 'resetConfirmDialog', 'habitDeleteDialog'].forEach(id => attachSheetBehavior(document.getElementById(id)));
     document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => closeDialog(button.dataset.close)));
 
