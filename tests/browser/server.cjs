@@ -1,5 +1,6 @@
 const http = require('node:http'), fs = require('node:fs'), path = require('node:path');
 const root = path.resolve(__dirname, '../..');
+const { port } = require('./test-server-config.cjs');
 const types = { '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.html': 'text/html', '.svg': 'image/svg+xml', '.json': 'application/json' };
 http.createServer((req, res) => {
   const name = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
@@ -9,4 +10,4 @@ http.createServer((req, res) => {
     res.writeHead(error ? 404 : 200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
     res.end(error ? 'Not found' : data);
   });
-}).listen(41741, '127.0.0.1');
+}).listen(port, '127.0.0.1');

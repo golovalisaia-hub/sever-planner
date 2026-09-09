@@ -1,4 +1,5 @@
 const { test, expect, chromium } = require('@playwright/test');
+const { baseURL } = require('./test-server-config.cjs');
 test('each theme survives offline reload and full persistent-browser/PWA restart without flash', async ({}, testInfo) => {
   test.setTimeout(90000);
   const userDataDir = testInfo.outputPath('theme-profile');
@@ -14,7 +15,7 @@ test('each theme survives offline reload and full persistent-browser/PWA restart
         tasks: [], notes: [], habits: [], onboarded: true, appearance: { theme: 'calm', animations: 'off', reduceEffects: true }
       }));
     });
-    await page.goto('http://127.0.0.1:41741/');
+    await page.goto(baseURL + '/');
     await expect.poll(() => page.evaluate(() => Boolean(window.SeverApp && navigator.serviceWorker.controller)).catch(() => false)).toBe(true);
     await page.waitForTimeout(500);
     const cached = await page.evaluate(async () => {
@@ -40,7 +41,7 @@ test('each theme survives offline reload and full persistent-browser/PWA restart
           for (const entry of list.getEntries()) window.__paintThemes.push(document.documentElement.dataset.theme);
         }).observe({ type: 'paint', buffered: true });
       });
-      await page.goto('http://127.0.0.1:41741/');
+      await page.goto(baseURL + '/');
       await page.waitForFunction(() => window.SeverApp);
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
       await expect.poll(() => page.evaluate(() => window.__paintThemes.length)).toBeGreaterThan(0);

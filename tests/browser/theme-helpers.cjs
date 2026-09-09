@@ -1,4 +1,5 @@
 const views = ['today', 'calendar', 'timer', 'notes', 'habits', 'progress', 'settings', 'ai'];
+const { baseURL } = require('./test-server-config.cjs');
 const sizes = [[390, 844], [1440, 900]];
 async function boot(page, theme = 'calm') {
   await page.route('**/supabase-config.js*', r => r.fulfill({ contentType: 'text/javascript', body: 'window.SEVER_SUPABASE_CONFIG={};' }));
@@ -15,7 +16,7 @@ async function boot(page, theme = 'calm') {
       }));
     }
   }, theme);
-  await page.goto('http://127.0.0.1:41741/');
+  await page.goto(baseURL + '/');
   await page.waitForFunction(() => window.SeverApp && window.SeverNotes);
 }
 async function show(page, view) {

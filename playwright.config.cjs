@@ -1,8 +1,10 @@
 const { defineConfig } = require('@playwright/test');
+const { port, baseURL } = require('./tests/browser/test-server-config.cjs');
 module.exports = defineConfig({
   testDir: './tests/browser', timeout: 30000,
-  use: { baseURL: 'http://127.0.0.1:41741', serviceWorkers: 'block', ...(process.env.SEVER_BROWSER_CHANNEL ? { channel: process.env.SEVER_BROWSER_CHANNEL } : {}) },
-  webServer: { command: 'node tests/browser/server.cjs', port: 41741, reuseExistingServer: !process.env.CI },
+  use: { baseURL, serviceWorkers: 'block', ...(process.env.SEVER_BROWSER_CHANNEL ? { channel: process.env.SEVER_BROWSER_CHANNEL } : {}) },
+  // Never silently test an unrelated checkout already listening on this port.
+  webServer: { command: 'node tests/browser/server.cjs', port, reuseExistingServer: false },
   projects: [
     { name: 'phone-320', use: { viewport: { width: 320, height: 568 } } },
     { name: 'phone-360', use: { viewport: { width: 360, height: 800 } } },

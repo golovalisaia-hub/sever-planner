@@ -1,10 +1,11 @@
 const { test, expect } = require('@playwright/test');
+const { baseURL } = require('./test-server-config.cjs');
 test('installed release reloads offline with one complete asset set', async ({ browser }) => {
   const context = await browser.newContext({ serviceWorkers: 'allow', viewport: { width: 390, height: 844 } });
   try {
     const page = await context.newPage();
     await page.addInitScript(() => { if (!localStorage.getItem('sever-anonymous-state-v1')) localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({ tasks: [], notes: [], habits: [], onboarded: true })); });
-    await page.goto('http://127.0.0.1:41741/');
+    await page.goto(baseURL + '/');
     await expect.poll(async () => { try { return await page.evaluate(() => Boolean(navigator.serviceWorker.controller && window.SeverApp)); } catch { return false; } }).toBe(true);
     const cached = await page.evaluate(async () => { const cache = await caches.open('sever-v54-release-validation'); return (await cache.keys()).map(request => new URL(request.url).pathname + new URL(request.url).search); });
     expect(cached).toContain('/mobile-home.css?v=52'); expect(cached).toContain('/app.js?v=54'); expect(cached).toContain('/notes-pro.js?v=52');

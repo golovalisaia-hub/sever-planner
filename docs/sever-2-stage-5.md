@@ -88,14 +88,18 @@ node --test tests/*.test.mjs tests/security/*.test.*
 node tests/qa_static.mjs
 node tests/sync_core.mjs
 $env:SEVER_BROWSER_CHANNEL = 'msedge'
+$env:SEVER_E2E_PORT = '41753' # choose a free port; an existing server is rejected
 node node_modules/@playwright/test/cli.js test --workers=2
 ```
 
-For standalone UI/responsive/visual scripts, start
-`node tests/browser/server.cjs` on 127.0.0.1:41741 in another terminal:
+For standalone UI/responsive/visual scripts, set `SEVER_E2E_PORT=41752`
+in both terminals, then start `node tests/browser/server.cjs` in the other
+terminal. Do not share a server or output directory with a concurrent
+Playwright run.
 
 ```powershell
-$env:SEVER_E2E_URL = 'http://127.0.0.1:41741/'
+$env:SEVER_E2E_PORT = '41752'
+$env:SEVER_E2E_URL = 'http://127.0.0.1:41752/'
 node tests/ui-actions-e2e.mjs
 node tests/responsive-e2e.mjs
 node tests/browser/release-visual.cjs
@@ -122,3 +126,36 @@ sync, including account/anonymous isolation and appearance persistence.
 Record actual results, then request explicit merge approval.
 No known critical defect remains in the executed local checks; missing
 live evidence still blocks the release gate.
+
+## Resumed validation — 2026-09-10
+
+The previous checkpoint is `74a9c548725df91eaa431d159d1ff7edd9a34689`.
+No application code, visual tokens or layout changed during this continuation.
+
+The initial rerun exposed a test-harness defect: Playwright silently reused
+port 41741, which served a different checkout (`app.js?v=51`, old theme names)
+instead of this checkout (`app.js?v=54`). That run was interrupted and is
+not release evidence. The existing server was left untouched.
+
+- Disabled reuse of an unknown existing server.
+- Added validated `SEVER_E2E_PORT` configuration shared by the local server,
+  Playwright, theme helpers and persistent/offline PWA contexts.
+- Added three regression tests covering default/custom ports, invalid input,
+  and the no-reuse policy.
+- Verified that port 41741 now fails explicitly with "already used"
+  (`.artifacts/release/resume-port-conflict.log`).
+
+Repeated unit/security checks: **89 PASS, 2 SKIP, 0 FAIL**. Static: **38/38**.
+Sync core: **13/13**. Backend: **3/3**, 16 deprecation warnings. Standalone UI,
+responsive checks, and real PWA v52 → v54 upgrade/offline reopen passed again;
+all 35 cached asset hashes match. Evidence is under `.artifacts/release/resume-*`.
+
+Final full Playwright run: **148/148 PASS, exit 0**, on isolated port 41755
+with a separate output directory. Evidence:
+`.artifacts/release/resume-playwright-complete.log`.
+Earlier sandbox runs were interrupted after a teardown hang; an intermediate
+run also timed out in the persistent-browser test. They are not counted as
+successful runs. The final run outside the sandbox completed normally.
+
+Live Auth/RLS configuration is still absent from the test environment.
+Physical PC ↔ phone sync remains unverified. **READY TO MERGE: NO.**
