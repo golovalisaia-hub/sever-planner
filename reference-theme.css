@@ -1,52 +1,89 @@
 /*
- * SEVER Aurora reference layer.
+ * SEVER 2 Aurora token layer.
  *
- * This file is intentionally additive: it may replace Aurora artwork and
- * atmosphere, but it must not redefine product geometry, navigation, or any
- * of the other four themes.
+ * Theme values only. Geometry belongs to the component/layout owners.
+ * This keeps Aurora as the current visual direction without adding a new theme.
  */
+html[data-theme="aurora"] {
+  --v41-bg: #030913;
+  --v41-app: rgba(5, 14, 25, .95);
+  --v41-sidebar: rgba(4, 12, 22, .97);
+  --v41-panel: rgba(8, 22, 36, .82);
+  --v41-panel-raised: rgba(12, 31, 49, .92);
+  --v41-border: rgba(137, 211, 244, .13);
+  --v41-border-strong: rgba(124, 216, 255, .32);
+  --v41-text: #f4f9ff;
+  --v41-muted: #9eb0c1;
+  --v41-soft: #71869a;
+  --v41-accent: #91ddff;
+  --v41-accent-2: #9b91ff;
+  --v41-success: #69d7ad;
+  --v41-focus: #6ecbff;
+  --v41-streak: #f0ad73;
+  --v41-danger: #f58c9d;
+  --v41-shadow: 0 20px 60px rgba(0, 4, 14, .38);
+  --v41-card-shadow: 0 10px 30px rgba(0, 5, 17, .22), inset 0 1px rgba(229, 248, 255, .035);
+  --v41-glow: 0 0 0 1px rgba(116, 217, 255, .035), 0 0 30px rgba(70, 178, 255, .055);
+
+  --app-bg: var(--v41-bg);
+  --surface-1: var(--v41-panel);
+  --surface-2: var(--v41-panel-raised);
+  --surface-3: color-mix(in srgb, var(--v41-accent) 8%, var(--v41-panel-raised));
+  --text-primary: var(--v41-text);
+  --text-secondary: var(--v41-muted);
+  --text-muted: var(--v41-soft);
+  --border-subtle: var(--v41-border);
+  --border-strong: var(--v41-border-strong);
+  --accent: var(--v41-accent);
+  --accent-soft: color-mix(in srgb, var(--v41-accent) 14%, transparent);
+  --success: var(--v41-success);
+  --warning: var(--v41-streak);
+  --danger: var(--v41-danger);
+}
+
 html[data-theme="aurora"] body {
   background:
-    linear-gradient(180deg, rgba(0, 8, 20, .28), rgba(0, 8, 19, .88)),
+    linear-gradient(180deg, rgba(0, 8, 20, .22), rgba(0, 8, 19, .9)),
     url("aurora.webp") center top / cover fixed no-repeat,
-    #020914;
+    var(--app-bg);
 }
 
 html[data-theme="aurora"] body::before {
   inset: 0;
   height: auto;
   background:
-    radial-gradient(circle at 67% 3%, rgba(94, 255, 220, .11), transparent 25%),
-    linear-gradient(90deg, rgba(0, 7, 18, .3), transparent 48%, rgba(0, 5, 15, .22));
+    radial-gradient(circle at 70% 2%, rgba(104, 229, 255, .12), transparent 26%),
+    radial-gradient(circle at 32% 0%, rgba(138, 126, 255, .08), transparent 30%),
+    linear-gradient(90deg, rgba(0, 7, 18, .3), transparent 48%, rgba(0, 5, 15, .2));
   filter: none;
-  opacity: .9;
+  opacity: .88;
   animation: sever-reference-sky 18s ease-in-out infinite alternate;
 }
 
 @keyframes sever-reference-sky {
   to {
-    opacity: .78;
-    transform: scale(1.015);
+    opacity: .76;
+    transform: scale(1.012);
   }
 }
 
 html[data-theme="aurora"] .today-hero {
   background-image:
-    linear-gradient(90deg, rgba(2, 12, 24, .96), rgba(3, 15, 29, .62), rgba(1, 9, 19, .34)),
+    linear-gradient(94deg, rgba(2, 11, 22, .97) 0%, rgba(4, 18, 32, .77) 47%, rgba(3, 14, 27, .2) 100%),
     url("aurora.webp");
   background-position: center 31%;
   background-size: cover;
-  border-color: rgba(114, 224, 255, .28);
-  box-shadow: 0 18px 52px rgba(0, 4, 14, .4), inset 0 1px rgba(219, 255, 255, .08);
+  border-color: color-mix(in srgb, var(--accent) 26%, transparent);
+  box-shadow: 0 18px 52px rgba(0, 4, 14, .36), inset 0 1px rgba(219, 255, 255, .07);
 }
 
 html[data-theme="aurora"] .today-hero h1 {
-  text-shadow: 0 5px 28px rgba(0, 5, 17, .85);
+  text-shadow: 0 5px 28px rgba(0, 5, 17, .78);
 }
 
 html[data-theme="aurora"] .today-focus-widget {
   background-image:
-    linear-gradient(90deg, rgba(2, 12, 24, .96), rgba(3, 15, 29, .58), rgba(1, 9, 19, .34)),
+    linear-gradient(96deg, rgba(3, 14, 26, .97), rgba(5, 23, 38, .72), rgba(4, 16, 30, .42)),
     url("aurora.webp");
   background-position: center 62%;
   background-size: cover;
@@ -62,7 +99,7 @@ html[data-theme="aurora"] #timerView .focus-card {
 
 html[data-theme="aurora"] .theme-preview.theme-aurora {
   background:
-    linear-gradient(rgba(3, 13, 24, .2), rgba(3, 13, 24, .72)),
+    linear-gradient(rgba(3, 13, 24, .18), rgba(3, 13, 24, .74)),
     url("aurora.webp") center 34% / cover no-repeat;
 }
 
@@ -73,7 +110,7 @@ html[data-theme="aurora"] .theme-preview.theme-aurora {
   }
 
   html[data-theme="aurora"] .today-hero {
-    background-position: 58% 32%;
+    background-position: 58% 31%;
   }
 }
 
