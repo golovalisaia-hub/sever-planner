@@ -1,5 +1,6 @@
 /* SEVER 2 mobile Home. This file owns Home layout geometry only. */
 @media (max-width:900px){
+  :root{--mobile-bottom-nav-height:74px}
   #todayView.view:not(.active){display:none}
   #todayView.view.active{
     display:grid;
