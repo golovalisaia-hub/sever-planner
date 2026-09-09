@@ -110,6 +110,11 @@ async function main() {
   await db.exec(fs.readFileSync(path.join(root,'supabase/migrations/005_field_version_sync.sql'),'utf8'));
   await db.exec(`grant select,insert,update,delete on ${tables.filter(t=>t!=='profiles').map(t=>'public.'+t).join(',')} to authenticated;grant select on public.profiles to authenticated;`);
   await db.query('insert into auth.users(id,email) values($1,$2),($3,$4)',[A,'regression-a@example.invalid',B,'regression-b@example.invalid']);
+  // These scenarios exercise returning users, not the onboarding flow. Seed
+  // account settings (not just anonymous storage) before initial cloud hydration.
+  for(const uid of [A,B])await asUser(uid,()=>db.query(
+    'insert into user_settings(user_id,data) values($1,$2)',
+    [uid,JSON.stringify({onboarded:true,tourSeen:true})]));
   await check('DB ordinary identities and RLS enabled on all eight tables',async()=>{
     await asUser(A,async()=>{
       const r=(await db.query("select current_user as role,rolbypassrls as bypass from pg_roles where rolname=current_user")).rows[0];
