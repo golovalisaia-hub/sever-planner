@@ -2,8 +2,7 @@
 @media (max-width:900px){
   :root{--mobile-bottom-nav-height:74px}
   #todayView.view:not(.active){display:none}
-  #todayView.view.active{
-    display:grid;
+  #todayView.view.active{display:grid;
     grid-template-columns:minmax(0,1fr);
     gap:var(--space-3);
   }
