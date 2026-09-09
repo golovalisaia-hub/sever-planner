@@ -7,3 +7,4 @@ backend/sever-dev.db
 node_modules/
 test-results/
 playwright-report/
+.artifacts/

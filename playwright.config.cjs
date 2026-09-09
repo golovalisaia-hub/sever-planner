@@ -1,7 +1,7 @@
 const { defineConfig } = require('@playwright/test');
 module.exports = defineConfig({
   testDir: './tests/browser', timeout: 30000,
-  use: { baseURL: 'http://127.0.0.1:41741', serviceWorkers: 'block' },
+  use: { baseURL: 'http://127.0.0.1:41741', serviceWorkers: 'block', ...(process.env.SEVER_BROWSER_CHANNEL ? { channel: process.env.SEVER_BROWSER_CHANNEL } : {}) },
   webServer: { command: 'node tests/browser/server.cjs', port: 41741, reuseExistingServer: !process.env.CI },
   projects: [
     { name: 'phone-320', use: { viewport: { width: 320, height: 568 } } },

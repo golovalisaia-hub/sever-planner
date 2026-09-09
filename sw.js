@@ -1,4 +1,4 @@
-const CACHE = 'sever-v52-ui-stabilization';
+const CACHE = 'sever-v53-multi-theme';
 const ASSETS = [
   './',
   './index.html',
@@ -13,16 +13,17 @@ const ASSETS = [
   './sever-v41.css?v=52',
   './reference-theme.css?v=43',
   './mobile-home.css?v=52',
+  './themes.css?v=53',
   './sever-ai.css?v=52',
   './aurora.webp',
   './assets/sever/mountain-night.svg',
   './assets/sever/ice-dawn.svg',
-  './app.js?v=51',
+  './app.js?v=53',
   './notes-pro.js?v=52',
   './mobile-ui.js?v=52',
   './supabase-config.js?v=43',
   './vendor/supabase.min.js?v=2.57.4',
-  './js/theme-init.js?v=43',
+  './js/theme-init.js?v=53',
   './js/protected-notes-crypto.js?v=43',
   './js/security-core.js?v=43',
   './js/supabase-client.js?v=43',
@@ -54,6 +55,7 @@ const CORE_PATHS = [
   '/reference-theme.css',
   '/sever-ai.css',
   '/mobile-home.css',
+  '/themes.css',
   '/aurora.webp',
   '/assets/sever/mountain-night.svg',
   '/assets/sever/ice-dawn.svg',

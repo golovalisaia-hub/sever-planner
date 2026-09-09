@@ -384,6 +384,7 @@ async function bootApplication() {
     }
   });
   vm.createContext(context);
+  vm.runInContext(fs.readFileSync(path.join(root, 'js/theme-init.js'), 'utf8'), context);
   appScript.runInContext(context);
   notesScript.runInContext(context);
   await new Promise(resolve => setImmediate(resolve));

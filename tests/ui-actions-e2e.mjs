@@ -59,7 +59,7 @@ try {
   await openMoreView(page, 'progress');
   await openSettings(page);
 
-  for (const theme of ['light', 'north', 'motion', 'aurora', 'black']) {
+  for (const theme of ['calm', 'cozy', 'focus']) {
     await page.locator(`[data-sever-theme="${theme}"]`).click();
     assert.equal(await page.locator('html').getAttribute('data-theme'), theme);
     assert.equal((await page.locator('#mobileHeaderTitle').textContent())?.trim(), 'SEVER');
@@ -128,7 +128,7 @@ try {
   await page.locator('#timerToggle').click();
   assert.equal((await page.locator('#timerToggle').textContent())?.trim(), 'Начать');
 
-  console.log('PASS mobile navigation, five themes, habit date/Undo/reload, Quick Note and linked timer');
+  console.log('PASS mobile navigation, three themes, habit date/Undo/reload, Quick Note and linked timer');
   await context.close();
 } finally {
   await browser.close();

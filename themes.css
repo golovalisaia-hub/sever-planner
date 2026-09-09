@@ -1,0 +1,177 @@
+/*
+ * SEVER 2 — visual tokens only. Layout stays in the existing component sheets.
+ * Preview swatches share the same palette, but never set the root theme.
+ */
+html[data-theme="calm"], .theme-calm {
+  color-scheme: light;
+  --theme-bg: #F7F4F0;
+  --theme-surface: #FFFFFF;
+  --theme-raised: #F2EEE9;
+  --theme-text: #292623;
+  --theme-secondary: #69625D;
+  --theme-accent: #9B7357;
+  --theme-on-accent: #FFFFFF;
+  --theme-action: #896248;
+  --theme-success: #52755B;
+  --theme-on-success: #FFFFFF;
+  --theme-danger: #AF4553;
+  --theme-border: #E4DDD5;
+  --theme-shadow: 0 8px 28px #392A1E08;
+  --theme-card-shadow: 0 2px 8px #392A1E05;
+  --theme-overlay: #29262366;
+}
+html[data-theme="cozy"], .theme-cozy {
+  color-scheme: light;
+  --theme-bg: #FFF6EF;
+  --theme-surface: #FFFDFC;
+  --theme-raised: #F8EBE1;
+  --theme-text: #3D302B;
+  --theme-secondary: #746159;
+  --theme-accent: #CB7E5B;
+  --theme-on-accent: #3D2116;
+  --theme-action: #A65D3D;
+  --theme-success: #617A60;
+  --theme-on-success: #FFFFFF;
+  --theme-danger: #AE4554;
+  --theme-border: #EDDCD0;
+  --theme-shadow: 0 8px 28px #744C3010;
+  --theme-card-shadow: 0 2px 10px #744C3008;
+  --theme-overlay: #3D302B66;
+}
+html[data-theme="focus"], .theme-focus {
+  color-scheme: dark;
+  --theme-bg: #08100E;
+  --theme-surface: #111D19;
+  --theme-raised: #16231E;
+  --theme-text: #F1F7F4;
+  --theme-secondary: #A9B8B1;
+  --theme-accent: #68D9B5;
+  --theme-on-accent: #08100E;
+  --theme-action: #68D9B5;
+  --theme-success: #93BCA3;
+  --theme-on-success: #08100E;
+  --theme-danger: #E6979E;
+  --theme-border: #2A3B32;
+  --theme-shadow: 0 8px 28px #00000024;
+  --theme-card-shadow: 0 2px 8px #00000012;
+  --theme-overlay: #00000099;
+}
+
+/* Bridge existing semantic namespaces; no duplicated component/layout CSS. */
+html[data-theme] {
+  --v41-bg: var(--theme-bg);
+  --v41-app: var(--theme-bg);
+  --v41-sidebar: var(--theme-surface);
+  --v41-panel: var(--theme-surface);
+  --v41-panel-raised: var(--theme-raised);
+  --v41-text: var(--theme-text);
+  --v41-muted: var(--theme-secondary);
+  --v41-soft: var(--theme-secondary);
+  --v41-accent: var(--theme-accent);
+  --v41-accent-2: var(--theme-success);
+  --v41-focus: var(--theme-action);
+  --v41-success: var(--theme-success);
+  --v41-streak: var(--theme-action);
+  --v41-danger: var(--theme-danger);
+  --v41-border: var(--theme-border);
+  --v41-border-strong: color-mix(in srgb, var(--theme-accent) 48%, var(--theme-border));
+  --v41-shadow: var(--theme-shadow);
+  --v41-card-shadow: var(--theme-card-shadow);
+  --v41-glow: none;
+  --sever-shadow-soft: var(--theme-card-shadow);
+  --sever-shadow-panel: var(--theme-shadow);
+  --sever-shadow-glow: none;
+  --shadow: var(--theme-shadow);
+}
+
+/* Remove legacy imagery / atmosphere, not the space occupied by components. */
+html[data-theme] body { background: var(--theme-bg); }
+html[data-theme] body::before { background: none; filter: none; }
+html[data-theme] #todayView .today-hero,
+html[data-theme] #todayView .today-focus-widget,
+html[data-theme] #todayView .mobile-quick-note,
+html[data-theme] #todayView .empty,
+html[data-theme] #timerView .focus-card {
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+  box-shadow: var(--theme-card-shadow);
+}
+html[data-theme] .today-hero::before,
+html[data-theme] .today-hero::after,
+html[data-theme] .focus-card::before,
+html[data-theme] .focus-card::after { background: none; }
+html[data-theme] .topbar,
+html[data-theme] .bottom-nav { background: var(--theme-surface); box-shadow: var(--theme-card-shadow); }
+html[data-theme] .app-shell { box-shadow: var(--theme-shadow); }
+html[data-theme] .primary,
+html[data-theme] .icon-btn.global-add,
+html[data-theme] #todayView .task-filters button.active,
+html[data-theme] #todayView .today-add-task,
+html[data-theme] .timer-center button,
+html[data-theme] .timer-presets button.active,
+html[data-theme] .note-card .note-toggle-all,
+html[data-theme] .unlock-note,
+html[data-theme] .theme-picker button.active::after,
+html[data-theme] .sever-ai-message.user p {
+  background: var(--theme-accent);
+  color: var(--theme-on-accent);
+  box-shadow: none;
+}
+html[data-theme] .task-filters b { background: var(--control-hover); color: inherit; }
+/* Legacy controls used !important dark fills; retain geometry and replace paint. */
+html[data-theme] input,
+html[data-theme] select,
+html[data-theme] textarea { background: var(--theme-raised) !important; color: var(--theme-text) !important; }
+html[data-theme] .quick input,
+html[data-theme] .note-search input { background: transparent !important; }
+html[data-theme] .task-filters button:not(.active),
+html[data-theme] .note-check,
+html[data-theme] .checklist-editor,
+html[data-theme] .note-security,
+html[data-theme] .active-timer-task { background: var(--theme-raised); }
+html[data-theme] .empty,
+html[data-theme] .guide-card { background: var(--theme-surface); }
+html[data-theme] .profile-mark { background: var(--theme-accent); color: var(--theme-on-accent); box-shadow: var(--theme-card-shadow); }
+html[data-theme] .timer-ring,
+html[data-theme] .timer-center { box-shadow: var(--theme-card-shadow); }
+html[data-theme] .timer-progress { filter: none; }
+html[data-theme] .folder-tabs button.active,
+html[data-theme] .day.today>span { background: var(--theme-accent); color: var(--theme-on-accent); box-shadow: none; }
+html[data-theme] #securityCheckStatus[data-status="ok"],
+html[data-theme] #storageStatus.ok { color: var(--theme-success); }
+html[data-theme] .task .check.done,
+html[data-theme] .task.completed .check,
+html[data-theme] .desktop-calendar button.done,
+html[data-theme] .heat.rate-4 { color: var(--theme-on-success); }
+html[data-theme] .heat.rate-2,
+html[data-theme] .heat.rate-3 { color: var(--theme-text); }
+html[data-theme] .switch input:checked+i::after { background: var(--theme-on-accent); }
+html[data-theme] .bottom-nav .mobile-create .nav-icon {
+  background: var(--theme-raised); color: var(--theme-action); box-shadow: var(--theme-card-shadow);
+}
+html[data-theme] #todayView .utility-icon { background: var(--control-hover); color: var(--theme-action); }
+html[data-theme] .dashboard-ring .dashboard-arc { filter: none; }
+html[data-theme] dialog:not(.guide-dialog) {
+  background: var(--theme-surface); border-color: var(--theme-border); box-shadow: var(--theme-shadow);
+}
+html[data-theme] dialog::backdrop { background: var(--theme-overlay); }
+html[data-theme] .sever-ai-panel { background: var(--theme-surface); border-color: var(--theme-border); box-shadow: var(--theme-shadow); }
+html[data-theme] .sever-ai-head,
+html[data-theme] .sever-ai-form { border-color: var(--theme-border); }
+html[data-theme] .sever-ai-message p,
+html[data-theme] .sever-ai-form textarea { background: var(--theme-raised); border-color: var(--theme-border); }
+html[data-theme] .sever-ai-message.user p { background: var(--theme-accent); }
+html[data-theme] .sever-ai-actions button:not(.primary) { background: var(--theme-raised); color: var(--theme-text); }
+@media (min-width:901px) {
+  html[data-theme] .sever-ai-launch { background: var(--theme-accent); color: var(--theme-on-accent); box-shadow: var(--theme-shadow); }
+}
+
+/* The only new UI is the requested three-card picker, within its existing section. */
+.theme-picker { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.theme-preview { background: var(--theme-bg); border-color: var(--theme-border); }
+.theme-preview i:nth-child(1) { background: var(--theme-raised); border-color: var(--theme-border); }
+.theme-preview i:nth-child(2) { background: var(--theme-accent); border-color: var(--theme-accent); }
+.theme-preview i:nth-child(3) { background: var(--theme-surface); border-color: var(--theme-border); }
+@media (max-width:900px) {
+  .theme-picker { grid-template-columns: 1fr; }
+}
