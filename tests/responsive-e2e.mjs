@@ -13,7 +13,7 @@ const sizes = [
   [1280, 720], [1366, 768], [1440, 900], [1920, 1080]
 ];
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, ...(process.env.SEVER_BROWSER_CHANNEL ? { channel: process.env.SEVER_BROWSER_CHANNEL } : {}) });
 try {
   for (const [width, height] of sizes) {
     const context = await browser.newContext({ viewport: { width, height }, serviceWorkers: 'block' });
@@ -59,8 +59,9 @@ try {
     if (width <= 900) {
       assert.equal(metrics.mobileItems, 5, `${width}x${height}: bottom nav must contain five items`);
       assert.ok(metrics.header.height >= 56 && metrics.header.height <= 80, `${width}x${height}: header is not compact`);
-      assert.ok(metrics.hero.height >= 140 && metrics.hero.height <= 170, `${width}x${height}: hero too tall`);
-      assert.ok(metrics.dashboard.height <= (width <= 350 ? 185 : 100), `${width}x${height}: metrics too tall`);
+      // The approved SEVER 2 baseline has a compact hero and a two-row summary.
+      assert.equal(metrics.hero.height, width <= 350 ? 120 : 124, `${width}x${height}: hero differs from SEVER 2 baseline`);
+      assert.ok(metrics.dashboard.height <= 185, `${width}x${height}: two-row summary exceeds the baseline`);
       assert.ok(metrics.tasksHead.top < (width <= 350 ? 520 : 440), `${width}x${height}: tasks start below the first-screen target`);
       assert.ok(metrics.nav.bottom <= height + 1 && metrics.nav.height <= 86, `${width}x${height}: bottom navigation geometry invalid`);
       const assertSingleView = async expected => {

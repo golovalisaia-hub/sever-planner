@@ -38,7 +38,7 @@ async function openSettings(page) {
   await page.locator('#settingsView').waitFor({ state: 'visible' });
 }
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, ...(process.env.SEVER_BROWSER_CHANNEL ? { channel: process.env.SEVER_BROWSER_CHANNEL } : {}) });
 try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
   const page = await context.newPage();

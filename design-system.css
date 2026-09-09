@@ -111,6 +111,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .quick-add-divider:before, .quick-add-divider:after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
 .quick-add-actions i svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* Hidden date input must not inherit full-width control sizing or widen its dialog. */
+.quick-capture input.visually-hidden { width: 1px; min-width: 0; height: 1px; min-height: 0; padding: 0; border: 0; }
 
 @media (min-width: 901px) {
   .desktop-sidebar { width: 180px; padding: 24px 10px 14px; }

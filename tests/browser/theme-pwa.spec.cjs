@@ -18,7 +18,7 @@ test('each theme survives offline reload and full persistent-browser/PWA restart
     await expect.poll(() => page.evaluate(() => Boolean(window.SeverApp && navigator.serviceWorker.controller)).catch(() => false)).toBe(true);
     await page.waitForTimeout(500);
     const cached = await page.evaluate(async () => {
-      const cache = await caches.open('sever-v53-multi-theme');
+      const cache = await caches.open('sever-v54-release-validation');
       return (await cache.keys()).map(r => new URL(r.url).pathname + new URL(r.url).search);
     });
     expect(cached).toContain('/themes.css?v=53');

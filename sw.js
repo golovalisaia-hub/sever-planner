@@ -1,11 +1,11 @@
-const CACHE = 'sever-v53-multi-theme';
+const CACHE = 'sever-v54-release-validation';
 const ASSETS = [
   './',
   './index.html',
   './style.css?v=43',
   './qa.css?v=43',
   './responsive.css?v=43',
-  './design-system.css?v=52',
+  './design-system.css?v=54',
   './mobile-system.css?v=43',
   './onboarding.css?v=43',
   './northern.css?v=43',
@@ -18,7 +18,7 @@ const ASSETS = [
   './aurora.webp',
   './assets/sever/mountain-night.svg',
   './assets/sever/ice-dawn.svg',
-  './app.js?v=53',
+  './app.js?v=54',
   './notes-pro.js?v=52',
   './mobile-ui.js?v=52',
   './supabase-config.js?v=43',
