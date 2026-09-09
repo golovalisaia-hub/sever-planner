@@ -52,7 +52,7 @@ const server = http.createServer((req,res) => {
     await expect.poll(()=>page.evaluate(()=>Boolean(window.SeverTheme&&SeverTheme.ids.includes('focus'))).catch(()=>false)).toBe(true);
     await expect(page.locator('html')).toHaveAttribute('data-theme','focus');
     const assets = await page.evaluate(async()=>{
-      const cache=await caches.open('sever-v54-release-validation'),entries=[];
+      const cache=await caches.open('sever-v55-field-sync'),entries=[];
       for(const request of await cache.keys()){
         const bytes=await (await cache.match(request)).arrayBuffer();
         const digest=await crypto.subtle.digest('SHA-256',bytes);
@@ -60,7 +60,7 @@ const server = http.createServer((req,res) => {
       }
       return {entries,keys:await caches.keys()};
     });
-    expect(assets.keys).toEqual(['sever-v54-release-validation']);
+    expect(assets.keys).toEqual(['sever-v55-field-sync']);
     for(const entry of assets.entries){
       const name = new URL(entry.url).pathname.slice(1)||'index.html';
       expect(entry.sha256,`mixed release asset: ${name}`).toBe(hash(fs.readFileSync(path.join(root,name))));
@@ -71,9 +71,9 @@ const server = http.createServer((req,res) => {
     await expect(page.locator('html')).toHaveAttribute('data-theme','focus');
     await page.screenshot({path:path.join(out,'pwa-upgraded-offline.png')});
     fs.writeFileSync(path.join(out,'pwa-upgrade.json'),JSON.stringify({
-      status:'PASS',from:'sever-v52-ui-stabilization',to:'sever-v54-release-validation',
+      status:'PASS',from:'sever-v52-ui-stabilization',to:'sever-v55-field-sync',
       oldReleaseRemainedAtomic:true,newReleaseHashesMatch:true,offline:true,...assets
     },null,2));
-    console.log(`PASS installed v52 -> v54 update; ${assets.entries.length} asset hashes match; offline reopen`);
+    console.log(`PASS installed v52 -> v55 update; ${assets.entries.length} asset hashes match; offline reopen`);
   } finally {await context.close();await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1});

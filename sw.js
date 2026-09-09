@@ -1,4 +1,4 @@
-const CACHE = 'sever-v54-release-validation';
+const CACHE = 'sever-v55-field-sync';
 const ASSETS = [
   './',
   './index.html',
@@ -18,7 +18,7 @@ const ASSETS = [
   './aurora.webp',
   './assets/sever/mountain-night.svg',
   './assets/sever/ice-dawn.svg',
-  './app.js?v=54',
+  './app.js?v=55',
   './notes-pro.js?v=52',
   './mobile-ui.js?v=52',
   './supabase-config.js?v=43',
@@ -28,8 +28,8 @@ const ASSETS = [
   './js/security-core.js?v=43',
   './js/supabase-client.js?v=43',
   './js/ui-state.js?v=51',
-  './js/sync-core.mjs?v=43',
-  './js/cloud-runtime.js?v=47',
+  './js/sync-core.mjs?v=55',
+  './js/cloud-runtime.js?v=55',
   './js/sever-ai.js?v=45',
   './manifest.webmanifest',
   './icon.svg',

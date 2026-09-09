@@ -343,7 +343,8 @@ function updateCloudStatus(status,user=null){
   const messages={local:'Локально',offline:'Офлайн · изменения сохраняются',pending:'Ожидает синхронизации',syncing:'Синхронизация…',synced:'✓ Синхронизировано','signed-out':'Войдите для синхронизации',migration:'Нужен выбор данных',unavailable:'Модуль синхронизации недоступен'};
   const diagnostic=window.SeverCloud?.lastErrorCode;
   if(label){label.dataset.syncError=diagnostic||'';label.dataset.syncStage=window.SeverCloud?.syncStage||'';label.dataset.syncHydrated=String(Boolean(window.SeverCloud?.hydrated))}
-  const statusText=(messages[status]||messages.local)+(status==='pending'&&diagnostic&&diagnostic.startsWith('SYNC_TABLE_')?` · не удалось прочитать ${diagnostic.slice('SYNC_TABLE_'.length).toLowerCase().replaceAll('_',' ')}`:'');
+  const syncGuidance={SYNC_SCHEMA_UPGRADE_REQUIRED:'Облако требует обновления · локальные данные сохранены',SYNC_LEGACY_QUEUE_REVIEW:'Старые офлайн-правки сохранены · нужна сверка данных'};
+  const statusText=syncGuidance[diagnostic]||(messages[status]||messages.local)+(status==='pending'&&diagnostic&&diagnostic.startsWith('SYNC_TABLE_')?` · не удалось прочитать ${diagnostic.slice('SYNC_TABLE_'.length).toLowerCase().replaceAll('_',' ')}`:'');
   if(label)label.textContent=statusText;if(settingsLabel)settingsLabel.textContent=statusText;
   if(rail)rail.textContent=messages[status]||messages.local;if(railCard)railCard.dataset.syncState=status;
   if(email)email.textContent=user?.email||'Данные только на этом устройстве';

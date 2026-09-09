@@ -27,6 +27,7 @@ function harness() {
     close() { this.closed = true; }
   }
   const client = {
+    rpc: async () => ({data:1,error:null}),
     channel() {
       const channel = {
         on() { return this; },
@@ -355,4 +356,26 @@ test('two clients round-trip tasks, notes, folders, habits, focus and settings',
   assert.equal(b.state.habits[0].id,'habit'); assert.deepEqual(b.state.checks.habit,['2026-09-07']); assert.equal(b.state.focusSessions[0].id,'focus'); assert.equal(b.state.profile.name,'Synced profile');
   Object.assign(b.state.tasks[0],{completed:true,completedAt:Date.now(),updatedAt:Date.now()+100}); b.cloud.capture(); await b.cloud.flush(); await a.cloud.pull();
   assert.equal(a.state.tasks[0].completed,true); assert.ok(a.state.tasks[0].completedAt);
+});
+test('pre-versioned offline queue is preserved and blocks unsafe initial reconciliation',async()=>{
+  const h=harness();
+  h.storage.set(h.cloud.queueKey,JSON.stringify([operation(task('legacy-pending'))]));
+  const before=JSON.stringify(h.state),queue=h.storage.get(h.cloud.queueKey);
+  h.cloud.hydrated=false;
+  h.cloud.fetchAll=async()=>{throw Error('Must not fetch or replace legacy pending data');};
+  await h.cloud.initialSync();
+  assert.equal(h.cloud.lastErrorCode,'SYNC_LEGACY_QUEUE_REVIEW');
+  assert.equal(h.cloud.hydrated,false);
+  assert.equal(JSON.stringify(h.state),before);
+  assert.equal(h.storage.get(h.cloud.queueKey),queue);
+});
+test('missing field-sync migration blocks hydration and preserves cache without writes',async()=>{
+  const h=harness();h.cloud.hydrated=false;
+  h.client.rpc=async()=>({data:null,error:{code:'PGRST202'}});
+  const state=JSON.stringify(h.state);let writes=0;
+  h.client.from=()=>({upsert:async()=>{writes++;return{error:null};}});
+  await h.cloud.initialSync();
+  assert.equal(h.cloud.lastErrorCode,'SYNC_SCHEMA_UPGRADE_REQUIRED');
+  assert.equal(h.cloud.hydrated,false);assert.equal(writes,0);
+  assert.equal(JSON.stringify(h.state),state);
 });

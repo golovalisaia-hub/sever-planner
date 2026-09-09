@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -26,6 +28,10 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Browser E2E (phones and desktop)
         run: pnpm exec playwright test
+      - name: Concurrent sync (isolated PostgreSQL and desktop/mobile contexts)
+        run: node tests/browser/concurrent-db.cjs
+      - name: Installed PWA upgrade and offline asset coherence
+        run: node tests/browser/release-pwa-upgrade.cjs
       - name: Static regression
         run: node tests/qa_static.mjs
       - name: Sync regression
