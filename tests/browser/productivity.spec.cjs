@@ -20,26 +20,34 @@ async function openCreate(page) {
   else await page.locator('#mobileCreateBtn').click();
 }
 
-test('home gets a compact workload card with one-click focus', async ({ page }) => {
+async function waitHomeCore(page) {
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severHomeCore)).toBe('ready');
+  await expect(page.locator('#sever2HomeCore')).toBeVisible();
+}
+
+test('home gets one compact workload summary with one-click focus', async ({ page }) => {
   await seed(page);
   await page.goto('/');
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severProductivity)).toBe('ready');
-  const card = page.locator('#sever2TodayPlan');
-  await expect(card).toBeVisible();
-  await expect(card).toContainText('2 дел');
-  await expect(card).toContainText('45 мин');
-  await expect(card.locator('.sever2-plan-start')).toBeVisible();
+  await waitHomeCore(page);
+  const home = page.locator('#sever2HomeCore');
+  await expect(home.locator('[data-home-stat="remaining"]')).toHaveText('2');
+  await expect(home.locator('[data-home-stat="minutes"]')).toHaveText('45 мин');
+  await expect(home.locator('[data-home-now-title]')).toHaveText('Первое дело');
+  await expect(home.locator('[data-home-action="focus"]')).toBeVisible();
+  await expect(page.locator('#sever2TodayPlan')).toBeHidden();
+  await expect(page.locator('#todayDashboard')).toBeHidden();
 });
 
-test('home surfaces unscheduled tasks without mixing them into today', async ({ page }) => {
+test('home surfaces Inbox count without mixing unscheduled tasks into today', async ({ page }) => {
   await seed(page);
   await page.goto('/');
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severProductivity)).toBe('ready');
-  const inbox = page.locator('#sever2HomeInbox');
+  await waitHomeCore(page);
+  const inbox = page.locator('#sever2HomeCore [data-home-inbox]');
   await expect(inbox).toBeVisible();
-  await expect(inbox).toContainText('1 дело без даты');
-  await expect(inbox).toContainText('Дело без даты');
+  await expect(inbox.locator('[data-home-inbox-count]')).toHaveText('1');
   await expect(page.locator('#todayTasks .task')).toHaveCount(2);
+  await expect(page.locator('#todayTasks')).not.toContainText('Дело без даты');
+  await expect(page.locator('#sever2HomeInbox')).toBeHidden();
 });
 
 test('calendar can switch between month, day timeline and Inbox', async ({ page }) => {
@@ -75,14 +83,16 @@ test('Inbox task can be planned for today through the existing task save path', 
 test('quick create can save a task without a date and persistence survives render', async ({ page }) => {
   await seed(page);
   await page.goto('/');
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severProductivity)).toBe('ready');
+  await waitHomeCore(page);
   await openCreate(page);
   await page.locator('[data-sever2-inbox-date]').click();
   await page.locator('#quickCaptureInput').fill('Новая входящая задача');
   await page.locator('#quickCaptureForm button[type="submit"]').click();
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.find(task => task.title === 'Новая входящая задача')?.date)).toBe('9999-12-31');
   await expect(page.locator('#quickAddDialog')).toBeHidden();
-  await expect(page.locator('#sever2HomeInbox')).toContainText('Новая входящая задача');
+  await expect(page.locator('#sever2HomeCore [data-home-inbox]')).toBeVisible();
+  await expect(page.locator('#sever2HomeCore [data-home-inbox-count]')).toHaveText('2');
+  await expect(page.locator('#todayTasks')).not.toContainText('Новая входящая задача');
 });
 
 test('task action quick-reschedules through the existing save path and exposes contextual AI', async ({ page }) => {
