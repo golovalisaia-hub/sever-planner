@@ -70,6 +70,133 @@
   }
 }
 
+/* Notes: the old generic empty-state artwork was oversized and belonged to Home.
+   Notes now has a compact, neutral empty surface; creation stays in the + action. */
+#notesView .empty{
+  min-height:220px!important;
+  padding:30px 24px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:10px!important;
+  border:1px dashed var(--border-strong)!important;
+  border-radius:var(--radius-card)!important;
+  background:var(--surface-1)!important;
+  color:var(--text-muted)!important;
+  box-shadow:none!important;
+  text-align:center!important;
+}
+#notesView .empty .empty-icon{
+  display:grid!important;
+  width:52px!important;
+  height:52px!important;
+  min-width:52px!important;
+  place-items:center!important;
+  margin:0 0 2px!important;
+  border:1px solid var(--border-subtle)!important;
+  border-radius:15px!important;
+  background:var(--accent-soft)!important;
+  color:var(--accent)!important;
+  box-shadow:none!important;
+}
+#notesView .empty .empty-icon svg{
+  width:25px!important;
+  height:25px!important;
+  fill:none!important;
+  stroke:currentColor!important;
+  stroke-width:1.7!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+}
+#notesView .empty b{
+  max-width:34ch!important;
+  margin:0!important;
+  color:var(--text-secondary)!important;
+  font-size:13px!important;
+  line-height:1.45!important;
+  font-weight:650!important;
+}
+#notesView .empty p,
+#notesView .empty .today-add-task{
+  display:none!important;
+}
+@media (max-width:900px){
+  #notesView .empty{
+    min-height:190px!important;
+    padding:24px 18px!important;
+    border-radius:14px!important;
+  }
+}
+
+/* Focus Peak: keep timer label, time, task and play control in one centered ring.
+   Older component grid rules could push labels through the number or the play
+   button outside the circle. */
+html[data-theme="black"] #todayView .today-focus-widget{
+  position:relative!important;
+  grid-template-columns:1fr!important;
+  grid-template-rows:1fr!important;
+  place-items:center!important;
+}
+html[data-theme="black"] #todayView .today-focus-widget::before{
+  left:50%!important;
+  top:50%!important;
+  transform:translate(-50%,-50%)!important;
+  pointer-events:none!important;
+}
+html[data-theme="black"] #todayView .today-focus-widget>div{
+  position:relative!important;
+  z-index:1!important;
+  display:flex!important;
+  width:160px!important;
+  height:160px!important;
+  min-width:160px!important;
+  min-height:160px!important;
+  padding:26px 17px 45px!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  text-align:center!important;
+}
+html[data-theme="black"] #todayView .today-focus-widget>div small,
+html[data-theme="black"] #todayView .today-focus-widget>div b,
+html[data-theme="black"] #todayView .today-focus-widget>div span{
+  position:static!important;
+  display:block!important;
+  width:100%!important;
+  margin-left:0!important;
+  margin-right:0!important;
+  text-align:center!important;
+}
+html[data-theme="black"] #todayView .today-focus-widget>div small{
+  margin:0!important;
+  font-size:8px!important;
+  letter-spacing:.08em!important;
+  line-height:1.2!important;
+}
+html[data-theme="black"] #todayView .today-focus-widget>div b{
+  margin:2px 0 0!important;
+  line-height:1!important;
+}
+html[data-theme="black"] #todayView .today-focus-widget>div span{
+  max-width:128px!important;
+  overflow:hidden!important;
+  color:var(--text-muted)!important;
+  font-size:9px!important;
+  line-height:1.3!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+html[data-theme="black"] #todayView .today-focus-widget .primary{
+  position:absolute!important;
+  z-index:2!important;
+  left:50%!important;
+  top:calc(50% + 48px)!important;
+  margin:0!important;
+  transform:translate(-50%,-50%)!important;
+}
+
 /* Focus desktop mirrors the supplied reference: timer + tasks, no filter bubbles. */
 @media (min-width:901px){
   html[data-theme="black"] #todayView .task-filters{
@@ -81,6 +208,43 @@
   html[data-theme="black"] #todayView #todayTasks{
     padding-top:4px!important;
   }
+  html[data-theme="black"] #todayView .today-focus-widget>div{
+    width:184px!important;
+    height:184px!important;
+    min-width:184px!important;
+    min-height:184px!important;
+    padding:31px 20px 51px!important;
+  }
+  html[data-theme="black"] #todayView .today-focus-widget>div span{
+    max-width:145px!important;
+  }
+  html[data-theme="black"] #todayView .today-focus-widget .primary{
+    top:calc(50% + 57px)!important;
+  }
+
+  /* AI is an app action in the header, not a detached floating pill. */
+  .sever-ai-launch{
+    position:fixed!important;
+    z-index:75!important;
+    top:11px!important;
+    right:136px!important;
+    bottom:auto!important;
+    left:auto!important;
+    display:grid!important;
+    width:44px!important;
+    min-width:44px!important;
+    height:44px!important;
+    min-height:44px!important;
+    place-items:center!important;
+    padding:0!important;
+    border:1px solid var(--border-subtle)!important;
+    border-radius:11px!important;
+    background:var(--surface-1)!important;
+    color:var(--accent)!important;
+    box-shadow:none!important;
+  }
+  .sever-ai-launch span{display:none!important}
+  .sever-ai-launch svg{width:18px!important;height:18px!important}
 }
 
 /* Replace the text play glyph with a CSS triangle. */
