@@ -138,6 +138,15 @@ html[data-theme="black"] #taskActionDialog[data-execution-mode="flexible"] #task
   color:#06110d;
 }
 
+@media(min-width:901px){
+  .top-actions #globalAddBtn{
+    width:44px!important;
+    min-width:44px!important;
+    height:44px!important;
+    min-height:44px!important;
+  }
+}
+
 @media(max-width:900px){
   .sever-execution-options{grid-template-columns:1fr}
   .sever-execution-options>button{
