@@ -1,4 +1,4 @@
-const CACHE = 'sever-v56-unified-sever2-v2';
+const CACHE = 'sever-v57-unified-sever2-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -16,14 +16,14 @@ const ASSETS = [
   './mobile-home.css?v=52',
   './sever-ai.css?v=52',
   './themes.css?v=60',
-  './sever2-ui.css?v=60',
-  './sever2-qa.css?v=60',
+  './sever2-ui.css?v=61',
+  './sever2-qa.css?v=61',
   './app.js?v=51',
   './notes-pro.js?v=52',
   './mobile-ui.js?v=52',
   './supabase-config.js?v=43',
   './vendor/supabase.min.js?v=2.57.4',
-  './js/theme-init.js?v=60',
+  './js/theme-init.js?v=61',
   './js/protected-notes-crypto.js?v=43',
   './js/security-core.js?v=43',
   './js/supabase-client.js?v=43',
