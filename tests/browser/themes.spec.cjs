@@ -87,6 +87,28 @@ test('three references have distinct exact palette anchors and persist', async (
   expect(await page.evaluate(() => localStorage.getItem('sever-theme'))).toBe('black');
 });
 
+test('legacy Aurora data is not rewritten just by opening SEVER 2', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({
+      version: 11, tasks: [], notes: [], folders: [], habits: [], checks: {}, taskMemory: [],
+      profile: { name: '' }, appearance: { theme: 'aurora', animations: 'off', reduceEffects: true },
+      focusSessions: [], stats: { focusMs: 0, sessions: 0 }, reminders: { enabled: false, time: '19:00', lastDate: '' },
+      security: { protectedNotesAutoLockMinutes: 5, lockInBackground: true }, onboarded: true
+    }));
+    localStorage.setItem('sever-theme', 'aurora');
+  });
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => Boolean(window.SeverApp))).toBe(true);
+  const result = await page.evaluate(() => ({
+    storedDataTheme: window.SeverApp.getState().appearance.theme,
+    visibleTheme: document.documentElement.dataset.theme,
+    localPresentationTheme: localStorage.getItem('sever-theme')
+  }));
+  expect(result.storedDataTheme).toBe('aurora');
+  expect(result.visibleTheme).toBe('light');
+  expect(result.localPresentationTheme).toBe('light');
+});
+
 test('mobile themes change the full Home composition, not only colors', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await seedPlanner(page);
@@ -115,6 +137,43 @@ test('mobile themes change the full Home composition, not only colors', async ({
   await expect(page.locator('.bottom-nav')).toBeVisible();
 });
 
+test('mobile Notes empty state is compact and Focus controls stay inside their card', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seedPlanner(page);
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => Boolean(window.SeverApp))).toBe(true);
+
+  await page.evaluate(() => window.SeverApp.switchView('notes'));
+  const empty = page.locator('#notesView .empty');
+  await expect(empty).toBeVisible();
+  await expect(empty.locator('.today-add-task')).toBeHidden();
+  const emptyBox = await empty.boundingBox();
+  expect(emptyBox.height).toBeLessThanOrEqual(260);
+
+  await page.evaluate(() => window.SeverApp.switchView('settings'));
+  await page.locator('.theme-picker [data-sever-theme="black"]').click();
+  await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
+  const geometry = await page.evaluate(() => {
+    const box = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
+    return {
+      widget: box('#todayFocusWidget'),
+      label: box('#todayFocusWidget small'),
+      time: box('#todayFocusDisplay'),
+      task: box('#todayFocusTask'),
+      button: box('#todayFocusToggle')
+    };
+  });
+  for (const part of [geometry.label, geometry.time, geometry.task, geometry.button]) {
+    expect(part.left).toBeGreaterThanOrEqual(geometry.widget.left);
+    expect(part.right).toBeLessThanOrEqual(geometry.widget.right);
+    expect(part.top).toBeGreaterThanOrEqual(geometry.widget.top);
+    expect(part.bottom).toBeLessThanOrEqual(geometry.widget.bottom);
+  }
+  expect(geometry.label.bottom).toBeLessThanOrEqual(geometry.time.top + 2);
+  expect(geometry.time.bottom).toBeLessThanOrEqual(geometry.task.top + 4);
+  expect(geometry.button.top).toBeGreaterThan(geometry.time.top);
+});
+
 test('desktop Focus Peak becomes focus-first while Calm remains task-first', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await seedPlanner(page);
@@ -141,4 +200,19 @@ test('desktop Focus Peak becomes focus-first while Calm remains task-first', asy
   expect(focusLayout.height).toBeGreaterThan(280);
   expect(focusLayout.sidebar).toBeGreaterThan(180);
   expect(focusLayout.filters).toBe('none');
+});
+
+test('desktop AI is a header action and does not overlap Create', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await seedPlanner(page);
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => Boolean(window.SeverApp))).toBe(true);
+  const geometry = await page.evaluate(() => {
+    const box = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
+    return { ai: box('#severAiOpen'), topbar: box('.topbar'), create: box('#globalAddBtn') };
+  });
+  expect(geometry.ai.width).toBeGreaterThanOrEqual(44);
+  expect(geometry.ai.top).toBeGreaterThanOrEqual(geometry.topbar.top);
+  expect(geometry.ai.bottom).toBeLessThanOrEqual(geometry.topbar.bottom);
+  expect(geometry.ai.right).toBeLessThanOrEqual(geometry.create.left - 6);
 });
