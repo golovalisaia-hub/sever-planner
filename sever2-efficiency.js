@@ -195,8 +195,8 @@
     button.type = 'button';
     button.className = 'sever2-command-open';
     button.setAttribute('aria-label', 'Быстрые команды');
-    button.title = 'Быстрые команды · Ctrl+K';
-    button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg><span>Команды</span><kbd>Ctrl K</kbd>';
+    button.title = 'Быстрые команды · /';
+    button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg><span>Команды</span><kbd>/</kbd>';
     button.addEventListener('click', openCommandCenter);
     topbar.appendChild(button);
   }
@@ -206,12 +206,20 @@
     document.documentElement.dataset.severEfficiencyKeyboard = 'ready';
     document.addEventListener('keydown', event => {
       const key = event.key.toLowerCase();
+      /* Ctrl/Cmd+K is kept as a best-effort accelerator in installed PWAs,
+         but browsers often reserve it for the address bar. Slash is the
+         dependable in-page shortcut and is what the UI advertises. */
       if ((event.ctrlKey || event.metaKey) && key === 'k') {
         event.preventDefault();
         openCommandCenter();
         return;
       }
-      if (event.altKey && key === 'f') return; // focus-flow owns Alt+F
+      if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key === '/' && !interactiveTarget(event.target) && !document.querySelector('dialog[open]')) {
+        event.preventDefault();
+        openCommandCenter();
+        return;
+      }
+      if (event.altKey && key === 'f') return;
       if (!event.ctrlKey && !event.metaKey && !event.altKey && key === 'q' && !interactiveTarget(event.target) && !document.querySelector('dialog[open]')) {
         event.preventDefault();
         openQuickAdd();
