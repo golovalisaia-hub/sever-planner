@@ -6,9 +6,9 @@ import vm from 'node:vm';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-const RELEASE_CACHE = 'sever-v62-focus-flow-v3';
+const RELEASE_CACHE = 'sever-v63-efficiency-v1';
 
-test('v62 service worker installs the focus flow release atomically and removes stale caches', async () => {
+test('v63 service worker installs the efficiency release atomically and removes stale caches', async () => {
   const handlers = new Map();
   const deleted = [];
   let cachedAssets = [];
@@ -22,7 +22,7 @@ test('v62 service worker installs the focus flow release atomically and removes 
   };
   const caches = {
     open: async name => ({ addAll: async assets => { assert.equal(name, RELEASE_CACHE); cachedAssets = assets; }, put: async () => {} }),
-    keys: async () => ['sever-v35', 'sever-v60-focus-inbox-v1', 'sever-v61-focus-flow-v2'],
+    keys: async () => ['sever-v35', 'sever-v61-focus-flow-v2', 'sever-v62-focus-flow-v3'],
     delete: async name => { deleted.push(name); return true; },
     match: async () => null
   };
@@ -44,7 +44,9 @@ test('v62 service worker installs the focus flow release atomically and removes 
   assert.ok(cachedAssets.includes('./sever2-productivity.js?v=64'));
   assert.ok(cachedAssets.includes('./sever2-focus-flow.css?v=66'));
   assert.ok(cachedAssets.includes('./sever2-focus-flow.js?v=66'));
-  assert.ok(cachedAssets.includes('./js/theme-init.js?v=66'));
+  assert.ok(cachedAssets.includes('./sever2-efficiency.css?v=67'));
+  assert.ok(cachedAssets.includes('./sever2-efficiency.js?v=67'));
+  assert.ok(cachedAssets.includes('./js/theme-init.js?v=67'));
   assert.ok(cachedAssets.includes('./sever-ai.css?v=52'));
   assert.ok(cachedAssets.includes('./js/sever-ai.js?v=45'));
   assert.ok(!cachedAssets.includes('./aurora.webp'));
@@ -53,7 +55,7 @@ test('v62 service worker installs the focus flow release atomically and removes 
   let activateWork;
   handlers.get('activate')({ waitUntil: promise => { activateWork = promise; } });
   await activateWork;
-  assert.ok(deleted.includes('sever-v61-focus-flow-v2'));
+  assert.ok(deleted.includes('sever-v62-focus-flow-v3'));
   assert.ok(!deleted.includes(RELEASE_CACHE));
   assert.equal(claimed, true);
   assert.equal(skipped, true);
@@ -62,11 +64,11 @@ test('v62 service worker installs the focus flow release atomically and removes 
   assert.equal(skipped, true);
 });
 
-test('installed release serves HTML and critical focus assets from one release cache', async () => {
+test('installed release serves HTML and critical efficiency assets from one release cache', async () => {
   const handlers = new Map(), requests = [];
   let network = 0;
   const self = { location: { origin: 'https://example.test' }, registration: { scope: 'https://example.test/sever-planner/' }, addEventListener: (name, fn) => handlers.set(name, fn) };
-  const caches = { open: async name => { assert.equal(name, RELEASE_CACHE); return { match: async key => { requests.push(key); return { release: 62, key }; } }; } };
+  const caches = { open: async name => { assert.equal(name, RELEASE_CACHE); return { match: async key => { requests.push(key); return { release: 63, key }; } }; } };
   vm.runInNewContext(source, { self, caches, URL, Response, fetch: async () => { network++; throw Error('network must not update a release'); } });
   for (const [pathValue, mode, expected] of [
     ['?verify=new','navigate','./index.html'],
@@ -79,7 +81,9 @@ test('installed release serves HTML and critical focus assets from one release c
     ['sever2-productivity.js?v=old','cors','./sever2-productivity.js?v=64'],
     ['sever2-focus-flow.css?v=old','cors','./sever2-focus-flow.css?v=66'],
     ['sever2-focus-flow.js?v=old','cors','./sever2-focus-flow.js?v=66'],
-    ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=66'],
+    ['sever2-efficiency.css?v=old','cors','./sever2-efficiency.css?v=67'],
+    ['sever2-efficiency.js?v=old','cors','./sever2-efficiency.js?v=67'],
+    ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=67'],
     ['app.js?v=new','cors','./app.js?v=51']
   ]) {
     let response;
@@ -87,5 +91,5 @@ test('installed release serves HTML and critical focus assets from one release c
     assert.equal((await response).key, expected);
   }
   assert.equal(network, 0);
-  assert.equal(requests.length, 12);
+  assert.equal(requests.length, 14);
 });
