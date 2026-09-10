@@ -43,8 +43,18 @@
       });
     });
   }
+  function indexOriginalRows(tasks) {
+    const ordered = [...tasks].sort((a, b) => Number(Boolean(b.priority)) - Number(Boolean(a.priority)));
+    document.querySelectorAll('#todayTasks .task').forEach((row, index) => {
+      const task = ordered[index];
+      if (task?.id != null) row.dataset.taskId = String(task.id);
+      else delete row.dataset.taskId;
+    });
+  }
   function originalTaskRow(task) {
-    return [...document.querySelectorAll('#todayTasks .task')].find(item => item.querySelector('.task-name')?.textContent?.trim().endsWith(task.title || '')) || null;
+    const id = String(task?.id ?? '');
+    if (!id) return null;
+    return [...document.querySelectorAll('#todayTasks .task')].find(item => item.dataset.taskId === id) || null;
   }
   function openCreate() {
     const desktop = $('#globalAddBtn'), mobile = $('#mobileCreateBtn');
@@ -105,7 +115,9 @@
   function render() {
     scheduled = false;
     const shell = ensureShell(); if (!shell) return;
-    const all = todayTasks(), pending = all.filter(task => !task.completed), done = all.filter(task => task.completed), inbox = inboxTasks();
+    const all = todayTasks();
+    indexOriginalRows(all);
+    const pending = all.filter(task => !task.completed), done = all.filter(task => task.completed), inbox = inboxTasks();
     const minutes = pending.reduce((sum, task) => sum + (Number(task.duration) || 0), 0), top = rankTasks(pending).slice(0, 3);
     $('#sever2HomeFocusSummary').textContent = all.length ? `${pending.length} осталось · ${done.length} готово${minutes ? ` · ${minutes} мин` : ''}` : 'День свободен — добавьте только то, что действительно нужно';
     $('#sever2HomeInboxCount').textContent = inbox.length ? `${inbox.length} ${taskWord(inbox.length)} без даты` : 'Нет задач без даты';
