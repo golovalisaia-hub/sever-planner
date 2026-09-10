@@ -6,9 +6,9 @@ import vm from 'node:vm';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-const RELEASE_CACHE = 'sever-v56-unified-sever2-v2';
+const RELEASE_CACHE = 'sever-v57-unified-sever2-v2';
 
-test('v56 service worker installs the unified SEVER 2 release atomically and removes stale caches', async () => {
+test('v57 service worker installs the unified SEVER 2 release atomically and removes stale caches', async () => {
   const handlers = new Map();
   const deleted = [];
   let cachedAssets = [];
@@ -22,7 +22,7 @@ test('v56 service worker installs the unified SEVER 2 release atomically and rem
   };
   const caches = {
     open: async name => ({ addAll: async assets => { assert.equal(name, RELEASE_CACHE); cachedAssets = assets; }, put: async () => {} }),
-    keys: async () => ['sever-v35', 'sever-v36-security', 'sever-v37-auth', 'sever-v38-brand', 'sever-v39-northern', 'sever-v40-northern', 'sever-v41-global-rebuild', 'sever-v42-sync-calendar-r1', 'sever-v43-sync-audit-r1', 'sever-v55-field-sync-theme3-v2', 'sever-v56-unified-sever2-v1'],
+    keys: async () => ['sever-v35', 'sever-v36-security', 'sever-v37-auth', 'sever-v38-brand', 'sever-v39-northern', 'sever-v40-northern', 'sever-v41-global-rebuild', 'sever-v42-sync-calendar-r1', 'sever-v43-sync-audit-r1', 'sever-v55-field-sync-theme3-v2', 'sever-v56-unified-sever2-v1', 'sever-v56-unified-sever2-v2'],
     delete: async name => { deleted.push(name); return true; },
     match: async () => null
   };
@@ -38,9 +38,9 @@ test('v56 service worker installs the unified SEVER 2 release atomically and rem
   assert.ok(cachedAssets.includes('./desktop-system.css?v=60'));
   assert.ok(!cachedAssets.includes('./desktop-home.css?v=60'));
   assert.ok(cachedAssets.includes('./themes.css?v=60'));
-  assert.ok(cachedAssets.includes('./sever2-ui.css?v=60'));
-  assert.ok(cachedAssets.includes('./sever2-qa.css?v=60'));
-  assert.ok(cachedAssets.includes('./js/theme-init.js?v=60'));
+  assert.ok(cachedAssets.includes('./sever2-ui.css?v=61'));
+  assert.ok(cachedAssets.includes('./sever2-qa.css?v=61'));
+  assert.ok(cachedAssets.includes('./js/theme-init.js?v=61'));
   assert.ok(cachedAssets.includes('./sever-ai.css?v=52'));
   assert.ok(cachedAssets.includes('./js/sever-ai.js?v=45'));
   assert.ok(!cachedAssets.includes('./aurora.webp'));
@@ -49,7 +49,7 @@ test('v56 service worker installs the unified SEVER 2 release atomically and rem
   let activateWork;
   handlers.get('activate')({ waitUntil: promise => { activateWork = promise; } });
   await activateWork;
-  assert.ok(deleted.includes('sever-v56-unified-sever2-v1'));
+  assert.ok(deleted.includes('sever-v56-unified-sever2-v2'));
   assert.ok(!deleted.includes(RELEASE_CACHE));
   assert.equal(claimed, true);
   assert.equal(skipped, true);
@@ -62,16 +62,16 @@ test('installed release serves HTML and critical SEVER 2 assets from one release
   const handlers = new Map(), requests = [];
   let network = 0;
   const self = { location: { origin: 'https://example.test' }, registration: { scope: 'https://example.test/sever-planner/' }, addEventListener: (name, fn) => handlers.set(name, fn) };
-  const caches = { open: async name => { assert.equal(name, RELEASE_CACHE); return { match: async key => { requests.push(key); return { release: 56, key }; } }; } };
+  const caches = { open: async name => { assert.equal(name, RELEASE_CACHE); return { match: async key => { requests.push(key); return { release: 57, key }; } }; } };
   vm.runInNewContext(source, { self, caches, URL, Response, fetch: async () => { network++; throw Error('network must not update a release'); } });
   for (const [pathValue, mode, expected] of [
     ['?verify=new','navigate','./index.html'],
     ['mobile-home.css?v=old','cors','./mobile-home.css?v=52'],
     ['desktop-system.css?v=old','cors','./desktop-system.css?v=60'],
     ['themes.css?v=old','cors','./themes.css?v=60'],
-    ['sever2-ui.css?v=old','cors','./sever2-ui.css?v=60'],
-    ['sever2-qa.css?v=old','cors','./sever2-qa.css?v=60'],
-    ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=60'],
+    ['sever2-ui.css?v=old','cors','./sever2-ui.css?v=61'],
+    ['sever2-qa.css?v=old','cors','./sever2-qa.css?v=61'],
+    ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=61'],
     ['app.js?v=new','cors','./app.js?v=51']
   ]) {
     let response;
