@@ -52,7 +52,11 @@ test('capture SEVER 2 reference review set', async ({ page }, testInfo) => {
     await page.waitForTimeout(80);
 
     for (const view of VIEWS) {
-      await page.evaluate(name => { window.SeverApp.switchView(name); window.scrollTo(0, 0); }, view);
+      await page.evaluate(name => {
+        window.SeverApp.switchView(name);
+        window.scrollTo(0, 0);
+        document.querySelector('#toast')?.classList.remove('show');
+      }, view);
       await page.waitForTimeout(50);
       const target = page.locator(`#${view}View`);
       await expect(target).toBeVisible();
