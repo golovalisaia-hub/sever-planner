@@ -6,7 +6,7 @@ test('installed release reloads offline with one complete asset set', async ({ b
     await page.addInitScript(() => { if (!localStorage.getItem('sever-anonymous-state-v1')) localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({ tasks: [], notes: [], habits: [], onboarded: true })); });
     await page.goto('http://127.0.0.1:41741/');
     await expect.poll(async () => { try { return await page.evaluate(() => Boolean(navigator.serviceWorker.controller && window.SeverApp)); } catch { return false; } }).toBe(true);
-    const cached = await page.evaluate(async () => { const cache = await caches.open('sever-v58-productivity-v1'); return (await cache.keys()).map(request => new URL(request.url).pathname + new URL(request.url).search); });
+    const cached = await page.evaluate(async () => { const cache = await caches.open('sever-v59-productivity-v2'); return (await cache.keys()).map(request => new URL(request.url).pathname + new URL(request.url).search); });
     expect(cached).toContain('/mobile-home.css?v=52');
     expect(cached).toContain('/desktop-system.css?v=60');
     expect(cached).not.toContain('/desktop-home.css?v=60');
@@ -14,7 +14,7 @@ test('installed release reloads offline with one complete asset set', async ({ b
     expect(cached).toContain('/sever2-ui.css?v=61');
     expect(cached).toContain('/sever2-qa.css?v=61');
     expect(cached).toContain('/sever2-productivity.css?v=62');
-    expect(cached).toContain('/sever2-productivity.js?v=62');
+    expect(cached).toContain('/sever2-productivity.js?v=63');
     expect(cached).toContain('/js/theme-init.js?v=62');
     expect(cached).toContain('/app.js?v=51');
     expect(cached).toContain('/notes-pro.js?v=52');
