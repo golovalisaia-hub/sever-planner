@@ -57,11 +57,13 @@
     ['sever2-ui-pack', 'sever2-ui.css?v=61'],
     ['sever2-qa-pack', 'sever2-qa.css?v=61'],
     ['sever2-productivity-pack', 'sever2-productivity.css?v=64'],
-    ['sever2-focus-flow-pack', 'sever2-focus-flow.css?v=66']
+    ['sever2-focus-flow-pack', 'sever2-focus-flow.css?v=66'],
+    ['sever2-efficiency-pack', 'sever2-efficiency.css?v=67']
   ];
   const scripts = [
     ['sever2-productivity-script', 'sever2-productivity.js?v=64'],
-    ['sever2-focus-flow-script', 'sever2-focus-flow.js?v=66']
+    ['sever2-focus-flow-script', 'sever2-focus-flow.js?v=66'],
+    ['sever2-efficiency-script', 'sever2-efficiency.js?v=67']
   ];
 
   function normalize(value) {
@@ -75,8 +77,6 @@
   }
 
   function retireLegacyHomeLayer() {
-    /* mobile-home.css was the old SEVER Home owner and contained the previous
-     * mountain composition. The new sever2-ui.css owns Home on every viewport. */
     const oldMobileHome = [...document.querySelectorAll('link[rel="stylesheet"]')]
       .find(link => /(?:^|\/)mobile-home\.css(?:\?|$)/.test(link.getAttribute('href') || ''));
     if (oldMobileHome) {
@@ -91,7 +91,7 @@
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
-      link.setAttribute(`data-${marker}`, 'v66');
+      link.setAttribute(`data-${marker}`, 'v67');
       document.head.appendChild(link);
     });
   }
@@ -102,7 +102,7 @@
       const script = document.createElement('script');
       script.src = src;
       script.defer = true;
-      script.setAttribute(`data-${marker}`, 'v66');
+      script.setAttribute(`data-${marker}`, 'v67');
       document.head.appendChild(script);
     });
   }
@@ -127,25 +127,18 @@
   function syncPresentation(theme) {
     const selected = normalize(theme);
     const info = themes[selected];
-
-    if (document.documentElement.dataset.theme !== selected) {
-      document.documentElement.dataset.theme = selected;
-    }
+    if (document.documentElement.dataset.theme !== selected) document.documentElement.dataset.theme = selected;
     document.documentElement.dataset.severMood = info.ui;
-
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.content = info.color;
-
     const menuTheme = document.querySelector('#menuTheme small');
     if (menuTheme) menuTheme.textContent = info.name;
-
     document.querySelectorAll('[data-sever-theme]').forEach(button => {
       const active = button.dataset.severTheme === selected;
       button.classList.toggle('active', active);
       button.setAttribute('aria-checked', String(active));
       button.tabIndex = active ? 0 : -1;
     });
-
     rewriteToast(selected);
   }
 
@@ -161,14 +154,10 @@
       syncPresentation(document.documentElement.dataset.theme);
       return;
     }
-
     const allButtons = [...picker.querySelectorAll('[data-sever-theme]')];
     const buttons = new Map(allButtons.map(button => [button.dataset.severTheme, button]));
-
-    /* Old visible choices are physically removed from the rendered settings. */
     buttons.get('north')?.remove();
     buttons.get('aurora')?.remove();
-
     ['light', 'motion', 'black'].forEach(id => {
       const button = buttons.get(id);
       if (!button) return;
@@ -181,8 +170,6 @@
       button.setAttribute('aria-label', `${info.name}: ${info.description}`);
       button.dataset.themeDisplayName = info.name;
       button.dataset.themeMood = info.ui;
-
-      /* app.js keeps persistence ownership; only presentation is wrapped. */
       if (button.dataset.severThemeWrapped !== 'true') {
         const original = button.onclick;
         button.onclick = function (event) {
@@ -193,13 +180,7 @@
       }
       picker.appendChild(button);
     });
-
     picker.dataset.severThemePackReady = 'true';
-
-    /* Legacy Aurora/North values stay valid in old synchronized records so a
-     * visual-only release does not rewrite user data merely because it loaded.
-     * Their visible presentation is normalized to Calm. A deliberate theme
-     * choice still persists through the existing app handler. */
     const currentRaw = document.documentElement.dataset.theme || '';
     const persistedRaw = readPersistedTheme();
     const selected = normalize(persistedRaw || currentRaw);
@@ -213,20 +194,15 @@
   function polishCopy() {
     const themeSection = document.querySelector('.settings-appearance > small');
     if (themeSection) themeSection.textContent = 'ОФОРМЛЕНИЕ';
-
     const themeGroup = document.querySelector('.theme-picker');
     if (themeGroup) themeGroup.setAttribute('aria-label', 'Выберите настроение интерфейса');
-
     const settingsVersion = document.querySelector('.settings-version');
     if (settingsVersion && !settingsVersion.dataset.sever2Copy) {
       settingsVersion.textContent = 'SEVER 2.0 · один планер, три оформления · данные и синхронизация сохранены.';
       settingsVersion.dataset.sever2Copy = 'true';
     }
-
     const todayMotto = document.querySelector('#todayMotto');
-    if (todayMotto && /вершин/i.test(todayMotto.textContent || '')) {
-      todayMotto.textContent = 'Главное на сегодня — перед глазами.';
-    }
+    if (todayMotto && /вершин/i.test(todayMotto.textContent || '')) todayMotto.textContent = 'Главное на сегодня — перед глазами.';
   }
 
   function installLegacyThemeGuard() {
