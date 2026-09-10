@@ -18,6 +18,8 @@
   const state = () => window.SeverApp?.getState?.() || { tasks: [] };
   let timelineDate = today();
   let timelineMode = false;
+  let bootTimer = 0;
+  let bootAttempts = 0;
 
   function taskFor(id) {
     return state().tasks.find(task => task.id === id) || null;
@@ -235,15 +237,31 @@
   }
 
   function boot() {
-    if (!window.SeverApp || document.documentElement.dataset.severProductivity === 'ready') return;
+    if (document.documentElement.dataset.severProductivity === 'ready') return true;
+    if (!window.SeverApp?.getState || !$('#todayTasks') || !$('#calendar') || !$('#taskActionDialog')) return false;
     document.documentElement.dataset.severProductivity = 'ready';
     installTaskActions();
     installCalendarMode();
     installHomePlanCard();
     observePlanner();
+    return true;
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(boot, 0), { once:true });
-  else setTimeout(boot, 0);
-  window.addEventListener('sever:ready', boot);
+  function scheduleBoot() {
+    if (boot()) {
+      clearTimeout(bootTimer);
+      return;
+    }
+    if (bootAttempts++ >= 120) return;
+    clearTimeout(bootTimer);
+    bootTimer = setTimeout(scheduleBoot, 50);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', scheduleBoot, { once:true });
+  } else {
+    scheduleBoot();
+  }
+  window.addEventListener('load', scheduleBoot, { once:true });
+  window.addEventListener('sever:ready', scheduleBoot);
 })();
