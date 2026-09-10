@@ -87,7 +87,7 @@ test('quick create can save a task without a date and persistence survives rende
   await page.locator('#quickCaptureForm button[type="submit"]').click();
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.find(task => task.title === 'Новая входящая задача')?.date)).toBe('9999-12-31');
   await expect(page.locator('#quickAddDialog')).toBeHidden();
-  await expect(page.locator('#sever2HomeInboxCount')).toContainText('2 задач без даты');
+  await expect(page.locator('#sever2HomeInboxCount')).toContainText('2 задачи без даты');
   await page.locator('#sever2HomeInboxButton').click();
   await expect(page.locator('#sever2InboxPanel')).toContainText('Новая входящая задача');
 });
@@ -95,8 +95,8 @@ test('quick create can save a task without a date and persistence survives rende
 test('task action quick-reschedules through the existing save path and exposes contextual AI', async ({ page }) => {
   await seed(page);
   await page.goto('/');
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severProductivity)).toBe('ready');
-  await page.locator('#todayTasks .task-open').first().click();
+  await waitHome(page);
+  await page.locator('#sever2HomeTopTasks [data-task-id="t1"] .sever2-home-focus-copy').click();
   await expect(page.locator('.sever2-reschedule')).toBeVisible();
   await expect(page.locator('.sever2-reschedule [data-move="today"]')).toBeVisible();
   await expect(page.locator('.sever2-reschedule [data-move="tomorrow"]')).toBeVisible();
