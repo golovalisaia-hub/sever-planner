@@ -244,7 +244,16 @@ html[data-theme="black"] #todayView .today-focus-widget .primary{
     box-shadow:none!important;
   }
   .sever-ai-launch span{display:none!important}
-  .sever-ai-launch svg{width:18px!important;height:18px!important}
+  .sever-ai-launch svg{
+    display:block!important;
+    width:18px!important;
+    height:18px!important;
+    fill:none!important;
+    stroke:currentColor!important;
+    stroke-width:1.7!important;
+    stroke-linecap:round!important;
+    stroke-linejoin:round!important;
+  }
 }
 
 /* Replace the text play glyph with a CSS triangle. */
