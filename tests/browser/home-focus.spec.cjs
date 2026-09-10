@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
         { id:'done', title:'Готовая', date:today, time:'09:00', duration:10, category:'Личное', completed:true, priority:true, createdAt:0 },
         { id:'inbox', title:'Без даты', date:'9999-12-31', duration:null, category:'Личное', completed:false, priority:false, createdAt:4 }
       ],
-      notes: [], folders: [], habits: [], checks: {}, taskMemory: [], profile: { name:'' },
+      notes: [], folders: [], habits: [], checks: {}, taskMemory: [], profile: { name:'ADMIN' },
       appearance: { theme:'light', animations:'off', reduceEffects:true }, focusSessions: [], stats: { focusMs:0, sessions:0 },
       reminders: { enabled:false, time:'19:00', lastDate:'' }, security: { protectedNotesAutoLockMinutes:5, lockInBackground:true }
     }));
@@ -36,6 +36,8 @@ test('Home is one focused surface without duplicated legacy sections or planner 
   for (const selector of ['.today-hero','.today-motivation','.course-card','#quickForm','#todayDashboard','#todayFocusWidget','.today-quote','.sever2-today-plan','.sever2-home-inbox','.today-list-head','#todayFilters','#todayTasks','.today-utilities']) {
     await expect(page.locator(`#todayView ${selector}`).first()).toBeHidden();
   }
+  await expect(page.locator('#sever2HomeCreate')).toHaveCount(0);
+  await expect(page.locator('#sever2HomeFocus')).not.toContainText('ADMIN');
   const titles = await page.locator('#sever2HomeTopTasks .sever2-home-focus-copy b').allTextContents();
   expect(titles).toEqual(['Самое важное','Обычная ранняя','Обычная поздняя']);
   await expect(page.locator('#sever2HomeFocusSummary')).toContainText('3 осталось');
@@ -54,17 +56,20 @@ test('Home completes a task through the existing task checkbox path', async ({ p
   await expect(page.locator('#sever2HomeTopTasks [data-task-id="priority"]')).toHaveCount(0);
 });
 
-test('Home keeps Create, Inbox, Focus and Quick note as direct actions', async ({ page }, info) => {
+test('Home uses the app-level Create and keeps Inbox, Focus and Quick note direct', async ({ page }, info) => {
+  await expect(page.locator('#sever2HomeCreate')).toHaveCount(0);
+  const create = info.project.name === 'desktop' ? page.locator('#globalAddBtn') : page.locator('#mobileCreateBtn');
+  await expect(create).toBeVisible();
+  const createBox = await create.boundingBox();
+  expect(createBox).not.toBeNull();
+  expect(createBox.height).toBeGreaterThanOrEqual(44);
   if (info.project.name !== 'desktop') {
-    const createBox = await page.locator('#sever2HomeCreate').boundingBox();
-    expect(createBox).not.toBeNull();
-    expect(createBox.height).toBeGreaterThanOrEqual(44);
     const checkBox = await page.locator('.sever2-home-focus-check').first().boundingBox();
     expect(checkBox).not.toBeNull();
     expect(checkBox.height).toBeGreaterThanOrEqual(44);
   }
 
-  await page.locator('#sever2HomeCreate').click();
+  await create.click();
   await expect(page.locator('#quickAddDialog')).toBeVisible();
   await page.locator('[data-close="quickAddDialog"]').first().click();
 
@@ -74,10 +79,18 @@ test('Home keeps Create, Inbox, Focus and Quick note as direct actions', async (
   await expect(page.locator('#sever2InboxPanel')).toContainText('Без даты');
 
   await page.evaluate(() => window.SeverApp.switchView('today'));
+  await expect(page.locator('#sever2HomeQuickNoteButton')).toBeVisible();
   await page.locator('#sever2HomeQuickNoteButton').click();
   await expect(page.locator('#quickNoteDialog')).toBeVisible();
   await page.locator('[data-close="quickNoteDialog"]').first().click();
 
+  await expect(page.locator('#sever2HomeFocusButton')).toBeVisible();
   await page.locator('#sever2HomeFocusButton').click();
   await expect(page.locator('#timerView')).toBeVisible();
+});
+
+test('empty Home has no duplicate task CTA', async ({ page }) => {
+  await page.evaluate(() => { const app=window.SeverApp,s=app.getState(); s.tasks=[]; app.render(); });
+  await expect(page.locator('#sever2HomeTopTasks .sever2-home-focus-empty')).toBeVisible();
+  await expect(page.locator('#sever2HomeTopTasks .sever2-home-focus-empty button')).toHaveCount(0);
 });
