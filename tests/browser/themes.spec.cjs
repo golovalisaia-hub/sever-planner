@@ -77,12 +77,14 @@ test('all mobile themes keep one Home composition and only change the skin', asy
   await expect(page.locator('.bottom-nav')).toBeVisible();
 });
 
-test('mobile Notes empty state is compact and timer controls stay inside their card', async ({ page }) => {
+test('mobile Notes security gate is compact and timer controls stay inside their card', async ({ page }) => {
   await page.setViewportSize({width:390,height:844}); await seedPlanner(page); await page.goto('/');
   await expect.poll(() => page.evaluate(() => Boolean(window.SeverApp))).toBe(true);
+  await expect.poll(() => page.evaluate(() => Boolean(document.documentElement.dataset.severNotesVault))).toBe(true);
   await page.evaluate(() => window.SeverApp.switchView('notes'));
-  const empty=page.locator('#notesView .empty'); await expect(empty).toBeVisible(); await expect(empty.locator('.today-add-task')).toBeHidden();
-  expect((await empty.boundingBox()).height).toBeLessThanOrEqual(260);
+  const gate=page.locator('#notesView .notes-vault-gate'); await expect(gate).toBeVisible();
+  const gateBox=await gate.boundingBox(); expect(gateBox.width).toBeLessThanOrEqual(390); expect(gateBox.height).toBeLessThanOrEqual(330);
+  await expect(page.locator('#notesVaultStatusAction')).toBeVisible();
   await page.evaluate(() => window.SeverApp.switchView('timer'));
   const geometry=await page.evaluate(()=>{const box=s=>document.querySelector(s).getBoundingClientRect().toJSON();return{widget:box('.focus-card'),display:box('#timerDisplay'),toggle:box('#timerToggle')}});
   for(const part of [geometry.display,geometry.toggle]) { expect(part.left).toBeGreaterThanOrEqual(geometry.widget.left); expect(part.right).toBeLessThanOrEqual(geometry.widget.right); expect(part.top).toBeGreaterThanOrEqual(geometry.widget.top); expect(part.bottom).toBeLessThanOrEqual(geometry.widget.bottom); }
