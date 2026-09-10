@@ -35,6 +35,7 @@
   background:var(--surface-1,var(--panel));
   overflow:hidden;
 }
+.sever2-month-history.sever2-mode-hidden{display:none!important}
 .sever2-month-history-head{
   display:flex;
   align-items:flex-end;
