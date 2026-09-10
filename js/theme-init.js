@@ -31,7 +31,7 @@
     ['sever2-calendar-clarity-script', 'sever2-calendar-clarity.js?v=68'],
     ['sever2-create-flow-script', 'sever2-create-flow.js?v=69'],
     ['sever2-home-focus-script', 'sever2-home-focus.js?v=72'],
-    ['sever-notes-vault-script', 'sever-notes-vault.js?v=72'],
+    ['sever-notes-vault-loader', 'sever-notes-vault-loader.js?v=73'],
     ['sever2-task-flow-script', 'sever2-task-flow.js?v=73']
   ];
 
