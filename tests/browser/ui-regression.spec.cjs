@@ -8,6 +8,7 @@ async function boot(page){
   await expect.poll(()=>page.evaluate(()=>Boolean(window.SeverApp&&navigator.serviceWorker.controller)).catch(()=>false)).toBe(true);
   await page.waitForFunction(()=>window.SeverApp&&window.SeverNotes);
   await expect.poll(()=>page.evaluate(()=>document.documentElement.dataset.severHomeFocus)).toBe('ready');
+  await expect.poll(()=>page.evaluate(()=>Boolean(document.documentElement.dataset.severNotesVault))).toBe(true);
   return errors;
 }
 for(const [width,height] of [[320,568],[360,800],[375,812],[390,844],[393,852],[412,915],[430,932],[768,1024],[1280,720],[1440,900],[1920,1080]]){
@@ -36,16 +37,16 @@ for(const [width,height] of [[320,568],[360,800],[375,812],[390,844],[393,852],[
     expect(errors).toEqual([]);
   });
 }
-test('task completion, note save, habit check, AI and text zoom keep their flows',async({page})=>{
+test('task completion, encrypted-note gate, habit check, AI and text zoom keep their flows',async({page})=>{
   const errors=await boot(page);await page.setViewportSize({width:390,height:844});
   await page.locator('#mobileCreateBtn').click();await page.locator('#quickCaptureInput').fill('Проверка задачи');await page.locator('#quickCaptureForm button[type=submit]').click();
   const homeTask=page.locator('#sever2HomeTopTasks .sever2-home-focus-task').filter({hasText:'Проверка задачи'});await expect(homeTask).toBeVisible();await homeTask.locator('.sever2-home-focus-check').click();await expect.poll(()=>page.evaluate(()=>window.SeverApp.getState().tasks[0].completed)).toBe(true);
-  await page.locator('#sever2HomeQuickNoteButton').click();await page.locator('#quickNoteText').fill('Проверка сохранения');await page.locator('#quickNoteForm .primary').click();expect(await page.evaluate(()=>window.SeverApp.getState().notes.some(n=>n.title==='Проверка сохранения'&&n.body===''))).toBe(true);
+  await page.locator('#sever2HomeQuickNoteButton').click();await expect(page.locator('#notesVaultDialog')).toBeVisible();await expect(page.locator('#notesVaultDialogTitle')).toContainText('Зашифровать');await page.locator('#notesVaultCancel').click();
   await page.evaluate(()=>window.SeverApp.switchView('habits'));await page.locator('#mobileCreateBtn').click();await page.locator('#quickAddHabit').click();await page.locator('#habitTitle').fill('Проверка привычки');await page.locator('#habitSubmit').click();await page.locator('.habit-week .habit-day:not(:disabled)').last().click();expect(await page.evaluate(()=>Object.values(window.SeverApp.getState().checks).flat().length)).toBe(1);
   await page.evaluate(()=>window.SeverApp.switchView('settings'));await page.addStyleTag({content:'html{font-size:200%}'});await page.locator('#severAiOpen').click();await expect(page.locator('#severAiInput')).toBeVisible();await page.locator('#severAiClose').click();expect(errors).toEqual([]);
 });
 
-test('200 percent text keeps primary actions and dialogs usable',async({page})=>{
+test('200 percent text keeps primary actions and security dialogs usable',async({page})=>{
   await page.setViewportSize({width:320,height:568});
   const errors=await boot(page);
   await page.addStyleTag({content:'html{font-size:200%}'});
@@ -57,8 +58,9 @@ test('200 percent text keeps primary actions and dialogs usable',async({page})=>
   await expect(homeTask).toBeVisible();
   await homeTask.locator('.sever2-home-focus-check').click();
   await page.locator('#sever2HomeQuickNoteButton').click();
-  await page.locator('#quickNoteText').fill('Заметка при увеличенном тексте');
-  await page.locator('#quickNoteForm .primary').click();
+  await expect(page.locator('#notesVaultDialog')).toBeVisible();
+  const vaultRect=await page.locator('#notesVaultDialog').boundingBox();expect(vaultRect.x).toBeGreaterThanOrEqual(0);expect(vaultRect.x+vaultRect.width).toBeLessThanOrEqual(320);
+  await page.locator('#notesVaultCancel').click();
   await page.locator('#severAiOpen').click();
   const rect=await page.locator('#severAiClose').boundingBox();
   expect(rect.x).toBeGreaterThanOrEqual(0);expect(rect.x+rect.width).toBeLessThanOrEqual(320);
@@ -67,7 +69,7 @@ test('200 percent text keeps primary actions and dialogs usable',async({page})=>
   expect(errors).toEqual([]);
 });
 
-test('task metadata and neutral checklist hints are presentation only',async({page})=>{
+test('task metadata is presentation only and first Notes entry is protected by the vault gate',async({page})=>{
   const errors=await boot(page);
   const before=await page.evaluate(()=>{
     const app=window.SeverApp,s=app.getState();
@@ -85,7 +87,8 @@ test('task metadata and neutral checklist hints are presentation only',async({pa
   await expect(page.locator('#taskActionDialog')).toBeVisible();
   await page.locator('[data-close="taskActionDialog"]').first().click();
   await page.evaluate(()=>window.SeverNotes.openNote());
-  await page.locator('[data-note-type="checklist"]').click();
-  await expect(page.locator('#noteItemsEditor input[type="text"]').first()).toHaveAttribute('placeholder','Название пункта');
+  await expect(page.locator('#notesVaultDialog')).toBeVisible();
+  await expect(page.locator('#notesVaultPassword')).toHaveAttribute('minlength','14');
+  await page.locator('#notesVaultCancel').click();
   expect(errors).toEqual([]);
 });
