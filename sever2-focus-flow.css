@@ -1,0 +1,274 @@
+/* SEVER 2 focus flow: one-task-at-a-time queue inspired by calm daily planning patterns. */
+
+.sever2-focus-queue{
+  display:grid;
+  gap:10px;
+  margin:0 0 12px;
+  padding:12px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:16px;
+  background:var(--surface-1,var(--panel));
+  box-shadow:var(--shadow-sm,0 10px 28px rgba(0,0,0,.05));
+}
+.sever2-focus-queue-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.sever2-focus-queue-head>div{
+  display:flex;
+  align-items:center;
+  min-width:0;
+  gap:10px;
+}
+.sever2-focus-queue-head>div>svg{
+  flex:0 0 auto;
+  width:22px;
+  height:22px;
+  color:var(--accent,var(--sever-blue));
+}
+.sever2-focus-queue-head span{
+  display:grid;
+  min-width:0;
+  gap:1px;
+}
+.sever2-focus-queue-head small{
+  color:var(--text-muted,var(--muted));
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.09em;
+}
+.sever2-focus-queue-head b{
+  color:var(--text-primary,var(--text));
+  font-size:14px;
+  line-height:1.25;
+}
+.sever2-focus-queue-head em{
+  color:var(--text-muted,var(--muted));
+  font-size:11px;
+  font-style:normal;
+}
+.sever2-focus-queue-head button,
+.sever2-focus-queue-task button,
+.sever2-focus-queue-empty button{
+  border:1px solid var(--border-subtle,var(--line));
+  background:var(--surface-2,var(--panel2));
+  color:var(--text-primary,var(--text));
+  font:inherit;
+}
+.sever2-focus-queue-head button{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  gap:5px;
+  min-height:40px;
+  padding:0 11px;
+  border-radius:10px;
+  font-size:11px;
+  font-weight:750;
+}
+.sever2-focus-queue-head button svg{
+  width:16px;
+  height:16px;
+}
+.sever2-focus-queue-list{
+  display:grid;
+  gap:7px;
+}
+.sever2-focus-queue-task{
+  display:grid;
+  grid-template-columns:32px minmax(0,1fr) auto;
+  align-items:center;
+  gap:9px;
+  min-height:58px;
+  padding:7px 8px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:13px;
+  background:var(--surface-2,var(--panel2));
+}
+.sever2-focus-queue-task.active{
+  border-color:color-mix(in srgb,var(--accent,var(--sever-blue)) 50%,var(--border-subtle,var(--line)));
+  box-shadow:inset 3px 0 0 var(--accent,var(--sever-blue));
+}
+.sever2-focus-order{
+  display:grid;
+  width:28px;
+  height:28px;
+  place-items:center;
+  border-radius:9px;
+  background:var(--surface-1,var(--panel));
+  color:var(--text-muted,var(--muted));
+  font-size:11px;
+  font-weight:800;
+}
+.sever2-focus-queue-task.active .sever2-focus-order{
+  background:var(--accent,var(--sever-blue));
+  color:#fff;
+}
+html[data-theme="black"] .sever2-focus-queue-task.active .sever2-focus-order{color:#06110d}
+.sever2-focus-queue-copy{
+  min-width:0;
+}
+.sever2-focus-queue-copy b{
+  display:block;
+  overflow:hidden;
+  color:var(--text-primary,var(--text));
+  font-size:13px;
+  line-height:1.3;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.sever2-focus-queue-copy span{
+  display:block;
+  overflow:hidden;
+  margin-top:3px;
+  color:var(--text-muted,var(--muted));
+  font-size:10px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.sever2-focus-queue-task button{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-width:88px;
+  min-height:40px;
+  padding:0 11px;
+  border-radius:10px;
+  color:var(--accent,var(--sever-blue));
+  font-size:11px;
+  font-weight:800;
+}
+.sever2-focus-queue-task button svg{
+  width:15px;
+  height:15px;
+}
+.sever2-focus-queue-task.active button:not(:disabled){
+  background:var(--accent,var(--sever-blue));
+  border-color:var(--accent,var(--sever-blue));
+  color:#fff;
+}
+html[data-theme="black"] .sever2-focus-queue-task.active button:not(:disabled){color:#06110d}
+.sever2-focus-queue-task button:disabled{
+  opacity:.42;
+  cursor:not-allowed;
+}
+.sever2-focus-queue-empty{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:56px;
+  padding:9px 10px;
+  border:1px dashed var(--border-subtle,var(--line));
+  border-radius:13px;
+  color:var(--text-muted,var(--muted));
+}
+.sever2-focus-queue-empty>svg{
+  flex:0 0 auto;
+  width:22px;
+  height:22px;
+  color:var(--accent,var(--sever-blue));
+}
+.sever2-focus-queue-empty span{
+  display:grid;
+  flex:1;
+  min-width:0;
+  gap:2px;
+}
+.sever2-focus-queue-empty b{
+  color:var(--text-primary,var(--text));
+  font-size:12px;
+}
+.sever2-focus-queue-empty small{
+  color:var(--text-muted,var(--muted));
+  font-size:10px;
+}
+.sever2-focus-queue-empty button{
+  flex:0 0 auto;
+  min-height:38px;
+  padding:0 10px;
+  border-radius:9px;
+  font-size:11px;
+  font-weight:750;
+}
+.sever2-focus-queue svg{
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.sever2-focus-queue-task [data-start-focus] svg path{fill:currentColor;stroke:none}
+
+body.sever2-focus-immersive .sever2-focus-queue{
+  margin-bottom:8px;
+  padding:9px 10px;
+  border-radius:14px;
+  box-shadow:var(--shadow-sm,0 10px 28px rgba(0,0,0,.06));
+}
+body.sever2-focus-immersive .sever2-focus-queue-head em,
+body.sever2-focus-immersive .sever2-focus-queue-head button,
+body.sever2-focus-immersive .sever2-focus-queue-task:not(:first-child),
+body.sever2-focus-immersive .sever2-focus-queue-empty small{
+  display:none!important;
+}
+body.sever2-focus-immersive .sever2-focus-queue-head{
+  min-height:38px;
+}
+body.sever2-focus-immersive .sever2-focus-queue-list{
+  gap:0;
+}
+body.sever2-focus-immersive .sever2-focus-queue-task{
+  min-height:50px;
+  border:0;
+  background:transparent;
+}
+
+@media (max-width:700px){
+  .sever2-focus-queue{
+    padding:11px;
+    border-radius:15px;
+  }
+  .sever2-focus-queue-head{
+    align-items:flex-start;
+  }
+  .sever2-focus-queue-head button{
+    min-width:44px;
+    min-height:44px;
+    padding:0;
+    font-size:0;
+  }
+  .sever2-focus-queue-head button svg{
+    width:19px;
+    height:19px;
+  }
+  .sever2-focus-queue-task{
+    grid-template-columns:30px minmax(0,1fr) 44px;
+    min-height:62px;
+    padding:8px 7px;
+  }
+  .sever2-focus-queue-task button{
+    width:44px;
+    min-width:44px;
+    min-height:44px;
+    padding:0;
+  }
+  .sever2-focus-queue-task button span{display:none}
+  .sever2-focus-queue-copy b{font-size:12px}
+  .sever2-focus-queue-copy span{font-size:10px}
+  .sever2-focus-queue-empty{
+    min-height:62px;
+    align-items:flex-start;
+  }
+  .sever2-focus-queue-empty button{min-height:44px}
+}
+
+@media (max-width:360px){
+  .sever2-focus-order{display:none}
+  .sever2-focus-queue-task{grid-template-columns:minmax(0,1fr) 44px}
+  .sever2-focus-queue-head em{display:none}
+  .sever2-focus-queue-empty>svg{display:none}
+}
