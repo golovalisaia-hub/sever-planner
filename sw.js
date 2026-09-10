@@ -1,4 +1,4 @@
-const CACHE = 'sever-v55-field-sync';
+const CACHE = 'sever-v55-field-sync-theme3-v1';
 const ASSETS = [
   './',
   './index.html',
@@ -16,6 +16,7 @@ const ASSETS = [
   './desktop-home.css?v=56',
   './mobile-home.css?v=52',
   './sever-ai.css?v=52',
+  './themes.css?v=57',
   './aurora.webp',
   './assets/sever/mountain-night.svg',
   './assets/sever/ice-dawn.svg',
@@ -58,6 +59,7 @@ const CORE_PATHS = [
   '/desktop-home.css',
   '/sever-ai.css',
   '/mobile-home.css',
+  '/themes.css',
   '/aurora.webp',
   '/assets/sever/mountain-night.svg',
   '/assets/sever/ice-dawn.svg',

@@ -1,0 +1,655 @@
+/* ============================================================
+   SEVER 2 — Three-theme pack
+   Visible themes:
+   - Calm Balance  (internal compatibility id: light)
+   - Cozy Mood      (internal compatibility id: motion)
+   - Focus Peak     (internal compatibility id: black)
+
+   This file is intentionally presentation-only. It does not change layout
+   ownership, planner data, sync, timer, notes, auth, or business logic.
+   ============================================================ */
+
+/* ---------- Calm Balance ---------- */
+html[data-theme="light"],
+html[data-theme="north"],
+html[data-theme="aurora"] {
+  color-scheme: light;
+  --app-bg: #f6f1eb;
+  --surface-1: #fffdf9;
+  --surface-2: #f4ede5;
+  --surface-3: #eadfd4;
+  --text-primary: #2f2925;
+  --text-secondary: #665d56;
+  --text-muted: #8a8077;
+  --border-subtle: rgba(91, 69, 53, .12);
+  --border-strong: rgba(136, 96, 67, .28);
+  --accent: #9b7357;
+  --accent-soft: rgba(155, 115, 87, .13);
+  --success: #768f70;
+  --warning: #c78e5a;
+  --danger: #b96063;
+  --shadow-sm: 0 10px 30px rgba(89, 65, 48, .08);
+  --shadow-md: 0 22px 54px rgba(89, 65, 48, .12);
+  --radius-control: 11px;
+  --radius-card: 18px;
+  --radius-panel: 22px;
+  --theme-hero-bg:
+    radial-gradient(circle at 86% 16%, rgba(199, 165, 137, .24), transparent 32%),
+    linear-gradient(135deg, #fffdf9 0%, #f6eee5 58%, #efe2d5 100%);
+  --theme-hero-overlay:
+    linear-gradient(110deg, rgba(255,255,255,.34), transparent 52%);
+  --theme-focus-bg:
+    linear-gradient(145deg, #fffdf9 0%, #f3e9df 100%);
+}
+
+/* ---------- Cozy Mood ---------- */
+html[data-theme="motion"] {
+  color-scheme: light;
+  --app-bg: #fff4ec;
+  --surface-1: #fffaf6;
+  --surface-2: #f9e9df;
+  --surface-3: #f1d9cb;
+  --text-primary: #3e302b;
+  --text-secondary: #715f57;
+  --text-muted: #9b8277;
+  --border-subtle: rgba(121, 78, 60, .12);
+  --border-strong: rgba(176, 102, 75, .28);
+  --accent: #c9795d;
+  --accent-soft: rgba(201, 121, 93, .14);
+  --success: #7f927c;
+  --warning: #cf905c;
+  --danger: #bd6268;
+  --shadow-sm: 0 10px 32px rgba(136, 79, 56, .09);
+  --shadow-md: 0 24px 58px rgba(136, 79, 56, .14);
+  --radius-control: 12px;
+  --radius-card: 20px;
+  --radius-panel: 24px;
+  --theme-hero-bg:
+    radial-gradient(circle at 82% 18%, rgba(218, 151, 122, .28), transparent 34%),
+    radial-gradient(circle at 14% 8%, rgba(255,255,255,.65), transparent 28%),
+    linear-gradient(135deg, #fffaf6 0%, #fbe9df 58%, #f3d9cc 100%);
+  --theme-hero-overlay:
+    linear-gradient(110deg, rgba(255,255,255,.32), transparent 54%);
+  --theme-focus-bg:
+    linear-gradient(145deg, #fffaf6 0%, #f8e3d8 100%);
+}
+
+/* ---------- Focus Peak ---------- */
+html[data-theme="black"] {
+  color-scheme: dark;
+  --app-bg: #07100e;
+  --surface-1: #0d1714;
+  --surface-2: #13201c;
+  --surface-3: #1a2a24;
+  --text-primary: #f1f7f4;
+  --text-secondary: #a9b8b1;
+  --text-muted: #73857c;
+  --border-subtle: rgba(126, 219, 186, .11);
+  --border-strong: rgba(111, 222, 184, .28);
+  --accent: #68d9b5;
+  --accent-soft: rgba(104, 217, 181, .12);
+  --success: #68d9b5;
+  --warning: #d2a462;
+  --danger: #e98792;
+  --shadow-sm: 0 12px 32px rgba(0, 0, 0, .22);
+  --shadow-md: 0 24px 62px rgba(0, 0, 0, .34);
+  --radius-control: 10px;
+  --radius-card: 15px;
+  --radius-panel: 19px;
+  --theme-hero-bg:
+    radial-gradient(circle at 82% 18%, rgba(71, 167, 138, .14), transparent 34%),
+    linear-gradient(135deg, #0c1814 0%, #0a1411 58%, #07100e 100%);
+  --theme-hero-overlay:
+    linear-gradient(110deg, rgba(104,217,181,.045), transparent 58%);
+  --theme-focus-bg:
+    radial-gradient(circle at 88% 18%, rgba(104,217,181,.10), transparent 30%),
+    linear-gradient(145deg, #0f1d18 0%, #0a1512 100%);
+}
+
+/* ---------- Compatibility bridge for stabilized legacy CSS ---------- */
+html[data-theme="light"],
+html[data-theme="motion"],
+html[data-theme="black"],
+html[data-theme="north"],
+html[data-theme="aurora"] {
+  --bg: var(--app-bg);
+  --panel: var(--surface-1);
+  --panel2: var(--surface-2);
+  --line: var(--border-subtle);
+  --text: var(--text-primary);
+  --muted: var(--text-muted);
+  --text-soft: var(--text-secondary);
+  --surface: var(--surface-1);
+  --surface-raised: var(--surface-2);
+  --border: var(--border-subtle);
+  --control-hover: var(--surface-3);
+  --sever-bg: var(--app-bg);
+  --sever-bg-elevated: var(--surface-2);
+  --sever-glass: var(--surface-1);
+  --sever-glass-strong: var(--surface-2);
+  --sever-border: var(--border-subtle);
+  --sever-border-active: var(--border-strong);
+  --sever-text: var(--text-primary);
+  --sever-text-muted: var(--text-muted);
+  --sever-text-soft: var(--text-secondary);
+  --sever-ice: var(--accent);
+  --sever-blue: var(--accent);
+  --sever-violet: var(--accent);
+  --sever-green: var(--success);
+  --sever-orange: var(--warning);
+  --sever-danger: var(--danger);
+  --v41-bg: var(--app-bg);
+  --v41-app: var(--surface-1);
+  --v41-sidebar: var(--surface-1);
+  --v41-panel: var(--surface-1);
+  --v41-panel-raised: var(--surface-2);
+  --v41-border: var(--border-subtle);
+  --v41-border-strong: var(--border-strong);
+  --v41-text: var(--text-primary);
+  --v41-muted: var(--text-muted);
+  --v41-soft: var(--text-secondary);
+  --v41-accent: var(--accent);
+  --v41-accent-2: var(--accent);
+  --v41-success: var(--success);
+  --v41-focus: var(--accent);
+  --v41-streak: var(--warning);
+  --v41-danger: var(--danger);
+  --v41-shadow: var(--shadow-md);
+  --v41-card-shadow: var(--shadow-sm);
+  --v41-glow: none;
+}
+
+html,
+body {
+  background: var(--app-bg);
+  color: var(--text-primary);
+}
+
+/* Remove the old northern/aurora imagery from the visible SEVER 2 product. */
+html[data-theme="light"] body::before,
+html[data-theme="north"] body::before,
+html[data-theme="aurora"] body::before {
+  display: block;
+  background:
+    radial-gradient(circle at 80% 0%, rgba(190, 150, 119, .15), transparent 34%),
+    radial-gradient(circle at 8% 12%, rgba(255, 255, 255, .78), transparent 30%);
+  filter: blur(64px);
+  opacity: .74;
+  animation: none;
+}
+html[data-theme="motion"] body::before {
+  display: block;
+  background:
+    radial-gradient(circle at 82% 6%, rgba(218, 145, 116, .18), transparent 34%),
+    radial-gradient(circle at 16% 4%, rgba(255, 255, 255, .62), transparent 28%);
+  filter: blur(68px);
+  opacity: .8;
+  animation: none;
+}
+html[data-theme="black"] body::before {
+  display: block;
+  background:
+    radial-gradient(circle at 78% 2%, rgba(104, 217, 181, .08), transparent 34%),
+    radial-gradient(circle at 28% 0%, rgba(62, 117, 100, .07), transparent 30%);
+  filter: blur(70px);
+  opacity: .82;
+  animation: none;
+}
+
+/* ---------- Shared surfaces ---------- */
+.desktop-sidebar,
+.topbar,
+.bottom-nav,
+.desktop-rail,
+.settings-section,
+.task,
+.note-card,
+.habit,
+.dashboard-card,
+.today-focus-widget,
+.mobile-quick-note,
+.desktop-side-card,
+.focus-card,
+.heat-card,
+.review,
+.quick,
+.note-search,
+.sever-ai-panel,
+dialog .dialog-card,
+dialog .sheet-card {
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.desktop-sidebar,
+.topbar,
+.bottom-nav {
+  background-image: none;
+}
+
+@media (min-width: 901px) {
+  .desktop-sidebar {
+    background: color-mix(in srgb, var(--surface-1) 92%, var(--app-bg));
+    border-right-color: var(--border-subtle);
+  }
+  .topbar {
+    background: color-mix(in srgb, var(--surface-1) 82%, transparent);
+    border-bottom-color: var(--border-subtle);
+  }
+  .desktop-rail {
+    background: transparent;
+  }
+}
+
+/* ---------- Home hero: same layout, three moods, no legacy artwork ---------- */
+#todayView .today-hero {
+  background-color: var(--surface-1);
+  background-image: var(--theme-hero-bg);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+}
+#todayView .today-hero::before {
+  background: var(--theme-hero-overlay);
+}
+#todayView .today-hero::after {
+  background: linear-gradient(90deg, var(--accent), transparent 72%);
+  opacity: .26;
+}
+#todayView .today-hero h1 {
+  color: var(--text-primary);
+  text-shadow: none;
+}
+#todayView .today-hero p,
+#todayView .today-hero small {
+  color: var(--text-secondary);
+}
+
+#todayView .dashboard-card,
+#todayView .task,
+#todayView #todayTasks .empty,
+#todayView .mobile-quick-note {
+  background: var(--surface-1);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+}
+
+#todayView .today-focus-widget {
+  background-color: var(--surface-1);
+  background-image: var(--theme-focus-bg);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+}
+
+#todayView .task:hover,
+#todayView .dashboard-card:hover,
+#todayView .mobile-quick-note:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+}
+
+#todayView .task-filters button {
+  background: color-mix(in srgb, var(--surface-1) 86%, transparent);
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
+}
+#todayView .task-filters button.active {
+  background: var(--accent-soft);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+/* ---------- Buttons / inputs ---------- */
+.icon-btn,
+.ghost,
+input,
+select,
+textarea,
+.settings-row,
+.folder-tabs button,
+.timer-presets button,
+.quick-date-chips button {
+  border-color: var(--border-subtle);
+}
+
+input,
+select,
+textarea {
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.primary,
+button.primary,
+.icon-btn.global-add,
+#todayView > .quick button,
+#todayView .today-focus-widget .primary,
+.timer-center button,
+.quick-capture .primary {
+  background: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 75%, transparent);
+  color: #fff;
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+html[data-theme="black"] .primary,
+html[data-theme="black"] button.primary,
+html[data-theme="black"] .icon-btn.global-add,
+html[data-theme="black"] #todayView > .quick button,
+html[data-theme="black"] #todayView .today-focus-widget .primary,
+html[data-theme="black"] .timer-center button,
+html[data-theme="black"] .quick-capture .primary {
+  color: #06110d;
+}
+
+/* ---------- Calendar ---------- */
+.day,
+.desktop-calendar button {
+  color: var(--text-primary);
+  border-color: transparent;
+}
+.day:hover,
+.desktop-calendar button:hover {
+  background: var(--surface-2);
+}
+.day.today,
+.desktop-calendar button.today {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.day u,
+.calendar-meta,
+.desktop-week,
+.weekdays {
+  color: var(--text-muted);
+}
+
+/* ---------- Timer / focus ---------- */
+.focus-card {
+  background: var(--surface-1);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+}
+.timer-ring circle.timer-track {
+  stroke: color-mix(in srgb, var(--accent) 14%, var(--border-subtle));
+}
+.timer-ring circle.timer-progress {
+  stroke: var(--accent);
+}
+.timer-center h2,
+.timer-panel h3 {
+  color: var(--text-primary);
+}
+.timer-panel p,
+.timer-tip,
+.timer-panel small {
+  color: var(--text-secondary);
+}
+.timer-presets button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* ---------- Notes / habits / progress ---------- */
+.note-card,
+.habit,
+.heat-card,
+.review,
+.desktop-side-card,
+.settings-section {
+  background: var(--surface-1);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+}
+.note-search {
+  background: var(--surface-1);
+  border-color: var(--border-subtle);
+}
+.note-card:hover,
+.habit:hover,
+.desktop-side-card:hover {
+  border-color: var(--border-strong);
+}
+.note-ring .value,
+.dashboard-ring .dashboard-arc {
+  stroke: var(--accent);
+}
+.heat.full,
+.habit-day.done,
+.desktop-habit-summary button.done i {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ---------- Settings / theme cards ---------- */
+.theme-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.theme-picker [data-sever-theme="north"],
+.theme-picker [data-sever-theme="aurora"] {
+  display: none;
+}
+.theme-picker button[data-sever-theme="light"] { order: 1; }
+.theme-picker button[data-sever-theme="motion"] { order: 2; }
+.theme-picker button[data-sever-theme="black"] { order: 3; }
+
+.theme-picker button {
+  min-width: 0;
+  padding: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  text-align: left;
+  box-shadow: none;
+}
+.theme-picker button:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+.theme-picker button.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface-1));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.theme-picker button b {
+  display: block;
+  margin-top: 9px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 760;
+}
+.theme-picker button em {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-style: normal;
+  line-height: 1.35;
+}
+
+.theme-preview {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 74px;
+  overflow: hidden;
+  border: 1px solid rgba(74, 58, 46, .10);
+  border-radius: 12px;
+}
+.theme-preview::before {
+  content: "";
+  position: absolute;
+  inset: 9px auto 9px 9px;
+  width: 22%;
+  border-radius: 7px;
+  opacity: .82;
+}
+.theme-preview::after {
+  content: "";
+  position: absolute;
+  inset: 9px 9px auto 35%;
+  height: 10px;
+  border-radius: 999px;
+  opacity: .9;
+}
+.theme-preview i {
+  position: absolute;
+  display: block;
+  height: 22px;
+  border-radius: 7px;
+}
+.theme-preview i:nth-child(1) { left: 35%; right: 9px; top: 25px; }
+.theme-preview i:nth-child(2) { left: 35%; width: 28%; bottom: 9px; }
+.theme-preview i:nth-child(3) { right: 9px; width: 28%; bottom: 9px; }
+
+.theme-preview.theme-calm {
+  background: #f7f2ec;
+  border-color: rgba(116, 84, 62, .13);
+}
+.theme-preview.theme-calm::before { background: #eee5dc; }
+.theme-preview.theme-calm::after { background: #9b7357; }
+.theme-preview.theme-calm i { background: #fffdf9; box-shadow: inset 0 0 0 1px rgba(91,69,53,.09); }
+.theme-preview.theme-calm i:nth-child(3) { background: #eadfd4; }
+
+.theme-preview.theme-cozy {
+  background: #fff4ec;
+  border-color: rgba(151, 90, 66, .13);
+}
+.theme-preview.theme-cozy::before { background: #f6e3d8; }
+.theme-preview.theme-cozy::after { background: #c9795d; }
+.theme-preview.theme-cozy i { background: #fffaf6; box-shadow: inset 0 0 0 1px rgba(121,78,60,.09); }
+.theme-preview.theme-cozy i:nth-child(3) { background: #f1d9cb; }
+
+.theme-preview.theme-focus {
+  background: #07100e;
+  border-color: rgba(104, 217, 181, .18);
+}
+.theme-preview.theme-focus::before { background: #0f1d18; }
+.theme-preview.theme-focus::after { background: #68d9b5; }
+.theme-preview.theme-focus i { background: #13201c; box-shadow: inset 0 0 0 1px rgba(104,217,181,.10); }
+.theme-preview.theme-focus i:nth-child(3) { background: #1a2a24; }
+
+/* ---------- Mobile ---------- */
+@media (max-width: 900px) {
+  .topbar {
+    background: color-mix(in srgb, var(--surface-1) 92%, transparent);
+    border-bottom-color: var(--border-subtle);
+    backdrop-filter: blur(20px) saturate(120%);
+  }
+  .bottom-nav {
+    background: color-mix(in srgb, var(--surface-1) 94%, transparent);
+    border-top-color: var(--border-subtle);
+    box-shadow: 0 -10px 30px color-mix(in srgb, var(--app-bg) 24%, transparent);
+    backdrop-filter: blur(22px) saturate(125%);
+  }
+  .bottom-nav button {
+    color: var(--text-muted);
+  }
+  .bottom-nav button.active {
+    color: var(--accent);
+  }
+  .bottom-nav .mobile-create .nav-icon {
+    background: var(--accent);
+    color: #fff;
+    border-color: color-mix(in srgb, var(--accent) 76%, transparent);
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+  html[data-theme="black"] .bottom-nav .mobile-create .nav-icon {
+    color: #06110d;
+  }
+  #todayView .today-hero {
+    min-height: 128px;
+  }
+  #todayView .task,
+  #todayView .dashboard-card,
+  #todayView .today-focus-widget,
+  #todayView .mobile-quick-note {
+    box-shadow: none;
+  }
+  .theme-picker {
+    grid-template-columns: 1fr;
+  }
+  .theme-picker button {
+    display: grid;
+    grid-template-columns: 112px minmax(0,1fr);
+    grid-template-rows: auto auto;
+    column-gap: 12px;
+    align-items: center;
+  }
+  .theme-picker .theme-preview {
+    grid-row: 1 / 3;
+    height: 64px;
+  }
+  .theme-picker button b {
+    margin-top: 0;
+    align-self: end;
+  }
+  .theme-picker button em {
+    align-self: start;
+  }
+}
+
+/* ---------- AI ---------- */
+.sever-ai-panel {
+  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+.sever-ai-message p,
+.sever-ai-form textarea {
+  background: var(--surface-2);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+.sever-ai-message.user p,
+.sever-ai-actions .primary {
+  background: var(--accent);
+  color: #fff;
+}
+html[data-theme="black"] .sever-ai-message.user p,
+html[data-theme="black"] .sever-ai-actions .primary {
+  color: #06110d;
+}
+
+/* ---------- Theme transition ---------- */
+html[data-theme] body,
+html[data-theme] .desktop-sidebar,
+html[data-theme] .topbar,
+html[data-theme] .bottom-nav,
+html[data-theme] .task,
+html[data-theme] .note-card,
+html[data-theme] .habit,
+html[data-theme] .dashboard-card,
+html[data-theme] .today-focus-widget,
+html[data-theme] .desktop-side-card,
+html[data-theme] .settings-section,
+html[data-theme] .focus-card {
+  transition:
+    background-color 180ms ease,
+    border-color 160ms ease,
+    color 150ms ease,
+    box-shadow 180ms ease;
+}
+
+html[data-motion="reduced"] body,
+html[data-motion="reduced"] .desktop-sidebar,
+html[data-motion="reduced"] .topbar,
+html[data-motion="reduced"] .bottom-nav,
+html[data-motion="reduced"] .task,
+html[data-motion="reduced"] .note-card,
+html[data-motion="reduced"] .habit,
+html[data-motion="reduced"] .dashboard-card,
+html[data-motion="reduced"] .today-focus-widget,
+html[data-motion="reduced"] .desktop-side-card,
+html[data-motion="reduced"] .settings-section,
+html[data-motion="reduced"] .focus-card {
+  transition: none;
+}
