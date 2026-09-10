@@ -7,6 +7,10 @@
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   };
   const INBOX_DATE = '9999-12-31';
+  const LEGACY_HOME_SELECTORS = [
+    '.today-motivation', '.course-card', '#quickForm', '#todayDashboard', '.today-quote',
+    '.sever2-today-plan', '.sever2-home-inbox'
+  ];
   let observer = null;
   let scheduled = false;
 
@@ -21,6 +25,14 @@
       if (a.time) return -1;
       if (b.time) return 1;
       return Number(a.createdAt || 0) - Number(b.createdAt || 0);
+    });
+  }
+  function simplifyLegacyShell(view) {
+    LEGACY_HOME_SELECTORS.forEach(selector => {
+      view.querySelectorAll(selector).forEach(node => {
+        node.style.setProperty('display', 'none', 'important');
+        node.dataset.sever2HomeRetired = 'true';
+      });
     });
   }
   function openCreate() {
@@ -42,6 +54,7 @@
     const view = $('#todayView');
     if (!view) return null;
     view.classList.add('sever2-home-simple');
+    simplifyLegacyShell(view);
     let shell = $('#sever2HomeFocus');
     if (shell) return shell;
     shell = document.createElement('section');
