@@ -8,8 +8,9 @@
   };
   const INBOX_DATE = '9999-12-31';
   const LEGACY_HOME_SELECTORS = [
-    '.today-motivation', '.course-card', '#quickForm', '#todayDashboard', '#todayFocusWidget', '.today-quote',
-    '.sever2-today-plan', '.sever2-home-inbox'
+    '.today-hero', '.today-motivation', '.course-card', '#quickForm', '#todayDashboard', '#todayFocusWidget',
+    '.today-quote', '.sever2-today-plan', '.sever2-home-inbox', '.today-list-head', '#todayFilters',
+    '#todayTasks', '.today-utilities'
   ];
   let observer = null;
   let scheduled = false;
@@ -17,6 +18,13 @@
   function state() { return window.SeverApp?.getState?.() || { tasks: [] }; }
   function todayTasks() { const today = TODAY(); return state().tasks.filter(task => !task.challenge && task.date === today); }
   function inboxTasks() { return state().tasks.filter(task => !task.challenge && !task.completed && (!task.date || task.date === INBOX_DATE)); }
+  function taskWord(count) {
+    const mod100 = count % 100, mod10 = count % 10;
+    if (mod100 >= 11 && mod100 <= 14) return 'задач';
+    if (mod10 === 1) return 'задача';
+    if (mod10 >= 2 && mod10 <= 4) return 'задачи';
+    return 'задач';
+  }
   function rankTasks(tasks) {
     return [...tasks].sort((a, b) => {
       if (a.completed !== b.completed) return Number(a.completed) - Number(b.completed);
@@ -44,6 +52,15 @@
     window.SeverApp?.switchView?.('calendar');
     requestAnimationFrame(() => $('.sever2-calendar-modes [data-mode="inbox"]')?.click());
   }
+  function openDay() {
+    window.SeverApp?.switchView?.('calendar');
+    requestAnimationFrame(() => $('.sever2-calendar-modes [data-mode="day"]')?.click());
+  }
+  function openQuickNote() {
+    const candidates = [$('#railOpenNote'), $('#mobileQuickNote')].filter(Boolean);
+    const visible = candidates.find(node => getComputedStyle(node).display !== 'none' && node.getClientRects().length);
+    (visible || candidates[0])?.click();
+  }
   function startTask(task) { window.SeverApp?.startTimer?.({ taskId: task.id, durationMinutes: Number(task.duration) || 25 }); }
   function openTask(task) {
     const row = [...document.querySelectorAll('#todayTasks .task')].find(item => item.querySelector('.task-name')?.textContent?.trim().endsWith(task.title || ''));
@@ -62,17 +79,25 @@
     shell.className = 'sever2-home-focus';
     shell.setAttribute('aria-label', 'Главное на сегодня');
     shell.innerHTML = `
-      <div class="sever2-home-focus-head"><div><small>СЕГОДНЯ</small><h2>Главное на день</h2><p id="sever2HomeFocusSummary">План на сегодня</p></div><button id="sever2HomeCreate" type="button">+ Создать</button></div>
+      <div class="sever2-home-focus-head">
+        <div><small>СЕГОДНЯ</small><h2>Главное на день</h2><p id="sever2HomeFocusSummary">План на сегодня</p></div>
+        <button id="sever2HomeCreate" type="button" aria-label="Создать"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Создать</span></button>
+      </div>
       <div id="sever2HomeTopTasks" class="sever2-home-top-tasks"></div>
+      <button id="sever2HomeMoreTasks" class="sever2-home-more" type="button" hidden></button>
       <div class="sever2-home-shortcuts">
-        <button id="sever2HomeInboxButton" type="button"><span><b>Входящие</b><small id="sever2HomeInboxCount">0 задач без даты</small></span><i aria-hidden="true">›</i></button>
-        <button id="sever2HomeFocusButton" type="button"><span><b>Фокус</b><small>Начать спокойную работу</small></span><i aria-hidden="true">›</i></button>
+        <button id="sever2HomeInboxButton" type="button"><span><b>Входящие</b><small id="sever2HomeInboxCount">Нет задач без даты</small></span><svg class="sever2-home-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        <button id="sever2HomeFocusButton" type="button"><span><b>Фокус</b><small>Начать спокойную работу</small></span><svg class="sever2-home-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        <button id="sever2HomeQuickNoteButton" type="button"><span><b>Быстрая заметка</b><small>Записать мысль без переходов</small></span><svg class="sever2-home-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>`;
-    const anchor = $('.today-list-head') || $('#todayTasks');
-    anchor?.parentNode?.insertBefore(shell, anchor);
+    const anchor = $('.today-list-head') || $('#todayTasks') || view.firstChild;
+    if (anchor?.parentNode === view) view.insertBefore(shell, anchor);
+    else view.prepend(shell);
     $('#sever2HomeCreate')?.addEventListener('click', openCreate);
+    $('#sever2HomeMoreTasks')?.addEventListener('click', openDay);
     $('#sever2HomeInboxButton')?.addEventListener('click', openInbox);
     $('#sever2HomeFocusButton')?.addEventListener('click', () => window.SeverApp?.switchView?.('timer'));
+    $('#sever2HomeQuickNoteButton')?.addEventListener('click', openQuickNote);
     return shell;
   }
 
@@ -82,7 +107,12 @@
     const all = todayTasks(), pending = all.filter(task => !task.completed), done = all.filter(task => task.completed), inbox = inboxTasks();
     const minutes = pending.reduce((sum, task) => sum + (Number(task.duration) || 0), 0), top = rankTasks(pending).slice(0, 3);
     $('#sever2HomeFocusSummary').textContent = all.length ? `${pending.length} осталось · ${done.length} готово${minutes ? ` · ${minutes} мин` : ''}` : 'День свободен — добавьте только то, что действительно нужно';
-    $('#sever2HomeInboxCount').textContent = inbox.length ? `${inbox.length} ${inbox.length === 1 ? 'задача' : 'задач'} без даты` : 'Нет задач без даты';
+    $('#sever2HomeInboxCount').textContent = inbox.length ? `${inbox.length} ${taskWord(inbox.length)} без даты` : 'Нет задач без даты';
+    const more = Math.max(0, pending.length - top.length), moreButton = $('#sever2HomeMoreTasks');
+    if (moreButton) {
+      moreButton.hidden = more === 0;
+      moreButton.textContent = more ? `Ещё ${more} ${taskWord(more)} на сегодня` : '';
+    }
     const list = $('#sever2HomeTopTasks'); list.replaceChildren();
     if (!top.length) {
       const empty = document.createElement('div'); empty.className = 'sever2-home-focus-empty';
@@ -92,7 +122,7 @@
       top.forEach((task, index) => {
         const row = document.createElement('article'); row.className = 'sever2-home-focus-task'; row.dataset.taskId = task.id;
         const meta = [task.time, task.duration ? `${task.duration} мин` : '', task.category || ''].filter(Boolean).join(' · ');
-        row.innerHTML = `<span class="sever2-home-focus-number">${index + 1}</span><button class="sever2-home-focus-copy" type="button"><b></b><small></small></button><button class="sever2-home-focus-start" type="button" aria-label="Начать фокус">▶</button>`;
+        row.innerHTML = `<span class="sever2-home-focus-number">${index + 1}</span><button class="sever2-home-focus-copy" type="button"><b></b><small></small></button><button class="sever2-home-focus-start" type="button" aria-label="Начать фокус"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7 8 5-8 5Z"/></svg></button>`;
         row.querySelector('.sever2-home-focus-copy b').textContent = task.title || 'Без названия';
         row.querySelector('.sever2-home-focus-copy small').textContent = meta || 'Без времени';
         row.querySelector('.sever2-home-focus-copy').addEventListener('click', () => openTask(task));
