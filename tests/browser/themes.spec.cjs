@@ -106,7 +106,7 @@ test('legacy Aurora data is not rewritten just by opening SEVER 2', async ({ pag
   }));
   expect(result.storedDataTheme).toBe('aurora');
   expect(result.visibleTheme).toBe('light');
-  expect(result.localPresentationTheme).toBe('light');
+  expect(result.localPresentationTheme).toBe('aurora');
 });
 
 test('mobile themes change the full Home composition, not only colors', async ({ page }) => {
