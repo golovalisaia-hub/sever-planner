@@ -18,6 +18,7 @@ async function seed(page) {
   await page.goto('/');
   await page.waitForFunction(() => window.SeverApp && window.SeverNotes);
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severCreateFlow)).toBe('ready');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severHomeFocus)).toBe('ready');
 }
 
 function createButton(page, projectName) {
@@ -42,10 +43,12 @@ test('Home keeps the primary task flow stable', async ({ page }, info) => {
   await page.locator('#quickCaptureInput').fill('Проверка главной страницы');
   await page.locator('#quickCaptureForm button[type="submit"]').click();
 
-  await expect(page.locator('#todayTasks')).toContainText('Проверка главной страницы');
+  const homeTask = page.locator('#sever2HomeTopTasks .sever2-home-focus-task').filter({ hasText: 'Проверка главной страницы' });
+  await expect(homeTask).toBeVisible();
   expect(await page.evaluate(() => window.SeverApp.getState().tasks.length)).toBe(1);
-  await page.locator('#todayTasks .check').click();
-  expect(await page.evaluate(() => window.SeverApp.getState().tasks[0].completed)).toBe(true);
+  await homeTask.locator('.sever2-home-focus-check').click();
+  await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks[0].completed)).toBe(true);
+  await expect(homeTask).toHaveCount(0);
   await onlyView(page, 'today');
   expect(errors).toEqual([]);
 });
@@ -109,7 +112,7 @@ test('Create child editors go Back to the same Create menu instead of dropping t
     await close.click();
     await expect(child).toBeHidden();
     await expect(page.locator('#quickAddDialog')).toBeVisible();
-    await page.locator('[data-close="quickAddDialog"]').click();
+    await page.locator('[data-close="quickAddDialog"]').first().click();
     await expect(page.locator('#quickAddDialog')).toBeHidden();
   }
 
@@ -119,7 +122,7 @@ test('Create child editors go Back to the same Create menu instead of dropping t
   await page.keyboard.press('Escape');
   await expect(page.locator('#taskDialog')).toBeHidden();
   await expect(page.locator('#quickAddDialog')).toBeVisible();
-  await page.locator('[data-close="quickAddDialog"]').click();
+  await page.locator('[data-close="quickAddDialog"]').first().click();
   await expect(page.locator('dialog[open]')).toHaveCount(0);
 });
 
@@ -132,7 +135,7 @@ test('phone Notes keeps Create as a real Back stack over the Notes page', async 
   await expect(page.locator('#quickAddDialog')).toBeVisible();
   await page.locator('#quickAddNote').click();
   await expect(page.locator('#noteDialog')).toBeVisible();
-  await page.locator('[data-close="noteDialog"]').click();
+  await page.locator('[data-close="noteDialog"]').first().click();
   await expect(page.locator('#noteDialog')).toBeHidden();
   await expect(page.locator('#quickAddDialog')).toBeVisible();
   await onlyView(page, 'notes');
@@ -142,7 +145,7 @@ test('phone Notes keeps Create as a real Back stack over the Notes page', async 
   await page.keyboard.press('Escape');
   await expect(page.locator('#folderDialog')).toBeHidden();
   await expect(page.locator('#quickAddDialog')).toBeVisible();
-  await page.locator('[data-close="quickAddDialog"]').click();
+  await page.locator('[data-close="quickAddDialog"]').first().click();
   await expect(page.locator('dialog[open]')).toHaveCount(0);
   await onlyView(page, 'notes');
 });
