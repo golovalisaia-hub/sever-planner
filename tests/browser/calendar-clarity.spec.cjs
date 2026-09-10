@@ -37,6 +37,15 @@ test('month cells expose task status and phone history shows what happened on ea
   await expect(page.locator('#sever2MonthHistory')).toContainText('Выполненное дело');
   await expect(page.locator('#sever2MonthHistory')).toContainText('Следующий шаг');
 
+  await page.locator('.sever2-calendar-modes [data-mode="day"]').click();
+  await expect(page.locator('#sever2MonthHistory')).toBeHidden();
+  await expect(page.locator('.sever2-day-panel')).toBeVisible();
+  await page.locator('.sever2-calendar-modes [data-mode="inbox"]').click();
+  await expect(page.locator('#sever2MonthHistory')).toBeHidden();
+  await expect(page.locator('#sever2InboxPanel')).toBeVisible();
+  await page.locator('.sever2-calendar-modes [data-mode="month"]').click();
+  await expect(page.locator('#sever2MonthHistory')).toBeVisible();
+
   await page.locator('#sever2MonthHistory [data-history-date]').first().click();
   await expect(page.locator('#dayDialog')).toBeVisible();
 });
