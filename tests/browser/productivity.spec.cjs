@@ -37,7 +37,7 @@ test('calendar can switch between month and day timeline', async ({ page }) => {
   await expect(page.locator('#sever2DaySummary')).toContainText('45 мин');
 });
 
-test('task action exposes quick reschedule and contextual AI', async ({ page }) => {
+test('task action quick-reschedules through the existing save path and exposes contextual AI', async ({ page }) => {
   await seed(page);
   await page.goto('/');
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severProductivity)).toBe('ready');
@@ -46,4 +46,13 @@ test('task action exposes quick reschedule and contextual AI', async ({ page }) 
   await expect(page.locator('.sever2-reschedule [data-move="today"]')).toBeVisible();
   await expect(page.locator('.sever2-reschedule [data-move="tomorrow"]')).toBeVisible();
   await expect(page.locator('.sever2-ask-ai')).toBeVisible();
+
+  const expectedTomorrow = await page.evaluate(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+    return date.toLocaleDateString('sv-SE');
+  });
+  await page.locator('.sever2-reschedule [data-move="tomorrow"]').click();
+  await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.find(task => task.id === 't1')?.date)).toBe(expectedTomorrow);
+  await expect(page.locator('#taskActionDialog')).toBeHidden();
 });
