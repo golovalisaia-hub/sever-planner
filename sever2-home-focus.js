@@ -50,7 +50,7 @@
     window.SeverApp?.startTimer?.({ taskId: task.id, durationMinutes: Number(task.duration) || 25 });
   }
 
-  function focusExistingTask(task) {
+  function openTask(task) {
     const taskRows = [...document.querySelectorAll('#todayTasks .task')];
     const row = taskRows.find(item => item.dataset.taskId === task.id || item.querySelector('[data-task-id]')?.dataset.taskId === task.id);
     const edit = row?.querySelector('.edit,[data-edit-task]');
@@ -61,6 +61,7 @@
   function ensureShell() {
     const view = $('#todayView');
     if (!view) return null;
+    view.classList.add('sever2-home-simple');
     let shell = $('#sever2HomeFocus');
     if (shell) return shell;
 
@@ -134,7 +135,7 @@
           <button class="sever2-home-focus-start" type="button" aria-label="Начать фокус">▶</button>`;
         row.querySelector('.sever2-home-focus-copy b').textContent = task.title || 'Без названия';
         row.querySelector('.sever2-home-focus-copy small').textContent = meta || 'Без времени';
-        row.querySelector('.sever2-home-focus-copy').addEventListener('click', () => focusExistingTask(task));
+        row.querySelector('.sever2-home-focus-copy').addEventListener('click', () => openTask(task));
         row.querySelector('.sever2-home-focus-start').addEventListener('click', () => startTask(task));
         list.appendChild(row);
       });
