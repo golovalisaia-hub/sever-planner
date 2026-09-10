@@ -33,6 +33,7 @@ test('Settings exposes only Calm Balance, Cozy Mood and Focus Peak', async ({ pa
   await expect(page.locator('.theme-picker [data-sever-theme="north"]')).toHaveCount(0);
   await expect(page.locator('.theme-picker [data-sever-theme="aurora"]')).toHaveCount(0);
   await expect(page.locator('link[data-sever2-ui-pack]')).toHaveCount(1);
+  await expect(page.locator('link[data-sever2-qa-pack]')).toHaveCount(1);
 });
 
 test('three references have distinct exact palette anchors and persist', async ({ page }) => {
@@ -41,9 +42,9 @@ test('three references have distinct exact palette anchors and persist', async (
   await openSettings(page);
 
   const expected = [
-    ['light', 'Calm Balance', 'rgb(241, 233, 227)', 'rgb(138, 115, 90)'],
-    ['motion', 'Cozy Mood', 'rgb(243, 236, 231)', 'rgb(182, 111, 91)'],
-    ['black', 'Focus Peak', 'rgb(17, 22, 24)', 'rgb(138, 217, 193)']
+    ['light', 'Calm Balance', '#f1e9e3', '#8a735a'],
+    ['motion', 'Cozy Mood', '#f3ece7', '#b66f5b'],
+    ['black', 'Focus Peak', '#111618', '#8ad9c1']
   ];
 
   const navBaseline = await page.evaluate(() => {
@@ -61,8 +62,8 @@ test('three references have distinct exact palette anchors and persist', async (
       const nav = document.querySelector('.bottom-nav');
       const rect = nav.getBoundingClientRect();
       return {
-        bg: root.getPropertyValue('--app-bg').trim(),
-        accent: root.getPropertyValue('--accent').trim(),
+        bg: root.getPropertyValue('--app-bg').trim().toLowerCase(),
+        accent: root.getPropertyValue('--accent').trim().toLowerCase(),
         width: Math.round(rect.width),
         height: Math.round(rect.height),
         hero: getComputedStyle(document.querySelector('#todayView .today-hero')).backgroundImage,
@@ -94,20 +95,20 @@ test('mobile themes change the full Home composition, not only colors', async ({
 
   await page.evaluate(() => window.SeverApp.switchView('settings'));
   await page.locator('.theme-picker [data-sever-theme="light"]').click();
-  await page.evaluate(() => window.SeverApp.switchView('today'));
+  await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
   await expect(page.locator('.today-motivation')).toBeVisible();
   await expect(page.locator('#todayDashboard')).toBeHidden();
 
   await page.evaluate(() => window.SeverApp.switchView('settings'));
   await page.locator('.theme-picker [data-sever-theme="motion"]').click();
-  await page.evaluate(() => window.SeverApp.switchView('today'));
+  await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
   await expect(page.locator('.today-motivation')).toBeHidden();
   await expect(page.locator('#todayDashboard')).toBeVisible();
   await expect(page.locator('#todayDashboard .dashboard-card:visible')).toHaveCount(3);
 
   await page.evaluate(() => window.SeverApp.switchView('settings'));
   await page.locator('.theme-picker [data-sever-theme="black"]').click();
-  await page.evaluate(() => window.SeverApp.switchView('today'));
+  await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
   await expect(page.locator('#todayDashboard')).toBeHidden();
   const focus = await page.locator('#todayFocusWidget').boundingBox();
   expect(focus.height).toBeGreaterThan(220);
@@ -121,21 +122,23 @@ test('desktop Focus Peak becomes focus-first while Calm remains task-first', asy
   await openSettings(page);
 
   await page.locator('.theme-picker [data-sever-theme="light"]').click();
-  await page.evaluate(() => window.SeverApp.switchView('today'));
+  await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
   const calm = await page.evaluate(() => getComputedStyle(document.querySelector('#todayView')).display);
   expect(calm).toBe('flex');
 
   await page.evaluate(() => window.SeverApp.switchView('settings'));
   await page.locator('.theme-picker [data-sever-theme="black"]').click();
-  await page.evaluate(() => window.SeverApp.switchView('today'));
+  await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
   const focusLayout = await page.evaluate(() => ({
     display: getComputedStyle(document.querySelector('#todayView')).display,
     columns: getComputedStyle(document.querySelector('#todayView')).gridTemplateColumns,
     height: document.querySelector('#todayFocusWidget').getBoundingClientRect().height,
-    sidebar: document.querySelector('.desktop-sidebar').getBoundingClientRect().width
+    sidebar: document.querySelector('.desktop-sidebar').getBoundingClientRect().width,
+    filters: getComputedStyle(document.querySelector('#todayFilters')).display
   }));
   expect(focusLayout.display).toBe('grid');
   expect(focusLayout.columns.split(' ').length).toBeGreaterThanOrEqual(2);
   expect(focusLayout.height).toBeGreaterThan(280);
   expect(focusLayout.sidebar).toBeGreaterThan(180);
+  expect(focusLayout.filters).toBe('none');
 });
