@@ -6,6 +6,9 @@
   'use strict';
 
   const CURRENT_VERSION = 2;
+  const VAULT_VERSION = 1;
+  const VAULT_SECURE_VERSION = 3;
+  const VAULT_SCOPE = 'notes-vault-v1';
   const DEFAULT_ITERATIONS = 600000;
   const MIN_ITERATIONS = 100000;
   const MAX_ITERATIONS = 5000000;
@@ -46,6 +49,22 @@
       return { version: isV2 ? 2 : 1, iterations, salt, iv, cipherBytes };
     } catch { return null; }
   }
+  function inspectVaultPayload(secure) {
+    try {
+      if (!secure || typeof secure !== 'object' || Array.isArray(secure) || secure.version !== VAULT_SECURE_VERSION || secure.algorithm !== 'AES-GCM' || secure.keyScope !== VAULT_SCOPE) return null;
+      const iv = base64ToBytes(secure.iv), cipherBytes = base64ToBytes(secure.ciphertext);
+      if (iv.length !== 12 || cipherBytes.length < 17) return null;
+      return { version: VAULT_SECURE_VERSION, iv, cipherBytes };
+    } catch { return null; }
+  }
+  function inspectVaultDescriptor(descriptor) {
+    try {
+      if (!descriptor || typeof descriptor !== 'object' || Array.isArray(descriptor) || descriptor.version !== VAULT_VERSION || descriptor.algorithm !== 'AES-GCM' || descriptor.scope !== VAULT_SCOPE) return null;
+      const iterations = Number(descriptor.kdf?.iterations), salt = base64ToBytes(descriptor.kdf?.salt), iv = base64ToBytes(descriptor.verifier?.iv), cipherBytes = base64ToBytes(descriptor.verifier?.ciphertext);
+      if (descriptor.kdf?.name !== 'PBKDF2' || descriptor.kdf?.hash !== 'SHA-256' || !Number.isInteger(iterations) || iterations < MIN_ITERATIONS || iterations > MAX_ITERATIONS || salt.length < 16 || salt.length > 64 || iv.length !== 12 || cipherBytes.length < 17) return null;
+      return { iterations, salt, iv, cipherBytes };
+    } catch { return null; }
+  }
   async function importPasswordMaterial(password) {
     if (typeof password !== 'string' || !password) throw new Error('Password is required');
     const bytes = encoder.encode(password);
@@ -79,5 +98,68 @@
       return { payload, material, version: inspected.version, unlockedAt: Date.now(), lastActivityAt: Date.now() };
     } finally { inspected.salt.fill(0); inspected.iv.fill(0); inspected.cipherBytes.fill(0); if (decrypted) new Uint8Array(decrypted).fill(0); }
   }
-  return Object.freeze({ CURRENT_VERSION, DEFAULT_ITERATIONS, MIN_ITERATIONS, inspectSecurePayload, isValidSecurePayload: secure => Boolean(inspectSecurePayload(secure)), payloadShape, protect, unlock, sealWithMaterial });
+
+  const vaultAad = context => encoder.encode(`SEVER:${VAULT_SCOPE}:${String(context)}`);
+  async function createNotesVault(password, iterations = DEFAULT_ITERATIONS) {
+    if (!Number.isInteger(iterations) || iterations < MIN_ITERATIONS || iterations > MAX_ITERATIONS) throw new Error('Invalid KDF cost');
+    const api = cryptoApi(), salt = api.getRandomValues(new Uint8Array(16)), iv = api.getRandomValues(new Uint8Array(12));
+    const material = await importPasswordMaterial(password), key = await deriveKey(material, salt, iterations), plaintext = encoder.encode('SEVER_NOTES_VAULT_OK'), aad = vaultAad('verifier');
+    try {
+      const ciphertext = await api.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: aad }, key, plaintext);
+      const descriptor = { version: VAULT_VERSION, algorithm: 'AES-GCM', scope: VAULT_SCOPE, kdf: { name: 'PBKDF2', hash: 'SHA-256', iterations, salt: bytesToBase64(salt) }, verifier: { iv: bytesToBase64(iv), ciphertext: bytesToBase64(new Uint8Array(ciphertext)) } };
+      return { descriptor, key, unlockedAt: Date.now(), lastActivityAt: Date.now() };
+    } finally { plaintext.fill(0); salt.fill(0); iv.fill(0); aad.fill(0); }
+  }
+  async function unlockNotesVault(descriptor, password) {
+    const inspected = inspectVaultDescriptor(descriptor);
+    if (!inspected) throw new Error('Invalid vault descriptor');
+    const material = await importPasswordMaterial(password), key = await deriveKey(material, inspected.salt, inspected.iterations), aad = vaultAad('verifier');
+    let decrypted;
+    try {
+      decrypted = await cryptoApi().subtle.decrypt({ name: 'AES-GCM', iv: inspected.iv, additionalData: aad }, key, inspected.cipherBytes);
+      if (decoder.decode(decrypted) !== 'SEVER_NOTES_VAULT_OK') throw new Error('Invalid vault password');
+      return { key, unlockedAt: Date.now(), lastActivityAt: Date.now() };
+    } finally { inspected.salt.fill(0); inspected.iv.fill(0); inspected.cipherBytes.fill(0); aad.fill(0); if (decrypted) new Uint8Array(decrypted).fill(0); }
+  }
+  async function sealVaultPayload(payload, key, noteId) {
+    if (!payloadShape(payload)) throw new Error('Invalid protected note content');
+    if (!key || !noteId) throw new Error('Vault key is unavailable');
+    const api = cryptoApi(), iv = api.getRandomValues(new Uint8Array(12)), plaintext = encoder.encode(JSON.stringify(payload)), aad = vaultAad(`note:${noteId}`);
+    try {
+      const ciphertext = await api.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: aad }, key, plaintext);
+      return { version: VAULT_SECURE_VERSION, algorithm: 'AES-GCM', keyScope: VAULT_SCOPE, iv: bytesToBase64(iv), ciphertext: bytesToBase64(new Uint8Array(ciphertext)) };
+    } finally { plaintext.fill(0); iv.fill(0); aad.fill(0); }
+  }
+  async function unlockVaultPayload(secure, key, noteId) {
+    const inspected = inspectVaultPayload(secure);
+    if (!inspected || !key || !noteId) throw new Error('Invalid vault payload');
+    const aad = vaultAad(`note:${noteId}`); let decrypted;
+    try {
+      decrypted = await cryptoApi().subtle.decrypt({ name: 'AES-GCM', iv: inspected.iv, additionalData: aad }, key, inspected.cipherBytes);
+      const payload = JSON.parse(decoder.decode(decrypted));
+      if (!payloadShape(payload)) throw new Error('Invalid protected note content');
+      return payload;
+    } finally { inspected.iv.fill(0); inspected.cipherBytes.fill(0); aad.fill(0); if (decrypted) new Uint8Array(decrypted).fill(0); }
+  }
+  async function sealVaultText(text, key, context) {
+    if (typeof text !== 'string' || !key || !context) throw new Error('Invalid vault text');
+    const api = cryptoApi(), iv = api.getRandomValues(new Uint8Array(12)), plaintext = encoder.encode(text), aad = vaultAad(`text:${context}`);
+    try {
+      const ciphertext = await api.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: aad }, key, plaintext);
+      return `svault1:${bytesToBase64(iv)}:${bytesToBase64(new Uint8Array(ciphertext))}`;
+    } finally { plaintext.fill(0); iv.fill(0); aad.fill(0); }
+  }
+  async function unlockVaultText(value, key, context) {
+    if (typeof value !== 'string' || !value.startsWith('svault1:') || !key || !context) throw new Error('Invalid vault text');
+    const parts = value.split(':'); if (parts.length !== 3) throw new Error('Invalid vault text');
+    const iv = base64ToBytes(parts[1]), cipherBytes = base64ToBytes(parts[2]), aad = vaultAad(`text:${context}`); let decrypted;
+    if (iv.length !== 12 || cipherBytes.length < 17) throw new Error('Invalid vault text');
+    try {
+      decrypted = await cryptoApi().subtle.decrypt({ name: 'AES-GCM', iv, additionalData: aad }, key, cipherBytes);
+      return decoder.decode(decrypted);
+    } finally { iv.fill(0); cipherBytes.fill(0); aad.fill(0); if (decrypted) new Uint8Array(decrypted).fill(0); }
+  }
+  const isVaultPayload = secure => Boolean(inspectVaultPayload(secure));
+  const isValidSecurePayload = secure => Boolean(inspectSecurePayload(secure) || inspectVaultPayload(secure));
+  return Object.freeze({ CURRENT_VERSION, VAULT_VERSION, VAULT_SECURE_VERSION, VAULT_SCOPE, DEFAULT_ITERATIONS, MIN_ITERATIONS, inspectSecurePayload, inspectVaultPayload, inspectVaultDescriptor, isValidSecurePayload, isVaultPayload, payloadShape, protect, unlock, sealWithMaterial, createNotesVault, unlockNotesVault, sealVaultPayload, unlockVaultPayload, sealVaultText, unlockVaultText });
 });
