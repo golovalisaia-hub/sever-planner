@@ -75,26 +75,6 @@ html[data-theme="black"] #todayView.sever2-home-simple>#sever2HomeFocus{
   font-size:13px;
 }
 
-#sever2HomeCreate{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:7px;
-  min-height:44px;
-  padding:0 15px;
-  border:0;
-  border-radius:12px;
-  background:var(--accent,var(--sever-blue));
-  color:#fff;
-  font:inherit;
-  font-size:12px;
-  font-weight:800;
-  box-shadow:0 8px 20px color-mix(in srgb,var(--accent,var(--sever-blue)) 16%,transparent);
-}
-#sever2HomeCreate svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
-html[data-theme="black"] #sever2HomeCreate,
-html[data-theme="black"] .sever2-home-focus-start{color:#06110d}
-
 .sever2-home-top-tasks{display:grid;gap:8px}
 .sever2-home-focus-task{
   display:grid;
@@ -161,6 +141,7 @@ html[data-theme="black"] .sever2-home-focus-start{color:#06110d}
   box-shadow:0 7px 18px color-mix(in srgb,var(--accent,var(--sever-blue)) 15%,transparent);
 }
 .sever2-home-focus-start svg{width:18px;height:18px;fill:currentColor;stroke:none}
+html[data-theme="black"] .sever2-home-focus-start{color:#06110d}
 
 .sever2-home-focus-empty{
   display:grid;
@@ -173,18 +154,6 @@ html[data-theme="black"] .sever2-home-focus-start{color:#06110d}
 }
 .sever2-home-focus-empty b{color:var(--text-primary,var(--text));font-size:14px}
 .sever2-home-focus-empty span{color:var(--text-secondary,var(--muted));font-size:12px;line-height:1.45}
-.sever2-home-focus-empty button{
-  min-height:40px;
-  margin-top:7px;
-  padding:0 12px;
-  border:1px solid var(--border-subtle,var(--line));
-  border-radius:10px;
-  background:var(--surface-1,var(--panel));
-  color:var(--text-primary,var(--text));
-  font:inherit;
-  font-size:11px;
-  font-weight:800;
-}
 
 .sever2-home-more{
   justify-self:start;
@@ -234,16 +203,21 @@ html[data-theme="black"] .sever2-home-focus-start{color:#06110d}
 .sever2-home-chevron{width:18px;height:18px;flex:0 0 18px;fill:none;stroke:var(--text-muted,var(--muted));stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
 @media (max-width:900px){
+  html[data-theme="light"] #todayView.view.active.sever2-home-simple,
+  html[data-theme="motion"] #todayView.view.active.sever2-home-simple,
+  html[data-theme="black"] #todayView.view.active.sever2-home-simple{
+    padding-bottom:calc(116px + env(safe-area-inset-bottom,0px))!important;
+  }
   .sever2-home-focus{gap:13px;padding:14px;border-radius:18px}
   .sever2-home-focus-head{gap:12px}
   .sever2-home-focus-head h2{font-size:22px}
   .sever2-home-focus-head p{font-size:12px}
-  #sever2HomeCreate{min-width:44px;min-height:44px;padding:0 12px}
-  #sever2HomeCreate span{display:none}
-  .sever2-home-focus-task{grid-template-columns:44px minmax(0,1fr) 44px;min-height:62px;gap:8px}
+  .sever2-home-focus-task{grid-template-columns:44px minmax(0,1fr) 44px;min-height:62px;gap:8px;transition:border-color .16s ease,background .16s ease}
+  .sever2-home-focus-task:hover{transform:none}
   .sever2-home-focus-check,.sever2-home-focus-start{width:44px;height:44px}
   .sever2-home-shortcuts{grid-template-columns:1fr}
-  .sever2-home-shortcuts>button{min-height:56px}
+  .sever2-home-shortcuts>button{min-height:56px;scroll-margin-bottom:116px;transition:border-color .16s ease,background .16s ease}
+  .sever2-home-shortcuts>button:hover{transform:none}
 }
 
 @media (max-width:360px){
