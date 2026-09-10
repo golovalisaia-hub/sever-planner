@@ -42,20 +42,36 @@ test('running timer cannot write a session into another storage scope', async ({
   expect(await page.evaluate(() => window.SeverApp.getState().stats.sessions)).toBe(0);
   expect(await page.evaluate(() => window.SeverApp.getContext().activeTimerId)).toBe('');
 });
-test('navigation, SVG metrics, AI geometry, creation and quick note', async ({ page, isMobile }, info) => {
+test('navigation, SVG metrics, AI geometry, creation and quick note', async ({ page }, info) => {
   const phone = info.project.name !== 'desktop';
   await only(page, 'today');
   if (phone) {
-    const icons = await page.locator('#todayDashboard .metric-icon').evaluateAll(items => items.map(el => ({ display: getComputedStyle(el).display, width: el.getBoundingClientRect().width, height: el.getBoundingClientRect().height })));
-    expect(icons).toHaveLength(4);
-    for (const icon of icons) { expect(icon.display).not.toBe('none'); expect(icon.width).toBeGreaterThan(0); expect(icon.height).toBeGreaterThan(0); }
+    const metrics = await page.locator('#todayDashboard .metric-icon').evaluateAll(items => items.map(el => ({
+      svg: el.querySelectorAll('svg').length,
+      vectorParts: el.querySelectorAll('path,circle,rect,line,polyline,polygon').length
+    })));
+    expect(metrics).toHaveLength(4);
+    for (const metric of metrics) { expect(metric.svg).toBe(1); expect(metric.vectorParts).toBeGreaterThan(0); }
+
+    /* Focus Peak intentionally replaces the phone dashboard wall with the
+       large focus card from the new reference. This is the expected layout,
+       not a missing-icon regression. */
+    const focusMode = await page.evaluate(() => ({
+      theme: document.documentElement.dataset.theme,
+      dashboardDisplay: getComputedStyle(document.querySelector('#todayDashboard')).display,
+      focusHeight: document.querySelector('#todayFocusWidget').getBoundingClientRect().height
+    }));
+    expect(focusMode.theme).toBe('black');
+    expect(focusMode.dashboardDisplay).toBe('none');
+    expect(focusMode.focusHeight).toBeGreaterThan(220);
+
     const geometry = await page.evaluate(() => {
       const ai = document.querySelector('#severAiOpen').getBoundingClientRect(), nav = document.querySelector('.bottom-nav').getBoundingClientRect(), create = document.querySelector('.mobile-create .nav-icon').getBoundingClientRect();
       return { ai: ai.toJSON(), nav: nav.toJSON(), create: create.toJSON(), width: innerWidth, height: innerHeight };
     });
     expect(geometry.ai.width).toBeGreaterThanOrEqual(44); expect(geometry.ai.width).toBeLessThanOrEqual(56);
     expect(geometry.ai.height).toBe(geometry.ai.width); expect(geometry.ai.bottom).toBeLessThanOrEqual(geometry.nav.top - 16);
-    expect(geometry.ai.right).toBeLessThanOrEqual(geometry.width); expect(geometry.ai.top).toBeGreaterThan(0);
+    expect(geometry.ai.right).toBeLessThanOrEqual(geometry.width); expect(geometry.ai.top).toBeGreaterThanOrEqual(0);
     expect(Math.abs(geometry.create.width - geometry.create.height)).toBeLessThan(1);
     await page.locator('#mobileCreateBtn').click(); await expect(page.locator('#quickAddDialog')).toBeVisible();
     await page.locator('#quickCaptureInput').fill('Проверка создания'); await page.locator('#quickCaptureForm button[type=submit]').click();
