@@ -1,0 +1,106 @@
+/* SEVER 2 final visual/interaction corrections. Loaded after sever2-ui.css. */
+
+/* Mobile header actions keep a true 44px touch target. */
+@media (max-width:900px){
+  .sever-ai-launch{
+    width:44px!important;
+    min-width:44px!important;
+    height:44px!important;
+    min-height:44px!important;
+    top:calc(5px + env(safe-area-inset-top,0px))!important;
+    right:62px!important;
+  }
+  .icon-btn.global-add{
+    width:44px!important;
+    min-width:44px!important;
+    height:44px!important;
+    min-height:44px!important;
+  }
+
+  /* Keep compact utility-card typography separated at narrow widths. */
+  html[data-theme="light"] #todayView .today-focus-widget,
+  html[data-theme="motion"] #todayView .today-focus-widget{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows:auto auto!important;
+    align-content:center!important;
+    gap:8px!important;
+  }
+  html[data-theme="light"] #todayView .today-focus-widget>div,
+  html[data-theme="motion"] #todayView .today-focus-widget>div{
+    display:grid!important;
+    min-width:0!important;
+    grid-template-columns:1fr!important;
+    gap:2px!important;
+  }
+  html[data-theme="light"] #todayView .today-focus-widget small,
+  html[data-theme="motion"] #todayView .today-focus-widget small{
+    display:block!important;
+    line-height:1.2!important;
+  }
+  html[data-theme="light"] #todayView .today-focus-widget b,
+  html[data-theme="motion"] #todayView .today-focus-widget b{
+    display:block!important;
+    margin:2px 0!important;
+    line-height:1.05!important;
+  }
+  html[data-theme="light"] #todayView .today-focus-widget span,
+  html[data-theme="motion"] #todayView .today-focus-widget span{
+    display:block!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    line-height:1.25!important;
+  }
+
+  /* Cozy reference uses exactly three compact daily metrics. */
+  html[data-theme="motion"] #todayView .dashboard-card.dashboard-completed{
+    display:none!important;
+  }
+
+  /* Calm intentionally has no dashboard wall on the phone. */
+  html[data-theme="light"] #todayView #todayDashboard{
+    display:none!important;
+  }
+
+  /* Focus is intentionally focus-first on phone. */
+  html[data-theme="black"] #todayView #todayDashboard{
+    display:none!important;
+  }
+}
+
+/* Focus desktop mirrors the supplied reference: timer + tasks, no filter bubbles. */
+@media (min-width:901px){
+  html[data-theme="black"] #todayView .task-filters{
+    display:none!important;
+  }
+  html[data-theme="black"] #todayView .today-list-head{
+    align-self:center!important;
+  }
+  html[data-theme="black"] #todayView #todayTasks{
+    padding-top:4px!important;
+  }
+}
+
+/* Replace the text play glyph with a CSS triangle. */
+html[data-theme="black"] #todayView .today-focus-widget .primary::before{
+  content:""!important;
+  display:block!important;
+  width:0!important;
+  height:0!important;
+  border-top:7px solid transparent!important;
+  border-bottom:7px solid transparent!important;
+  border-left:11px solid currentColor!important;
+  transform:translateX(1px)!important;
+}
+
+/* Reduced motion syntax kept separate so the browser never drops the rule. */
+html[data-motion="reduced"] *{
+  scroll-behavior:auto!important;
+}
+@media (prefers-reduced-motion:reduce){
+  html[data-motion="auto"] *{
+    scroll-behavior:auto!important;
+  }
+}
