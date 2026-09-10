@@ -6,9 +6,9 @@ import vm from 'node:vm';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-const RELEASE_CACHE = 'sever-v58-productivity-v1';
+const RELEASE_CACHE = 'sever-v59-productivity-v2';
 
-test('v58 service worker installs the productivity release atomically and removes stale caches', async () => {
+test('v59 service worker installs the productivity release atomically and removes stale caches', async () => {
   const handlers = new Map();
   const deleted = [];
   let cachedAssets = [];
@@ -22,7 +22,7 @@ test('v58 service worker installs the productivity release atomically and remove
   };
   const caches = {
     open: async name => ({ addAll: async assets => { assert.equal(name, RELEASE_CACHE); cachedAssets = assets; }, put: async () => {} }),
-    keys: async () => ['sever-v35', 'sever-v56-unified-sever2-v2', 'sever-v57-unified-sever2-v2'],
+    keys: async () => ['sever-v35', 'sever-v57-unified-sever2-v2', 'sever-v58-productivity-v1'],
     delete: async name => { deleted.push(name); return true; },
     match: async () => null
   };
@@ -41,7 +41,7 @@ test('v58 service worker installs the productivity release atomically and remove
   assert.ok(cachedAssets.includes('./sever2-ui.css?v=61'));
   assert.ok(cachedAssets.includes('./sever2-qa.css?v=61'));
   assert.ok(cachedAssets.includes('./sever2-productivity.css?v=62'));
-  assert.ok(cachedAssets.includes('./sever2-productivity.js?v=62'));
+  assert.ok(cachedAssets.includes('./sever2-productivity.js?v=63'));
   assert.ok(cachedAssets.includes('./js/theme-init.js?v=62'));
   assert.ok(cachedAssets.includes('./sever-ai.css?v=52'));
   assert.ok(cachedAssets.includes('./js/sever-ai.js?v=45'));
@@ -51,7 +51,7 @@ test('v58 service worker installs the productivity release atomically and remove
   let activateWork;
   handlers.get('activate')({ waitUntil: promise => { activateWork = promise; } });
   await activateWork;
-  assert.ok(deleted.includes('sever-v57-unified-sever2-v2'));
+  assert.ok(deleted.includes('sever-v58-productivity-v1'));
   assert.ok(!deleted.includes(RELEASE_CACHE));
   assert.equal(claimed, true);
   assert.equal(skipped, true);
@@ -64,7 +64,7 @@ test('installed release serves HTML and critical productivity assets from one re
   const handlers = new Map(), requests = [];
   let network = 0;
   const self = { location: { origin: 'https://example.test' }, registration: { scope: 'https://example.test/sever-planner/' }, addEventListener: (name, fn) => handlers.set(name, fn) };
-  const caches = { open: async name => { assert.equal(name, RELEASE_CACHE); return { match: async key => { requests.push(key); return { release: 58, key }; } }; } };
+  const caches = { open: async name => { assert.equal(name, RELEASE_CACHE); return { match: async key => { requests.push(key); return { release: 59, key }; } }; } };
   vm.runInNewContext(source, { self, caches, URL, Response, fetch: async () => { network++; throw Error('network must not update a release'); } });
   for (const [pathValue, mode, expected] of [
     ['?verify=new','navigate','./index.html'],
@@ -74,7 +74,7 @@ test('installed release serves HTML and critical productivity assets from one re
     ['sever2-ui.css?v=old','cors','./sever2-ui.css?v=61'],
     ['sever2-qa.css?v=old','cors','./sever2-qa.css?v=61'],
     ['sever2-productivity.css?v=old','cors','./sever2-productivity.css?v=62'],
-    ['sever2-productivity.js?v=old','cors','./sever2-productivity.js?v=62'],
+    ['sever2-productivity.js?v=old','cors','./sever2-productivity.js?v=63'],
     ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=62'],
     ['app.js?v=new','cors','./app.js?v=51']
   ]) {
