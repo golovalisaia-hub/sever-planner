@@ -132,13 +132,14 @@ test('focus queue ranks the day and shows planned versus focused workload', asyn
   await expect(queue).toContainText('0 мин фокус');
 });
 
-test('starting from the focus queue links the timer and mirrors it in the browser title', async ({ page }) => {
+test('active focus task moves to the front, locks context switching and mirrors in the browser title', async ({ page }) => {
   await seed(page);
   await page.goto('/');
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severFocusFlow)).toBe('ready');
   await page.evaluate(() => window.SeverApp.switchView('timer'));
-  await page.locator('#sever2FocusQueue [data-task-id="t1"] [data-start-focus]').click();
-  await expect(page.locator('#timerTaskTitle')).toHaveText('Первое дело');
-  await expect.poll(() => page.title()).toContain('Первое дело');
-  await expect(page.locator('#sever2FocusQueue [data-task-id="t2"] [data-start-focus]')).toBeDisabled();
+  await page.locator('#sever2FocusQueue [data-task-id="t2"] [data-start-focus]').click();
+  await expect(page.locator('#timerTaskTitle')).toHaveText('Второе дело');
+  await expect.poll(() => page.title()).toContain('Второе дело');
+  await expect(page.locator('#sever2FocusQueue .sever2-focus-queue-task').first()).toHaveAttribute('data-task-id', 't2');
+  await expect(page.locator('#sever2FocusQueue [data-task-id="t1"] [data-start-focus]')).toBeDisabled();
 });
