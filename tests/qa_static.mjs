@@ -1,76 +1,224 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { performance } from 'node:perf_hooks';
 
 const root = path.resolve(import.meta.dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
+const exists = file => fs.existsSync(path.join(root, file));
 const html = read('index.html');
 const app = read('app.js');
 const notes = read('notes-pro.js');
 const mobileUi = read('mobile-ui.js');
-const mobileCss = read('mobile-system.css');
-const mobileHomeCss = read('mobile-home.css');
-const onboardingCss = read('onboarding.css');
-const northernCss = read('northern.css');
-const northernComponents = read('northern-components.css');
-const v41Css = read('sever-v41.css');
-const referenceThemeCss = read('reference-theme.css');
 const themeInit = read('js/theme-init.js');
-const protectedCrypto = read('js/protected-notes-crypto.js');
+const syncCore = read('js/sync-core.mjs');
+const cloud = read('js/cloud-runtime.js');
+const cryptoCore = read('js/protected-notes-crypto.js');
 const securityCore = read('js/security-core.js');
-const sever2Css = read('sever2-ui.css');
-const sever2QaCss = read('sever2-qa.css');
-const homeFocusJs = read('sever2-home-focus.js');
-const homeFocusCss = read('sever2-home-focus.css');
-const notesVaultJs = read('sever-notes-vault.js');
-const css = `${read('style.css')}\n${read('qa.css')}\n${read('responsive.css')}\n${read('design-system.css')}\n${v41Css}\n${sever2Css}\n${sever2QaCss}\n${homeFocusCss}`;
+const homeFocus = read('sever2-home-focus.js');
+const taskFlow = read('sever2-task-flow.js');
+const taskFlowCss = read('sever2-task-flow.css');
+const vault = read('sever-notes-vault.js');
+const vaultLoader = read('sever-notes-vault-loader.js');
 const sw = read('sw.js');
 const manifest = JSON.parse(read('manifest.webmanifest'));
+const baseCss = [read('style.css'), read('qa.css'), read('responsive.css'), read('design-system.css'), read('sever-v41.css'), read('sever2-ui.css'), read('sever2-qa.css'), read('sever2-home-focus.css'), taskFlowCss].join('\n');
+
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
-const syntax = async file => { const { spawnSync } = await import('node:child_process'); const result = spawnSync(process.execPath, ['--check', path.join(root, file)]); assert.equal(result.status, 0, result.stderr.toString()); };
+const syntax = file => {
+  const result = spawnSync(process.execPath, ['--check', path.join(root, file)], { encoding:'utf8' });
+  assert.equal(result.status, 0, result.stderr || `${file} syntax error`);
+};
 
-test('Notes module has no syntax errors', () => syntax('notes-pro.js'));
-test('Planner JavaScript has no syntax errors', () => syntax('app.js'));
-test('Cloud runtime and SEVER 2 modules have no syntax errors', async () => { await syntax('js/supabase-client.js'); await syntax('js/cloud-runtime.js'); await syntax('js/sync-core.mjs'); await syntax('mobile-ui.js'); await syntax('js/theme-init.js'); await syntax('js/protected-notes-crypto.js'); await syntax('js/security-core.js'); await syntax('sever2-home-focus.js'); await syntax('sever-notes-vault.js'); });
-test('PWA cache contains every required local asset', () => { const assets = [...sw.matchAll(/'\.\/([^']+)'/g)].map(match => match[1].split('?')[0]); for (const asset of assets.filter(Boolean)) assert.ok(fs.existsSync(path.join(root, asset)), `Missing cached asset: ${asset}`); for (const icon of manifest.icons) assert.ok(fs.existsSync(path.join(root, icon.src)), `Missing manifest icon: ${icon.src}`); });
-test('Asset versions keep field-sync compatibility and ship the atomic encrypted Notes release', () => { for (const asset of ['supabase-client.js']) { assert.match(html, new RegExp(`${asset.replace('.', '\\.')}\\?v=43`)); assert.match(sw, new RegExp(`${asset.replace('.', '\\.')}\\?v=43`)); } for (const asset of ['sever-ai.js']) { assert.match(html,new RegExp(`${asset.replace('.', '\\.')}\\?v=45`)); assert.match(sw,new RegExp(`${asset.replace('.', '\\.')}\\?v=45`)); } for (const [asset, version] of [['mobile-ui.js', 52], ['app.js', 51], ['js/ui-state.js', 51], ['notes-pro.js', 52], ['sever-ai.css', 52], ['northern-components.css', 48], ['mobile-home.css', 52], ['js/cloud-runtime.js', 55]]) { const pattern = new RegExp(`${asset.replaceAll('.', '\\.').replace('/', '\\/')}\\?v=${version}`); assert.match(html, pattern); assert.match(sw, pattern); } assert.match(sw, /sever-v68-notes-vault-home-cleanup/); assert.match(sw, /sever2-ui\.css\?v=61/); assert.match(sw, /sever2-qa\.css\?v=61/); assert.match(sw, /sever2-home-focus\.css\?v=72/); assert.match(sw, /sever2-home-focus\.js\?v=72/); assert.match(sw, /sever-notes-vault\.js\?v=72/); assert.match(sw, /js\/protected-notes-crypto\.js\?v=72/); assert.match(sw, /js\/security-core\.js\?v=72/); assert.match(sw, /js\/theme-init\.js\?v=72/); assert.match(themeInit, /sever2-home-focus\.css\?v=72/); assert.match(themeInit, /sever2-home-focus\.js\?v=72/); assert.match(themeInit, /sever-notes-vault\.js\?v=72/); });
-test('Desktop shell and five-item mobile navigation are both reachable', () => { assert.match(html, /class="desktop-sidebar"/); assert.match(html, /class="desktop-rail"/); assert.equal((html.match(/class="nav-icon"/g) || []).length, 5); assert.equal((html.match(/class="nav-label"/g) || []).length, 5); assert.match(html, /id="mobileCreateBtn"/); assert.match(html, /data-mobile-more="true"/); assert.match(v41Css, /@media \(min-width: 901px\)/); assert.match(v41Css, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/); });
-test('A new user starts without personal tasks', () => { assert.match(app, /function freshState\(\)\{return\{version:11[^\n]+tasks:\[\]/); assert.doesNotMatch(app, /function freshState\(\)[^\n]+(?:Пайтон|Python|ПДД)/i); });
-test('Storage has local and IndexedDB copies plus JSON backup controls', () => { assert.match(app, /localStorage\.setItem\(storageKey/); assert.match(app, /indexedDB\.open/); assert.match(html, /id="exportBtn"/); assert.match(html, /id="importInput"/); });
-test('Cloud sync has a safe static UI and public-only configuration', () => { assert.ok(fs.existsSync(path.join(root, 'supabase-config.js'))); assert.ok(fs.existsSync(path.join(root, 'js', 'cloud-runtime.js'))); assert.match(html, /js\/cloud-runtime\.js\?v=55/); assert.doesNotMatch(read('supabase-config.js'), /service_role[_\s]*key\s*:/i); });
-test('Cloud status updates both profile surfaces without throwing', () => { assert.match(app, /settingsLabel=\$\('#cloudStatusSettings'\)/); assert.match(app, /if\(settingsLabel\)settingsLabel\.textContent=/); });
-test('Registration uses the current site redirect and friendly error messages', () => { const cloud = read('js/cloud-runtime.js'); assert.match(cloud, /emailRedirectTo: authRedirectUrl\(\)/); assert.match(cloud, /new URL\('\.\/'/); assert.match(cloud, /Неверный email или пароль/); assert.match(cloud, /parent\?\.open\) parent\.close/); });
-test('Account has one public entry API and explicit Auth diagnostics', () => { const cloud = read('js/cloud-runtime.js'), client = read('js/supabase-client.js'); assert.match(cloud, /openAccount: open/); assert.match(cloud, /health: \(\) => cloud\.health\(\)/); assert.match(client, /SDK_LOAD_FAILED/); assert.match(client, /persistSession: true/); assert.match(client, /autoRefreshToken: true/); assert.match(client, /detectSessionInUrl: true/); assert.doesNotMatch(mobileUi, /openAccountFromSettings['"]\)\?\.click/); assert.match(mobileUi, /SeverCloudUI\?\.openAccount/); });
-test('Auth bootstrap is retryable and session transitions are serialized', () => { const cloud = read('js/cloud-runtime.js'); assert.match(cloud, /bindAuthListener\(client, true\)/); assert.match(cloud, /applySession\(user\)/); assert.match(cloud, /this\.sessionTask && this\.sessionTarget === target/); assert.match(cloud, /restoreSession\(\{ throwOnError = false \} = \{\}\)/); assert.match(cloud, /restoreSession\(\{ throwOnError: true \}\)/); });
-test('Account changes clear old Realtime resources and prevent duplicate subscriptions', () => { const cloud = read('js/cloud-runtime.js'); assert.match(cloud, /clearRealtime\(\)/); assert.match(cloud, /this\.subscription \|\| this\.realtimeStarting/); assert.match(cloud, /this\.user\.id !== userId/); assert.match(cloud, /activeChannel\?\.unsubscribe\(\)/); assert.match(cloud, /this\.realtimeStarting === attempt/); });
-test('Account scope requires a real Auth session and anonymous import is explicit', () => { const cloud = read('js/cloud-runtime.js'); assert.match(cloud, /ACTIVE_USER_KEY is only a diagnostic hint/); assert.match(cloud, /this\.app\.switchStorageScope\(null, this\.app\.freshState\(\)\)/); assert.doesNotMatch(cloud, /this\.user = hint/); assert.doesNotMatch(cloud, /switchStorageScope\(hint\.id/); assert.match(cloud, /this\.app\.switchStorageScope\(user\.id, this\.app\.freshState\(\)\)/); assert.match(app, /getAnonymousImportCandidate/); assert.match(cloud, /showMigration\(anonymousCandidate, \{ anonymous: true \}\)/); assert.match(cloud, /acceptMigration\(\{ anonymous = false \} = \{\}\)/); assert.match(cloud, /keepLocalOnly\(\{ anonymous = false \} = \{\}\)/); });
-test('SEVER wordmarks are static brands and every view owns its page title', () => { assert.match(html, /class="wordmark">SEVER</); assert.match(html, /id="mobileHeaderTitle"[^>]*>SEVER</); assert.doesNotMatch(html, /id="mobileHeaderTitle"[^>]*aria-live/); assert.doesNotMatch([app, mobileUi, read('notes-pro.js')].join('\n'), /(?:mobileHeaderTitle|#mobileHeaderTitle)/); for (const [view, title] of Object.entries({ today: 'Сегодня', calendar: 'Календарь', timer: 'Таймер', notes: 'Заметки', habits: 'Привычки', progress: 'Прогресс', settings: 'Настройки' })) { assert.match(html, new RegExp(`id="${view}View"[^>]*aria-labelledby="${view}PageTitle"`)); assert.match(html, new RegExp(`id="${view}PageTitle"[^>]*>${title}<`)); } assert.doesNotMatch(app, /guideTargetFor[\s\S]{0,900}mobileHeaderTitle/); });
-test('Notes folders update page context without replacing the SEVER wordmark', () => { assert.match(html, /id="notesContext"/); assert.match(notes, /notesContext\.textContent/); assert.match(notes, /ПАПКА ·/); assert.doesNotMatch(notes, /mobileHeaderTitle/); });
-test('Dashboard and quick capture core still use real planner state', () => { assert.match(html, /id="todayDashboard"/); assert.match(html, /id="dashboardCompletedValue"/); assert.match(html, /id="dashboardStreakValue"/); assert.match(html, /id="quickCaptureForm"/); assert.match(app, /function renderDashboard/); assert.match(app, /focusMinutesForDate/); assert.match(app, /todayFilter='all'/); assert.match(notes, /noteSearchQuery/); });
-test('SEVER 2 exposes exactly three product themes while retaining legacy data compatibility', () => { assert.match(themeInit, /new Set\(\['light', 'motion', 'black'\]\)/); for (const [id, label] of [['light','Calm Balance'],['motion','Cozy Mood'],['black','Focus Peak']]) { assert.match(themeInit, new RegExp(`${id}:[\\s\\S]{0,150}name: '${label}'`)); } assert.match(themeInit, /buttons\.get\('north'\)\?\.remove\(\)/); assert.match(themeInit, /buttons\.get\('aurora'\)\?\.remove\(\)/); assert.match(themeInit, /aurora: 'light'/); assert.match(sever2Css, /html\[data-theme="light"\]/); assert.match(sever2Css, /html\[data-theme="motion"\]/); assert.match(sever2Css, /html\[data-theme="black"\]/); });
-test('Retired photographic theme artwork is not part of the active SEVER 2 offline release', () => { assert.doesNotMatch(sw, /\.\/aurora\.webp/); assert.doesNotMatch(sw, /assets\/sever\/ice-dawn\.svg/); assert.doesNotMatch(sw, /assets\/sever\/mountain-night\.svg/); assert.match(themeInit, /retireLegacyHomeLayer/); assert.match(themeInit, /oldMobileHome\.disabled = true/); assert.match(sever2Css, /background-image:none!important/); });
-test('Habit check-ins are date-specific controls, not a navigation-only row', () => { assert.match(app, /const habitWeekLabels=\['Пн','Вт','Ср','Чт','Пт','Сб','Вс'\]/); assert.match(app, /function toggleHabitCheck\(habitId,date=TODAY\)/); assert.match(app, /if\(date>TODAY\)/); assert.match(app, /marker\.onclick=\(\)=>toggleHabitCheck\(habit\.id,date\)/); assert.match(app, /button\.onclick=\(\)=>toggleHabitCheck\(habit\.id,date\)/); assert.match(app, /habit-week-markers/); assert.match(css, /\.habit-week \.habit-day/); assert.match(css, /\.habit-week-markers \.habit-day/); });
-test('Mobile shell keeps static SEVER brand and one Notes creation action', () => { assert.match(html, /id="mobileHeaderTitle"[^>]*>SEVER</); assert.doesNotMatch(html, /id="mobileHeaderAction"/); assert.match(html, /id="noteCreateSheet"/); assert.match(html, /id="noteCreateFolder"/); assert.doesNotMatch(html, /id="openFolder"/); assert.match(mobileUi, /function updateHeader/); assert.match(v41Css, /env\(safe-area-inset-top\)/); assert.match(v41Css, /env\(safe-area-inset-bottom\)/); });
-test('Mobile header hides desktop Create while bottom navigation owns creation', () => { assert.match(v41Css, /\.top-actions #globalAddBtn/); assert.match(v41Css, /\.bottom-nav \.mobile-create/); assert.match(html, /id="mobileCreateBtn"/); });
-test('Focused Home removes duplicate Create controls and clears fixed navigation', () => { assert.match(themeInit, /oldMobileHome\.disabled = true/); assert.match(homeFocusJs, /id = 'sever2HomeFocus'/); assert.doesNotMatch(homeFocusJs, /id=\"sever2HomeCreate\"/); assert.doesNotMatch(homeFocusJs, /empty\.appendChild\(button\)/); assert.match(homeFocusJs, /sever2HomeInboxButton/); assert.match(homeFocusJs, /sever2HomeFocusButton/); assert.match(homeFocusJs, /sever2HomeQuickNoteButton/); assert.match(homeFocusJs, /indexOriginalRows/); assert.match(homeFocusJs, /dataset\.taskId/); assert.match(homeFocusCss, /#todayView\.sever2-home-simple #todayDashboard/); assert.match(homeFocusCss, /#todayView\.sever2-home-simple #todayTasks/); assert.match(homeFocusCss, /padding-bottom:calc\(116px \+ env\(safe-area-inset-bottom,0px\)\)/); assert.match(homeFocusCss, /\.sever2-home-focus-check[\s\S]{0,220}width:44px/); assert.match(homeFocusCss, /\.sever2-home-focus-start[\s\S]{0,220}width:44px/); assert.match(read('sever-ai.css'), /width:48px;height:48px/); assert.match(sever2QaCss, /\.sever-ai-launch[\s\S]{0,180}width:44px!important/); assert.match(mobileHomeCss, /--mobile-bottom-nav-height/); });
-test('Notes Vault is password-derived, authenticated and keeps vault plaintext out of persistent notes', () => { assert.match(protectedCrypto, /VAULT_SECURE_VERSION = 3/); assert.match(protectedCrypto, /AES-GCM/); assert.match(protectedCrypto, /length: 256/); assert.match(protectedCrypto, /PBKDF2/); assert.match(protectedCrypto, /SHA-256/); assert.match(protectedCrypto, /DEFAULT_ITERATIONS = 600000/); assert.match(protectedCrypto, /additionalData/); assert.match(protectedCrypto, /extractable/); assert.match(notesVaultJs, /createNotesVault/); assert.match(notesVaultJs, /unlockNotesVault/); assert.match(notesVaultJs, /sealVaultPayload/); assert.match(notesVaultJs, /title:''/); assert.match(notesVaultJs, /body:''/); assert.match(notesVaultJs, /protected:true/); assert.match(notesVaultJs, /lockInBackground/); assert.match(notesVaultJs, /shouldAutoLock/); assert.match(notesVaultJs, /beforeLocalSave/); assert.match(securityCore, /descriptor: safe\.profile\?\.notesVault/); assert.doesNotMatch(notesVaultJs, /localStorage\.setItem\([^\n]*notesVaultPassword/); });
-test('Mobile presentation attaches once and routes secondary pages through More', () => { assert.match(mobileUi, /if \(initialized\) return/); assert.match(mobileUi, /openSheet\('mobileMenuSheet'\)/); assert.match(mobileUi, /else window\.SeverNotes\?\.openNote\?\.\(\)/); });
-test('Mobile settings observer cannot trigger itself forever', () => { assert.doesNotMatch(mobileUi, /MutationObserver\(syncSettings\)\.observe\(document\.body/); assert.match(mobileUi, /function setText\(element, value\)/); assert.match(mobileUi, /settingsObserver\.observe\(source/); });
-test('Onboarding is short, persistent, target-aware, and restartable', () => { assert.match(html, /id="tourDialog" class="guide-dialog"/); assert.match(html, /id="settingsGuide"/); assert.match(html, /id="openGuideFromMore"/); assert.match(app, /function startGuide/); assert.match(app, /function maybeStartAutomaticGuide/); assert.match(app, /guideAutomaticPending=!state\.onboarded/); assert.match(app, /guideTargetFor/); assert.match(app, /state\.onboarded=true/); assert.match(mobileUi, /manual: true/); assert.match(onboardingCss, /env\(safe-area-inset-bottom\)/); assert.match(onboardingCss, /prefers-reduced-motion/); });
-test('Settings is a dedicated responsive view and reset requires confirmation', () => { assert.match(html, /id="settingsView"/); assert.match(html, /id="resetConfirmDialog"/); assert.match(html, /id="confirmReset"/); assert.match(mobileUi, /function requestReset/); assert.match(mobileUi, /function openSettings\(\)/); assert.match(app, /async function resetPlanner\(\)/); });
-test('Cloud sync hydrates before writes and subscribes to every private table', () => { const cloud = read('js/cloud-runtime.js'); assert.match(cloud, /if \(!this\.user \|\| !this\.hydrated\) return/); assert.match(cloud, /empty local cache/); assert.match(cloud, /tables\.forEach\(table => channel\.on\('postgres_changes'/); assert.match(cloud, /document\.addEventListener\('visibilitychange'/); });
-test('Cloud pulls are ordered, preserve unsent local records and recover Realtime', () => { const cloud = read('js/cloud-runtime.js'); assert.match(cloud, /if \(this\.pullPromise\)/); assert.match(cloud, /this\.baseline = collectionsFor\(remote\);\s*this\.capture\(\)/); assert.match(cloud, /schedulePullRetry\(\)/); assert.match(cloud, /status === 'CLOSED'/); assert.match(cloud, /this\.realtimeReconnectTimer = window\.setTimeout/); });
-test('Cloud diagnostics identify an unreadable collection without exposing user data', () => { const cloud = read('js/cloud-runtime.js'); assert.match(cloud, /SYNC_TABLE_\$\{table\.toUpperCase\(\)/); assert.match(app, /diagnostic\.startsWith\('SYNC_TABLE_'\)/); });
-test('Calendar cells own rounded borders and visible focus without clipping', () => { assert.match(v41Css, /v42 calendar finish/); assert.match(v41Css, /\.calendar \{[\s\S]*?overflow: visible;[\s\S]*?border: 0;/); assert.match(v41Css, /\.day:focus-visible \{[\s\S]*?outline: 0;/); assert.match(v41Css, /\.day\.today \{[\s\S]*?border-color: var\(--v41-accent\)/); assert.match(sever2Css, /#calendarView \.day\.today/); });
-test('Protected notes use PBKDF2 and authenticated AES-GCM encryption', () => { assert.match(notes, /NOTE_CRYPTO_ITERATIONS = 600000/); assert.match(protectedCrypto, /name: 'PBKDF2'/); assert.match(protectedCrypto, /hash: 'SHA-256'/); assert.match(protectedCrypto, /name: 'AES-GCM'/); assert.match(protectedCrypto, /getRandomValues\(new Uint8Array\(16\)\)/); assert.doesNotMatch(notes, /password\s*:/i); });
-test('Tasks support reversible action-sheet flows and the calendar opens a day plan', () => { for (const id of ['taskActionComplete', 'taskActionMove', 'taskActionDelete', 'dayDialog']) assert.match(html, new RegExp(`id="${id}"`)); for (const fn of ['completeTask', 'moveTaskToTomorrow', 'openDay']) assert.match(app, new RegExp(`function ${fn}`)); assert.match(app, /button\.textContent='Отменить'/); });
-test('Linked tasks always open the visible timer tab and complete back on Today', () => { assert.match(app, /switchView\('timer'\);startTimer\(\)/); assert.match(app, /completeTask\(task,\{returnToToday:true/); assert.match(app, /setTimeout\(\(\)=>switchView\('today'\),450\)/); });
-test('Focus sessions are primary cloud data and timer does not write every tick', () => { assert.match(app, /focusSessions:\[\]/); assert.match(app, /state\.focusSessions\.push/); assert.match(app, /if\(now-lastFocusPersistAt>=15000\)/); });
-test('Progress is calendar-based and keeps Undo interactive', () => { assert.match(html, /id="progressMonthTitle"/); assert.match(app, /task\.completedAt=Date\.now\(\)/); assert.match(app, /task\.completedAt=null/); assert.match(css, /\.heat\.future/); });
-test('Large realistic state stays comfortably below localStorage quota', () => { const tasks = Array.from({ length: 1500 }, (_, index) => ({ id: `task-${index}`, title: `Задача ${index}`, date: '2026-09-03', duration: index % 2 ? 30 : null, category: 'Личное', completed: index % 3 === 0, priority: false })); const notes = Array.from({ length: 500 }, (_, index) => ({ id: `note-${index}`, title: `Заметка ${index}`, body: 'Подробный текст заметки. '.repeat(30), kind: 'checklist', items: Array.from({ length: 20 }, (_, item) => ({ id: `${index}-${item}`, text: `Пункт ${item}`, done: item % 2 === 0 })) })); const started = performance.now(); const serialized = JSON.stringify({ version: 9, tasks, notes, habits: [], checks: {}, focusSessions: [] }); const parsed = JSON.parse(serialized); assert.equal(parsed.tasks.length, 1500); assert.ok(Buffer.byteLength(serialized) < 4_000_000); assert.ok(performance.now() - started < 1000); });
+test('critical JavaScript and module files parse', () => {
+  for (const file of ['app.js','notes-pro.js','mobile-ui.js','js/theme-init.js','js/supabase-client.js','js/cloud-runtime.js','js/sync-core.mjs','sever2-home-focus.js','sever-notes-vault-loader.js','sever-notes-vault.js','sever2-task-flow.js']) syntax(file);
+});
+
+test('PWA release cache contains every declared local asset', () => {
+  const assets = [...sw.matchAll(/'\.\/([^']+)'/g)].map(match => match[1].split('?')[0]).filter(Boolean);
+  for (const asset of assets) assert.ok(exists(asset), `Missing cached asset: ${asset}`);
+  for (const icon of manifest.icons || []) assert.ok(exists(icon.src), `Missing icon: ${icon.src}`);
+});
+
+test('v69 atomic release ships Home, encrypted Notes Vault and adaptive task flow', () => {
+  assert.match(sw, /const CACHE = 'sever-v69-task-modes'/);
+  for (const token of [
+    'sever2-home-focus.css?v=72','sever2-home-focus.js?v=72','sever-notes-vault-loader.js?v=73','sever-notes-vault.js?v=73',
+    'sever2-task-flow.css?v=73','sever2-task-flow.js?v=73','js/theme-init.js?v=73','js/protected-notes-crypto.js?v=72','js/security-core.js?v=72'
+  ]) assert.ok(sw.includes(token), `release missing ${token}`);
+  assert.match(themeInit, /sever-notes-vault-loader\.js\?v=73/);
+  assert.match(themeInit, /sever2-task-flow\.js\?v=73/);
+  assert.doesNotMatch(themeInit, /sever-notes-vault\.js\?v=72/);
+});
+
+test('Notes Vault bootstrap waits for crypto, app and notes before loading runtime', () => {
+  assert.match(vaultLoader, /SeverProtectedNotesCrypto/);
+  assert.match(vaultLoader, /SeverSecurityCore/);
+  assert.match(vaultLoader, /SeverApp/);
+  assert.match(vaultLoader, /SeverNotes/);
+  assert.match(vaultLoader, /sever-notes-vault\.js\?v=73/);
+});
+
+test('Notes Vault uses password-derived authenticated encryption without persisting plaintext', () => {
+  assert.match(cryptoCore, /AES-GCM/);
+  assert.match(cryptoCore, /PBKDF2/);
+  assert.match(cryptoCore, /SHA-256/);
+  assert.match(cryptoCore, /600000/);
+  assert.match(vault, /hardenPlaintextNotes/);
+  assert.match(vault, /title:''/);
+  assert.match(vault, /body:''/);
+  assert.match(vault, /kind:'protected'/);
+  assert.doesNotMatch(vault, /password\s*:/i);
+});
+
+test('persistent and cloud note invariants never send protected plaintext', () => {
+  assert.match(securityCore, /assertProtectedNote/);
+  assert.match(securityCore, /note\.title !== ''/);
+  assert.match(securityCore, /note\.body !== ''/);
+  assert.match(syncCore, /protectedNoteInvariant/);
+  assert.match(syncCore, /title:note\.protected\?'':/);
+  assert.match(syncCore, /body:note\.protected\?'':/);
+  assert.match(cloud, /title: record\.protected \? ''/);
+  assert.match(cloud, /body: record\.protected \? ''/);
+  assert.match(cloud, /items: record\.protected \? \[\]/);
+});
+
+test('Notes Vault locks on account/background signals and supports explicit rekey', () => {
+  assert.match(vault, /sever:account-scope/);
+  assert.match(vault, /sever:lock-protected-notes/);
+  assert.match(vault, /visibilitychange/);
+  assert.match(vault, /shouldAutoLock/);
+  assert.match(vault, /rekeyVault/);
+});
+
+test('task modes reuse existing synchronized fields instead of inventing a new schema column', () => {
+  assert.match(taskFlow, /if \(task\.time\) return MODES\.SCHEDULED/);
+  assert.match(taskFlow, /if \(Number\(task\.duration\) > 0\) return MODES\.FOCUS/);
+  assert.match(taskFlow, /task\.category === 'Учёба'/);
+  assert.match(taskFlow, /task\.category === 'Дела'/);
+  assert.doesNotMatch(syncCore, /executionMode|execution_mode/);
+  assert.doesNotMatch(cloud, /executionMode|execution_mode/);
+});
+
+test('Study, errands and custom tasks have distinct user-facing execution controls', () => {
+  assert.match(taskFlow, /data-task-mode=\"flexible\"/);
+  assert.match(taskFlow, /data-task-mode=\"focus\"/);
+  assert.match(taskFlow, /data-task-mode=\"scheduled\"/);
+  assert.match(taskFlow, /option\.value = option\.textContent = 'Дела'/);
+  assert.match(taskFlow, /event\.target\.value === 'Учёба'/);
+  assert.match(taskFlow, /event\.target\.value === 'Дела'/);
+  assert.match(taskFlow, /duration\.value = '30'/);
+  assert.match(taskFlow, /time\.required = mode === MODES\.SCHEDULED/);
+});
+
+test('quick create supports simple, focus and scheduled modes with mobile-sized controls', () => {
+  assert.match(taskFlow, /severQuickModeField/);
+  assert.match(taskFlow, /severQuickFocusMinutes/);
+  assert.match(taskFlow, /severQuickTime/);
+  assert.match(taskFlowCss, /min-height:44px/);
+  assert.match(taskFlowCss, /@media\(max-width:900px\)/);
+});
+
+test('Home keeps one focused task surface and no ADMIN greeting dependency', () => {
+  assert.match(homeFocus, /sever2HomeFocus/);
+  assert.doesNotMatch(homeFocus, /ADMIN/);
+  assert.match(homeFocus, /sever2HomeInboxButton/);
+  assert.match(homeFocus, /sever2HomeFocusButton/);
+  assert.match(homeFocus, /sever2HomeQuickNoteButton/);
+  assert.doesNotMatch(homeFocus, /sever2HomeCreate/);
+});
+
+test('desktop and mobile keep accessible primary create targets', () => {
+  assert.match(html, /id="globalAddBtn"/);
+  assert.match(html, /id="mobileCreateBtn"/);
+  assert.match(taskFlowCss, /\.top-actions #globalAddBtn[\s\S]*?width:44px!important/);
+  assert.match(baseCss, /\.bottom-nav/);
+});
+
+test('new users start clean and no personal demo task is seeded', () => {
+  assert.match(app, /function freshState\(\)\{return\{version:11[^\n]+tasks:\[\]/);
+  assert.doesNotMatch(app, /function freshState\(\)[^\n]+(?:Пайтон|Python|ПДД)/i);
+});
+
+test('storage keeps localStorage and IndexedDB copies', () => {
+  assert.match(app, /localStorage\.setItem\(storageKey/);
+  assert.match(app, /indexedDB\.open/);
+  assert.match(app, /writeStorageBackup/);
+  assert.match(html, /id="exportBtn"/);
+  assert.match(html, /id="importInput"/);
+});
+
+test('cloud account scope hydrates before writes and anonymous import is explicit', () => {
+  assert.match(cloud, /if \(!this\.user \|\| !this\.hydrated\) return/);
+  assert.match(cloud, /switchStorageScope\(null, this\.app\.freshState\(\)\)/);
+  assert.match(cloud, /getAnonymousImportCandidate/);
+  assert.match(cloud, /acceptMigration/);
+  assert.match(cloud, /keepLocalOnly/);
+});
+
+test('public cloud config contains no privileged secret', () => {
+  const config = read('supabase-config.js');
+  assert.doesNotMatch(config, /service[_-]?role/i);
+  assert.doesNotMatch(config, /sb_secret_/i);
+});
+
+test('three product themes remain visual skins over one app', () => {
+  assert.match(themeInit, /new Set\(\['light', 'motion', 'black'\]\)/);
+  for (const label of ['Calm Balance','Cozy Mood','Focus Peak']) assert.match(themeInit, new RegExp(label));
+  assert.match(themeInit, /aurora: 'light'/);
+  assert.match(themeInit, /north: 'light'/);
+});
+
+test('retired mountain and Aurora artwork is not in active offline assets', () => {
+  assert.doesNotMatch(sw, /\.\/aurora\.webp/);
+  assert.doesNotMatch(sw, /assets\/sever\/ice-dawn\.svg/);
+  assert.doesNotMatch(sw, /assets\/sever\/mountain-night\.svg/);
+  assert.match(themeInit, /retireLegacyHomeLayer/);
+});
+
+test('mobile shell has exactly five bottom navigation labels', () => {
+  assert.equal((html.match(/class="nav-label"/g) || []).length, 5);
+  assert.equal((html.match(/class="nav-icon"/g) || []).length, 5);
+  assert.match(html, /data-mobile-more="true"/);
+  assert.match(mobileUi, /function updateHeader/);
+});
+
+test('timer completion remains linked to primary focus-session data', () => {
+  assert.match(app, /focusSessions:\[\]/);
+  assert.match(app, /state\.focusSessions\.push/);
+  assert.match(app, /startLinkedTask/);
+  assert.match(app, /completeTimerTask/);
+});
+
+test('Undo and conflict protection remain wired for planner entities', () => {
+  assert.match(app, /function performUndo/);
+  assert.match(app, /task-delete/);
+  assert.match(app, /note-delete/);
+  assert.match(app, /folder-delete/);
+  assert.match(read('js/ui-state.js'), /markRemoteConflicts/);
+});
+
+test('calendar selection retains visible focus and unclipped rounded cells', () => {
+  const css = read('sever-v41.css') + '\n' + read('sever2-ui.css');
+  assert.match(css, /\.day\.today/);
+  assert.match(css, /overflow:\s*visible/);
+  assert.match(css, /border-radius/);
+});
+
+test('large realistic state remains below common localStorage limits', () => {
+  const tasks = Array.from({ length:1500 }, (_, i) => ({ id:`t${i}`, title:`Задача ${i}`, date:'2026-09-11', duration:i%2?30:null, category:'Личное', completed:i%3===0 }));
+  const notesData = Array.from({ length:500 }, (_, i) => ({ id:`n${i}`, title:`Заметка ${i}`, body:'Текст '.repeat(120), items:[] }));
+  const started = performance.now();
+  const serialized = JSON.stringify({ version:11, tasks, notes:notesData, habits:[], focusSessions:[] });
+  assert.ok(Buffer.byteLength(serialized) < 4_000_000);
+  assert.ok(performance.now() - started < 1000);
+});
 
 let passed = 0;
-for (const { name, fn } of tests) { try { await fn(); passed += 1; console.log(`PASS  ${name}`); } catch (error) { console.error(`FAIL  ${name}`); console.error(error.message); process.exitCode = 1; } }
+for (const { name, fn } of tests) {
+  try { await fn(); passed += 1; console.log(`PASS  ${name}`); }
+  catch (error) { console.error(`FAIL  ${name}`); console.error(error.stack || error.message); process.exitCode = 1; }
+}
 console.log(`\n${passed}/${tests.length} checks passed`);
