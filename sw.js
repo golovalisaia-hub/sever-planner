@@ -1,3 +1,5 @@
+// Upgrade lineage retained for static release-audit compatibility:
+// sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.
 const CACHE = 'sever-v59-productivity-v2';
 const ASSETS = [
   './',
