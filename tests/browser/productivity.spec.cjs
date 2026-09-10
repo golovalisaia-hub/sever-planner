@@ -14,6 +14,12 @@ async function seed(page) {
   });
 }
 
+async function openCreate(page) {
+  const desktop = page.locator('#globalAddBtn');
+  if (await desktop.isVisible()) await desktop.click();
+  else await page.locator('#mobileCreateBtn').click();
+}
+
 test('home gets a compact workload card with one-click focus', async ({ page }) => {
   await seed(page);
   await page.goto('/');
@@ -70,7 +76,7 @@ test('quick create can save a task without a date and persistence survives rende
   await seed(page);
   await page.goto('/');
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severProductivity)).toBe('ready');
-  await page.locator('#globalAddBtn').click();
+  await openCreate(page);
   await page.locator('[data-sever2-inbox-date]').click();
   await page.locator('#quickCaptureInput').fill('Новая входящая задача');
   await page.locator('#quickCaptureForm button[type="submit"]').click();
