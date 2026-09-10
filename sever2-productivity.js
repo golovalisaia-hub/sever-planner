@@ -2,6 +2,7 @@
   'use strict';
 
   const $ = selector => document.querySelector(selector);
+  const INBOX_DATE = '9999-12-31';
   const svg = {
     clock: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>',
     play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
@@ -9,8 +10,7 @@
     calendar: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>',
     ai: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2Z"/></svg>',
     inbox: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-2 13H6L4 5Z"/><path d="M7 13h3l1 2h2l1-2h3"/></svg>',
-    focus: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/><circle cx="12" cy="12" r="3"/></svg>',
-    close: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'
+    focus: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/><circle cx="12" cy="12" r="3"/></svg>'
   };
 
   const dayISO = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
@@ -30,8 +30,12 @@
     return state().tasks.find(task => task.id === id) || null;
   }
 
+  function isInboxTask(task) {
+    return Boolean(task) && !task.challenge && !task.completed && (!task.date || task.date === INBOX_DATE);
+  }
+
   function pendingInbox() {
-    return state().tasks.filter(task => !task.challenge && !task.completed && !task.date);
+    return state().tasks.filter(isInboxTask);
   }
 
   function scheduleLabel(task) {
@@ -40,29 +44,6 @@
     if (task.duration) bits.push(`${task.duration} мин`);
     if (!bits.length) bits.push('Без времени');
     return bits.join(' · ');
-  }
-
-  function updateTaskMemory(title) {
-    const store = state();
-    if (!Array.isArray(store.taskMemory)) return;
-    const clean = String(title || '').trim();
-    if (clean.length < 2) return;
-    const key = clean.toLocaleLowerCase('ru-RU');
-    const old = store.taskMemory.find(item => item.key === key);
-    store.taskMemory = store.taskMemory.filter(item => item.key !== key);
-    store.taskMemory.unshift({ key, title: old?.title || clean, uses: (old?.uses || 0) + 1, lastUsed: Date.now() });
-    store.taskMemory = store.taskMemory.slice(0, 15);
-  }
-
-  function showToast(message) {
-    const root = $('#toast');
-    if (!root) return;
-    root.replaceChildren();
-    const label = document.createElement('span');
-    label.textContent = message;
-    root.appendChild(label);
-    root.classList.add('show');
-    setTimeout(() => root.classList.remove('show'), 1800);
   }
 
   function openTaskEditor(task, nextDate = null) {
@@ -80,7 +61,8 @@
     window.SeverUiState?.begin?.('taskDialog', { domain:'tasks', entityId:task.id });
     id.value = task.id;
     title.value = task.title || '';
-    date.value = nextDate !== null ? nextDate : (task.date || '');
+    const rawDate = nextDate !== null ? nextDate : task.date;
+    date.value = rawDate === INBOX_DATE ? '' : (rawDate || '');
     if (time) time.value = task.time || '';
     if (duration) duration.value = task.duration || '';
     if (category) category.value = task.category || 'Личное';
@@ -91,7 +73,7 @@
   }
 
   function saveTaskDate(task, date) {
-    openTaskEditor(task, date);
+    openTaskEditor(task, date || INBOX_DATE);
     requestAnimationFrame(() => $('#taskForm')?.requestSubmit());
   }
 
@@ -113,6 +95,14 @@
     const date = $('#taskDate');
     if (date) date.required = false;
 
+    const form = $('#taskForm');
+    if (form && !form.dataset.sever2InboxNormalize) {
+      form.dataset.sever2InboxNormalize = 'true';
+      form.addEventListener('submit', () => {
+        if (date && !date.value) date.value = INBOX_DATE;
+      }, true);
+    }
+
     const dateLabel = date?.closest('label');
     if (dateLabel && !dateLabel.querySelector('.sever2-no-date')) {
       const clear = document.createElement('button');
@@ -133,48 +123,20 @@
       inbox.addEventListener('click', () => {
         quickInboxSelected = true;
         const input = $('#quickCaptureDate');
-        if (input) input.value = '';
+        if (input) input.value = INBOX_DATE;
         chips.querySelectorAll('button').forEach(button => button.classList.toggle('active', button === inbox));
       });
       chips.querySelectorAll('[data-quick-date]').forEach(button => button.addEventListener('click', () => { quickInboxSelected = false; }));
       $('#quickCaptureChooseDate')?.addEventListener('click', () => { quickInboxSelected = false; });
-      $('#quickCaptureDate')?.addEventListener('change', () => { if ($('#quickCaptureDate').value) quickInboxSelected = false; });
-    }
-
-    const form = $('#quickCaptureForm');
-    if (form && !form.dataset.sever2InboxCapture) {
-      form.dataset.sever2InboxCapture = 'true';
-      form.addEventListener('submit', event => {
+      $('#quickCaptureDate')?.addEventListener('change', () => { if ($('#quickCaptureDate').value !== INBOX_DATE) quickInboxSelected = false; });
+      $('#quickCaptureForm')?.addEventListener('submit', () => {
         if (!quickInboxSelected) return;
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        const input = $('#quickCaptureInput');
-        const title = input?.value.trim();
-        if (!title) return;
-        const now = Date.now();
-        const task = {
-          id: crypto.randomUUID?.() || `${now}-${Math.random().toString(36).slice(2)}`,
-          title,
-          date: '',
-          time: '',
-          duration: null,
-          category: 'Личное',
-          priority: false,
-          challenge: false,
-          completed: false,
-          createdAt: now,
-          updatedAt: now
-        };
-        state().tasks.push(task);
-        updateTaskMemory(title);
-        window.SeverApp?.persist?.();
-        window.SeverApp?.render?.();
-        $('#quickAddDialog')?.close();
         quickInboxSelected = false;
-        showToast('Добавлено во Входящие');
-        updateHomeInbox();
-        if (calendarMode === 'inbox') renderInboxPanel();
-      }, true);
+        requestAnimationFrame(() => {
+          updateHomeInbox();
+          if (calendarMode === 'inbox') renderInboxPanel();
+        });
+      });
     }
   }
 
@@ -210,7 +172,7 @@
     block.querySelector('[data-move="inbox"]').addEventListener('click', () => {
       const id = window.SeverApp?.getContext?.().selectedTaskId;
       const task = taskFor(id);
-      if (task) saveTaskDate(task, '');
+      if (task) saveTaskDate(task, INBOX_DATE);
     });
     block.querySelector('input[type="date"]').addEventListener('change', event => {
       const id = window.SeverApp?.getContext?.().selectedTaskId;
