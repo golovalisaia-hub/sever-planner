@@ -33,11 +33,9 @@ test('Home is reduced to today priorities, Inbox and Focus without changing plan
   const before = await page.evaluate(() => JSON.stringify(window.SeverApp.getState()));
   await expect(page.locator('#sever2HomeFocus')).toBeVisible();
   await expect(page.locator('#todayView')).toHaveClass(/sever2-home-simple/);
-  await expect(page.locator('#todayView .today-motivation')).toBeHidden();
-  await expect(page.locator('#todayView .course-card')).toBeHidden();
-  await expect(page.locator('#todayDashboard')).toBeHidden();
-  await expect(page.locator('#todayView .today-quote')).toBeHidden();
-
+  for (const selector of ['.today-motivation','.course-card','#quickForm','#todayDashboard','.today-quote','.sever2-today-plan','.sever2-home-inbox']) {
+    await expect(page.locator(`#todayView ${selector}`).first()).toBeHidden();
+  }
   const titles = await page.locator('#sever2HomeTopTasks .sever2-home-focus-copy b').allTextContents();
   expect(titles).toEqual(['Самое важное','Обычная ранняя','Обычная поздняя']);
   await expect(page.locator('#sever2HomeFocusSummary')).toContainText('3 осталось');
@@ -47,6 +45,12 @@ test('Home is reduced to today priorities, Inbox and Focus without changing plan
 });
 
 test('Home shortcuts keep Create, Inbox and Focus as direct actions', async ({ page }, info) => {
+  if (info.project.name !== 'desktop') {
+    const createBox = await page.locator('#sever2HomeCreate').boundingBox();
+    expect(createBox).not.toBeNull();
+    expect(createBox.height).toBeGreaterThanOrEqual(44);
+  }
+
   await page.locator('#sever2HomeCreate').click();
   await expect(page.locator('#quickAddDialog')).toBeVisible();
   await page.locator('[data-close="quickAddDialog"]').click();
@@ -59,9 +63,4 @@ test('Home shortcuts keep Create, Inbox and Focus as direct actions', async ({ p
   await page.evaluate(() => window.SeverApp.switchView('today'));
   await page.locator('#sever2HomeFocusButton').click();
   await expect(page.locator('#timerView')).toBeVisible();
-
-  if (info.project.name !== 'desktop') {
-    const createBox = await page.locator('#sever2HomeCreate').boundingBox();
-    expect(createBox.height).toBeGreaterThanOrEqual(44);
-  }
 });
