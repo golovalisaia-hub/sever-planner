@@ -125,6 +125,24 @@
     return section;
   }
 
+  function syncHistoryVisibility() {
+    const section = $('#sever2MonthHistory');
+    if (!section) return;
+    const activeMode = $('.sever2-calendar-modes [data-mode].active')?.dataset.mode || 'month';
+    section.classList.toggle('sever2-mode-hidden', activeMode !== 'month');
+  }
+
+  function installModeVisibility() {
+    const modes = $('.sever2-calendar-modes');
+    if (!modes || modes.dataset.severCalendarHistoryVisibility === 'ready') return;
+    modes.dataset.severCalendarHistoryVisibility = 'ready';
+    modes.addEventListener('click', event => {
+      if (!event.target.closest('[data-mode]')) return;
+      requestAnimationFrame(syncHistoryVisibility);
+    });
+    syncHistoryVisibility();
+  }
+
   function openCalendarDay(date) {
     const cell = $(`#calendar > .day[data-sever-date="${date}"]`);
     if (cell) cell.click();
@@ -152,6 +170,7 @@
       empty.innerHTML = '<b>В этом месяце задач пока нет</b><span>Когда появятся дела, здесь будет видно, в какой день и что было запланировано.</span>';
       list.appendChild(empty);
       more.classList.add('hidden');
+      syncHistoryVisibility();
       return;
     }
 
@@ -207,6 +226,7 @@
     }
 
     section.dataset.completed = String(doneCount);
+    syncHistoryVisibility();
   }
 
   function goToCurrentMonth() {
@@ -257,6 +277,7 @@
     installMonthNavigation();
     installCalendarObserver();
     ensureHistory();
+    installModeVisibility();
     refreshCalendarClarity();
     document.documentElement.dataset.severCalendarClarity = 'ready';
     return true;
