@@ -27,6 +27,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await page.waitForFunction(() => window.SeverApp && window.SeverNotes);
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severHomeFocus)).toBe('ready');
+  await expect.poll(() => page.evaluate(() => Boolean(document.documentElement.dataset.severNotesVault))).toBe(true);
 });
 
 test('Home is one focused surface without duplicated legacy sections or planner mutations', async ({ page }) => {
@@ -56,7 +57,7 @@ test('Home completes a task through the existing task checkbox path', async ({ p
   await expect(page.locator('#sever2HomeTopTasks [data-task-id="priority"]')).toHaveCount(0);
 });
 
-test('Home uses the app-level Create and keeps Inbox, Focus and Quick note direct', async ({ page }, info) => {
+test('Home uses the app-level Create and keeps Inbox, Focus and secure Quick note direct', async ({ page }, info) => {
   await expect(page.locator('#sever2HomeCreate')).toHaveCount(0);
   const create = info.project.name === 'desktop' ? page.locator('#globalAddBtn') : page.locator('#mobileCreateBtn');
   await expect(create).toBeVisible();
@@ -79,12 +80,11 @@ test('Home uses the app-level Create and keeps Inbox, Focus and Quick note direc
   await expect(page.locator('#sever2InboxPanel')).toContainText('Без даты');
 
   await page.evaluate(() => window.SeverApp.switchView('today'));
-  await expect(page.locator('#sever2HomeQuickNoteButton')).toBeVisible();
   await page.locator('#sever2HomeQuickNoteButton').click();
-  await expect(page.locator('#quickNoteDialog')).toBeVisible();
-  await page.locator('[data-close="quickNoteDialog"]').first().click();
+  await expect(page.locator('#notesVaultDialog')).toBeVisible();
+  await expect(page.locator('#notesVaultDialogTitle')).toContainText('Зашифровать');
+  await page.locator('#notesVaultCancel').click();
 
-  await expect(page.locator('#sever2HomeFocusButton')).toBeVisible();
   await page.locator('#sever2HomeFocusButton').click();
   await expect(page.locator('#timerView')).toBeVisible();
 });
