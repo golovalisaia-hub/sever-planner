@@ -43,6 +43,9 @@
       });
     });
   }
+  function originalTaskRow(task) {
+    return [...document.querySelectorAll('#todayTasks .task')].find(item => item.querySelector('.task-name')?.textContent?.trim().endsWith(task.title || '')) || null;
+  }
   function openCreate() {
     const desktop = $('#globalAddBtn'), mobile = $('#mobileCreateBtn');
     const trigger = desktop && getComputedStyle(desktop).display !== 'none' ? desktop : mobile;
@@ -62,10 +65,8 @@
     (visible || candidates[0])?.click();
   }
   function startTask(task) { window.SeverApp?.startTimer?.({ taskId: task.id, durationMinutes: Number(task.duration) || 25 }); }
-  function openTask(task) {
-    const row = [...document.querySelectorAll('#todayTasks .task')].find(item => item.querySelector('.task-name')?.textContent?.trim().endsWith(task.title || ''));
-    row?.querySelector('.task-open,.edit')?.click();
-  }
+  function completeTask(task) { originalTaskRow(task)?.querySelector('.check')?.click(); }
+  function openTask(task) { originalTaskRow(task)?.querySelector('.task-open,.edit')?.click(); }
 
   function ensureShell() {
     const view = $('#todayView');
@@ -119,12 +120,13 @@
       empty.innerHTML = '<b>На сегодня всё спокойно</b><span>Можно добавить одно важное дело или оставить день свободным.</span>';
       const button = document.createElement('button'); button.type = 'button'; button.textContent = 'Добавить задачу'; button.addEventListener('click', openCreate); empty.appendChild(button); list.appendChild(empty);
     } else {
-      top.forEach((task, index) => {
+      top.forEach(task => {
         const row = document.createElement('article'); row.className = 'sever2-home-focus-task'; row.dataset.taskId = task.id;
-        const meta = [task.time, task.duration ? `${task.duration} мин` : '', task.category || ''].filter(Boolean).join(' · ');
-        row.innerHTML = `<span class="sever2-home-focus-number">${index + 1}</span><button class="sever2-home-focus-copy" type="button"><b></b><small></small></button><button class="sever2-home-focus-start" type="button" aria-label="Начать фокус"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7 8 5-8 5Z"/></svg></button>`;
+        const meta = [task.priority ? 'Важное' : '', task.time, task.duration ? `${task.duration} мин` : '', task.category || ''].filter(Boolean).join(' · ');
+        row.innerHTML = `<button class="sever2-home-focus-check" type="button" aria-label="Отметить задачу выполненной"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6.5 12.5 3.5 3.5 7.5-8"/></svg></button><button class="sever2-home-focus-copy" type="button"><b></b><small></small></button><button class="sever2-home-focus-start" type="button" aria-label="Начать фокус"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7 8 5-8 5Z"/></svg></button>`;
         row.querySelector('.sever2-home-focus-copy b').textContent = task.title || 'Без названия';
         row.querySelector('.sever2-home-focus-copy small').textContent = meta || 'Без времени';
+        row.querySelector('.sever2-home-focus-check').addEventListener('click', () => completeTask(task));
         row.querySelector('.sever2-home-focus-copy').addEventListener('click', () => openTask(task));
         row.querySelector('.sever2-home-focus-start').addEventListener('click', () => startTask(task));
         list.appendChild(row);
