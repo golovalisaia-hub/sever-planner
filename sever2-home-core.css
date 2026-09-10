@@ -1,11 +1,11 @@
 /* SEVER 2 Home core: Today first, no dashboard wall, no duplicated summary cards. */
 
-#todayView > .today-motivation,
-#todayView > .course-card,
-#todayView > #todayDashboard,
-#todayView > .today-quote,
-#todayView > .sever2-today-plan,
-#todayView > .sever2-home-inbox{
+html[data-theme] #todayView > .today-motivation,
+html[data-theme] #todayView > .course-card,
+html[data-theme] #todayView > #todayDashboard,
+html[data-theme] #todayView > .today-quote,
+html[data-theme] #todayView > .sever2-today-plan,
+html[data-theme] #todayView > .sever2-home-inbox{
   display:none!important;
 }
 
