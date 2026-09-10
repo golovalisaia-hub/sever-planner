@@ -118,3 +118,27 @@ test('timer has an explicit distraction-free focus mode that exits when leaving 
   await page.evaluate(() => window.SeverApp.switchView('today'));
   await expect.poll(() => page.evaluate(() => document.body.classList.contains('sever2-focus-immersive'))).toBe(false);
 });
+
+test('focus queue ranks the day and shows planned versus focused workload', async ({ page }) => {
+  await seed(page);
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severFocusFlow)).toBe('ready');
+  await page.evaluate(() => window.SeverApp.switchView('timer'));
+  const queue = page.locator('#sever2FocusQueue');
+  await expect(queue).toBeVisible();
+  await expect(queue.locator('.sever2-focus-queue-task')).toHaveCount(2);
+  await expect(queue.locator('.sever2-focus-queue-task').first()).toHaveAttribute('data-task-id', 't1');
+  await expect(queue).toContainText('45 мин план');
+  await expect(queue).toContainText('0 мин фокус');
+});
+
+test('starting from the focus queue links the timer and mirrors it in the browser title', async ({ page }) => {
+  await seed(page);
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severFocusFlow)).toBe('ready');
+  await page.evaluate(() => window.SeverApp.switchView('timer'));
+  await page.locator('#sever2FocusQueue [data-task-id="t1"] [data-start-focus]').click();
+  await expect(page.locator('#timerTaskTitle')).toHaveText('Первое дело');
+  await expect.poll(() => page.title()).toContain('Первое дело');
+  await expect(page.locator('#sever2FocusQueue [data-task-id="t2"] [data-start-focus]')).toBeDisabled();
+});
