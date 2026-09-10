@@ -42,3 +42,42 @@ test('legacy v1 payload remains decryptable', async () => {
   const legacy = { algorithm: 'AES-GCM', kdf: 'PBKDF2-SHA256', iterations: 100000, salt: b64(salt), iv: b64(iv), cipher: b64(new Uint8Array(cipher)) };
   assert.equal((await cryptoCore.unlock(legacy, password)).payload.title, payload.title);
 });
+
+test('Notes Vault derives one non-extractable AES-256 key and stores no plaintext', async () => {
+  const password = 'vault password phrase 1234';
+  const vault = await cryptoCore.createNotesVault(password, 100000);
+  assert.equal(vault.key.type, 'secret');
+  assert.equal(vault.key.extractable, false);
+  assert.equal(vault.descriptor.kdf.name, 'PBKDF2');
+  assert.equal(vault.descriptor.kdf.hash, 'SHA-256');
+  assert.equal(vault.descriptor.kdf.iterations, 100000);
+  assert.equal(JSON.stringify(vault.descriptor).includes(password), false);
+  const secure = await cryptoCore.sealVaultPayload(payload, vault.key, 'note-1');
+  assert.equal(secure.version, 3);
+  assert.equal(secure.keyScope, 'notes-vault-v1');
+  assert.equal(JSON.stringify(secure).includes('SEVER_SECRET'), false);
+  assert.equal(cryptoCore.isValidSecurePayload(secure), true);
+  assert.equal(cryptoCore.isVaultPayload(secure), true);
+  const unlocked = await cryptoCore.unlockNotesVault(vault.descriptor, password);
+  assert.deepEqual(await cryptoCore.unlockVaultPayload(secure, unlocked.key, 'note-1'), payload);
+});
+
+test('Notes Vault rejects wrong passphrases, ciphertext tampering and note-id swapping', async () => {
+  const password = 'vault password phrase 1234';
+  const vault = await cryptoCore.createNotesVault(password, 100000);
+  await assert.rejects(() => cryptoCore.unlockNotesVault(vault.descriptor, 'wrong vault password'));
+  const secure = await cryptoCore.sealVaultPayload(payload, vault.key, 'note-bound');
+  await assert.rejects(() => cryptoCore.unlockVaultPayload(secure, vault.key, 'different-note'));
+  const tampered = structuredClone(secure);
+  tampered.ciphertext = tampered.ciphertext.replace(/^./, tampered.ciphertext[0] === 'A' ? 'B' : 'A');
+  await assert.rejects(() => cryptoCore.unlockVaultPayload(tampered, vault.key, 'note-bound'));
+});
+
+test('vault text helper uses authenticated encryption and never embeds plaintext', async () => {
+  const vault = await cryptoCore.createNotesVault('another long vault password', 100000);
+  const sealed = await cryptoCore.sealVaultText('Sensitive folder label', vault.key, 'folder:f1');
+  assert.match(sealed, /^svault1:/);
+  assert.equal(sealed.includes('Sensitive folder label'), false);
+  assert.equal(await cryptoCore.unlockVaultText(sealed, vault.key, 'folder:f1'), 'Sensitive folder label');
+  await assert.rejects(() => cryptoCore.unlockVaultText(sealed, vault.key, 'folder:f2'));
+});
