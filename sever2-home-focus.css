@@ -1,9 +1,15 @@
 /* SEVER 2 Home Focus — one calm surface for today, Inbox and Focus. */
 
+#todayView.active.sever2-home-simple{
+  display:flex!important;
+  flex-direction:column!important;
+  grid-template-columns:none!important;
+}
 #todayView.sever2-home-simple .today-motivation,
 #todayView.sever2-home-simple .course-card,
 #todayView.sever2-home-simple #quickForm,
 #todayView.sever2-home-simple #todayDashboard,
+#todayView.sever2-home-simple #todayFocusWidget,
 #todayView.sever2-home-simple .today-quote,
 #todayView.sever2-home-simple .sever2-today-plan,
 #todayView.sever2-home-simple .sever2-home-inbox{
