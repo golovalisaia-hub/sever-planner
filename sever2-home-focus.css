@@ -1,0 +1,276 @@
+/* SEVER 2 Home Focus — one calm surface for today, Inbox and Focus. */
+
+#todayView.sever2-home-simple .today-motivation,
+#todayView.sever2-home-simple .course-card,
+#todayView.sever2-home-simple #quickForm,
+#todayView.sever2-home-simple #todayDashboard,
+#todayView.sever2-home-simple .today-quote{
+  display:none!important;
+}
+
+#todayView.sever2-home-simple .today-hero{
+  margin-bottom:10px;
+}
+
+#todayView.sever2-home-simple .today-hero-copy p{
+  max-width:620px;
+}
+
+.sever2-home-focus{
+  display:grid;
+  gap:14px;
+  margin:10px 0 16px;
+  padding:18px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:22px;
+  background:var(--surface-1,var(--panel));
+  box-shadow:var(--shadow-sm,0 10px 30px rgba(0,0,0,.05));
+}
+
+.sever2-home-focus-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+}
+
+.sever2-home-focus-head small{
+  display:block;
+  color:var(--text-muted,var(--muted));
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.1em;
+}
+
+.sever2-home-focus-head h2{
+  margin:4px 0 4px;
+  color:var(--text-primary,var(--text));
+  font-size:24px;
+  line-height:1.16;
+}
+
+.sever2-home-focus-head p{
+  margin:0;
+  color:var(--text-secondary,var(--muted));
+  font-size:13px;
+}
+
+#sever2HomeCreate{
+  min-height:42px;
+  padding:0 15px;
+  border:0;
+  border-radius:12px;
+  background:var(--accent,var(--sever-blue));
+  color:#fff;
+  font:inherit;
+  font-size:12px;
+  font-weight:800;
+}
+
+html[data-theme="black"] #sever2HomeCreate,
+html[data-theme="black"] .sever2-home-focus-start{color:#06110d}
+
+.sever2-home-top-tasks{
+  display:grid;
+  gap:8px;
+}
+
+.sever2-home-focus-task{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) 42px;
+  align-items:center;
+  gap:10px;
+  min-height:62px;
+  padding:8px 9px 8px 10px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:15px;
+  background:var(--surface-2,var(--panel2));
+}
+
+.sever2-home-focus-number{
+  display:grid;
+  width:30px;
+  height:30px;
+  place-items:center;
+  border-radius:10px;
+  background:color-mix(in srgb,var(--accent,var(--sever-blue)) 12%,transparent);
+  color:var(--accent,var(--sever-blue));
+  font-size:12px;
+  font-weight:900;
+}
+
+.sever2-home-focus-copy{
+  display:grid;
+  min-width:0;
+  gap:3px;
+  padding:4px 0;
+  border:0;
+  background:transparent;
+  color:inherit;
+  text-align:left;
+  font:inherit;
+}
+
+.sever2-home-focus-copy b{
+  overflow:hidden;
+  color:var(--text-primary,var(--text));
+  font-size:14px;
+  line-height:1.25;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.sever2-home-focus-copy small{
+  overflow:hidden;
+  color:var(--text-muted,var(--muted));
+  font-size:11px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.sever2-home-focus-start{
+  display:grid;
+  width:42px;
+  height:42px;
+  place-items:center;
+  padding:0;
+  border:0;
+  border-radius:12px;
+  background:var(--accent,var(--sever-blue));
+  color:#fff;
+  font:inherit;
+  font-size:11px;
+}
+
+.sever2-home-focus-empty{
+  display:grid;
+  justify-items:start;
+  gap:4px;
+  padding:15px;
+  border:1px dashed var(--border-subtle,var(--line));
+  border-radius:15px;
+  background:var(--surface-2,var(--panel2));
+}
+
+.sever2-home-focus-empty b{
+  color:var(--text-primary,var(--text));
+  font-size:14px;
+}
+
+.sever2-home-focus-empty span{
+  color:var(--text-secondary,var(--muted));
+  font-size:12px;
+  line-height:1.45;
+}
+
+.sever2-home-focus-empty button{
+  min-height:38px;
+  margin-top:7px;
+  padding:0 12px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:10px;
+  background:var(--surface-1,var(--panel));
+  color:var(--text-primary,var(--text));
+  font:inherit;
+  font-size:11px;
+  font-weight:800;
+}
+
+.sever2-home-shortcuts{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+}
+
+.sever2-home-shortcuts>button{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  min-width:0;
+  min-height:58px;
+  padding:10px 12px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:14px;
+  background:var(--surface-2,var(--panel2));
+  color:var(--text-primary,var(--text));
+  font:inherit;
+  text-align:left;
+}
+
+.sever2-home-shortcuts span{
+  display:grid;
+  min-width:0;
+  gap:2px;
+}
+
+.sever2-home-shortcuts b{font-size:13px}
+.sever2-home-shortcuts small{
+  overflow:hidden;
+  color:var(--text-muted,var(--muted));
+  font-size:11px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.sever2-home-shortcuts i{
+  color:var(--text-muted,var(--muted));
+  font-size:22px;
+  font-style:normal;
+}
+
+#todayView.sever2-home-simple .today-list-head{
+  margin-top:2px;
+}
+
+#todayView.sever2-home-simple #todayFilters{
+  margin-top:8px;
+}
+
+#todayView.sever2-home-simple .today-utilities{
+  margin-top:14px;
+}
+
+@media (max-width:900px){
+  #todayView.sever2-home-simple .today-hero{
+    min-height:0;
+    padding-bottom:4px;
+  }
+  .sever2-home-focus{
+    gap:12px;
+    margin:8px 0 14px;
+    padding:14px;
+    border-radius:18px;
+  }
+  .sever2-home-focus-head h2{font-size:21px}
+  .sever2-home-focus-head p{font-size:12px}
+  #sever2HomeCreate{
+    min-width:44px;
+    min-height:44px;
+    padding:0 12px;
+  }
+  .sever2-home-focus-task{
+    grid-template-columns:32px minmax(0,1fr) 44px;
+    min-height:60px;
+    gap:8px;
+  }
+  .sever2-home-focus-start{
+    width:44px;
+    height:44px;
+  }
+  .sever2-home-shortcuts{
+    grid-template-columns:1fr;
+  }
+  .sever2-home-shortcuts>button{
+    min-height:56px;
+  }
+}
+
+@media (max-width:360px){
+  .sever2-home-focus-head{
+    gap:10px;
+  }
+  .sever2-home-focus-head h2{font-size:19px}
+  #sever2HomeCreate{
+    padding:0 10px;
+    font-size:11px;
+  }
+}
