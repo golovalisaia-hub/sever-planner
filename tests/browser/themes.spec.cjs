@@ -109,31 +109,25 @@ test('legacy Aurora planner data is not rewritten just by opening SEVER 2', asyn
   expect(result.visibleTheme).toBe('light');
 });
 
-test('mobile themes change the full Home composition, not only colors', async ({ page }) => {
+test('all mobile themes keep the focused Home core while preserving their visual mood', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await seedPlanner(page);
   await page.goto('/');
-  await expect.poll(() => page.evaluate(() => Boolean(window.SeverApp))).toBe(true);
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severHomeCore)).toBe('ready');
 
-  await page.evaluate(() => window.SeverApp.switchView('settings'));
-  await page.locator('.theme-picker [data-sever-theme="light"]').click();
-  await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
-  await expect(page.locator('.today-motivation')).toBeVisible();
-  await expect(page.locator('#todayDashboard')).toBeHidden();
-
-  await page.evaluate(() => window.SeverApp.switchView('settings'));
-  await page.locator('.theme-picker [data-sever-theme="motion"]').click();
-  await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
-  await expect(page.locator('.today-motivation')).toBeHidden();
-  await expect(page.locator('#todayDashboard')).toBeVisible();
-  await expect(page.locator('#todayDashboard .dashboard-card:visible')).toHaveCount(3);
-
-  await page.evaluate(() => window.SeverApp.switchView('settings'));
-  await page.locator('.theme-picker [data-sever-theme="black"]').click();
-  await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
-  await expect(page.locator('#todayDashboard')).toBeHidden();
-  const focus = await page.locator('#todayFocusWidget').boundingBox();
-  expect(focus.height).toBeGreaterThan(220);
+  const heights = {};
+  for (const id of ['light', 'motion', 'black']) {
+    await page.evaluate(() => window.SeverApp.switchView('settings'));
+    await page.locator(`.theme-picker [data-sever-theme="${id}"]`).click();
+    await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
+    await expect(page.locator('#sever2HomeCore')).toBeVisible();
+    await expect(page.locator('.today-motivation')).toBeHidden();
+    await expect(page.locator('#todayDashboard')).toBeHidden();
+    heights[id] = (await page.locator('#todayFocusWidget').boundingBox()).height;
+  }
+  expect(heights.black).toBeGreaterThan(220);
+  expect(heights.light).toBeLessThan(heights.black);
+  expect(heights.motion).toBeLessThan(heights.black);
   await expect(page.locator('.bottom-nav')).toBeVisible();
 });
 
