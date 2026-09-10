@@ -1,0 +1,280 @@
+/* SEVER 2 efficiency layer: quick commands, density and small-screen clarity. */
+
+.sever2-command-open{
+  display:none;
+  align-items:center;
+  gap:8px;
+  min-height:40px;
+  margin-left:auto;
+  padding:0 10px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:11px;
+  background:var(--surface-1,var(--panel));
+  color:var(--text-secondary,var(--muted));
+  font:inherit;
+  font-size:12px;
+  font-weight:700;
+}
+.sever2-command-open svg{
+  width:17px;
+  height:17px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.sever2-command-open kbd,
+.sever2-command-head kbd,
+.sever2-command-shell footer kbd{
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:6px;
+  background:var(--surface-2,var(--panel2));
+  color:var(--text-muted,var(--muted));
+  font:inherit;
+  font-size:10px;
+  font-weight:750;
+  line-height:1;
+}
+.sever2-command-open kbd{padding:4px 6px}
+
+.sever2-command-dialog{
+  width:min(560px,calc(100vw - 32px));
+  max-width:none;
+  padding:0;
+  border:0;
+  border-radius:20px;
+  background:transparent;
+  color:var(--text-primary,var(--text));
+  overflow:visible;
+}
+.sever2-command-dialog::backdrop{
+  background:rgba(12,16,18,.38);
+  backdrop-filter:blur(8px);
+}
+.sever2-command-shell{
+  overflow:hidden;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:20px;
+  background:var(--surface-1,var(--panel));
+  box-shadow:var(--shadow-md,0 24px 70px rgba(0,0,0,.2));
+}
+.sever2-command-head{
+  display:grid;
+  grid-template-columns:22px minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  border-bottom:1px solid var(--border-subtle,var(--line));
+}
+.sever2-command-head>svg{
+  width:20px;
+  height:20px;
+  fill:none;
+  stroke:var(--text-muted,var(--muted));
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.sever2-command-head input{
+  width:100%;
+  min-height:42px;
+  padding:0;
+  border:0!important;
+  outline:0;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:var(--text-primary,var(--text));
+  font:inherit;
+  font-size:15px;
+}
+.sever2-command-head kbd{padding:5px 7px}
+.sever2-command-list{
+  display:grid;
+  gap:4px;
+  max-height:min(52vh,430px);
+  padding:8px;
+  overflow:auto;
+}
+.sever2-command-list button{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  min-height:46px;
+  padding:0 12px;
+  border:0;
+  border-radius:11px;
+  background:transparent;
+  color:var(--text-primary,var(--text));
+  font:inherit;
+  text-align:left;
+}
+.sever2-command-list button:hover,
+.sever2-command-list button.active{
+  background:var(--accent-soft,var(--surface-2));
+}
+.sever2-command-list button span{font-size:13px;font-weight:750}
+.sever2-command-list button small{color:var(--text-muted,var(--muted));font-size:11px}
+.sever2-command-empty{
+  padding:26px 12px;
+  color:var(--text-muted,var(--muted));
+  font-size:13px;
+  text-align:center;
+}
+.sever2-command-shell footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:9px 12px;
+  border-top:1px solid var(--border-subtle,var(--line));
+  color:var(--text-muted,var(--muted));
+  font-size:10px;
+}
+.sever2-command-shell footer span{display:flex;align-items:center;gap:5px}
+.sever2-command-shell footer kbd{padding:3px 5px}
+
+.sever2-density-setting{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(280px,1.3fr);
+  align-items:center;
+  gap:18px;
+}
+.sever2-density-copy{display:grid;gap:4px}
+.sever2-density-copy>small{
+  color:var(--text-muted,var(--muted));
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.09em;
+}
+.sever2-density-copy>b{color:var(--text-primary,var(--text));font-size:15px}
+.sever2-density-copy>span{max-width:430px;color:var(--text-secondary,var(--muted));font-size:12px;line-height:1.45}
+.sever2-density-options{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+}
+.sever2-density-choice{
+  display:grid;
+  justify-items:start;
+  gap:2px;
+  min-height:58px;
+  padding:9px 10px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:12px;
+  background:var(--surface-2,var(--panel2));
+  color:var(--text-primary,var(--text));
+  font:inherit;
+  text-align:left;
+}
+.sever2-density-choice b{font-size:12px}
+.sever2-density-choice small{color:var(--text-muted,var(--muted));font-size:10px}
+.sever2-density-choice.active{
+  border-color:var(--accent,var(--sever-blue));
+  background:var(--accent-soft,var(--surface-2));
+}
+
+@media (min-width:901px){
+  .sever2-command-open{display:flex}
+
+  html[data-density="comfortable"] .view.active{
+    --sever2-density-gap:18px;
+  }
+  html[data-density="comfortable"] #todayView .task,
+  html[data-density="comfortable"] .sever2-timeline-task,
+  html[data-density="comfortable"] .sever2-inbox-task{
+    min-height:70px;
+  }
+  html[data-density="comfortable"] #todayView .task{padding-block:12px}
+
+  html[data-density="compact"] #todayView,
+  html[data-density="compact"] #calendarView,
+  html[data-density="compact"] #notesView,
+  html[data-density="compact"] #habitsView,
+  html[data-density="compact"] #progressView,
+  html[data-density="compact"] #settingsView{
+    gap:10px;
+  }
+  html[data-density="compact"] #todayView .task,
+  html[data-density="compact"] .sever2-inbox-task{
+    min-height:50px;
+  }
+  html[data-density="compact"] #todayView .task{padding-block:6px}
+  html[data-density="compact"] .sever2-timeline-task{min-height:56px}
+  html[data-density="compact"] .dashboard-card,
+  html[data-density="compact"] .today-focus-widget,
+  html[data-density="compact"] .mobile-quick-note,
+  html[data-density="compact"] .sever2-today-plan,
+  html[data-density="compact"] .sever2-home-inbox{
+    padding-block:9px;
+  }
+}
+
+@media (max-width:900px){
+  .sever2-command-dialog{
+    width:calc(100vw - 20px);
+    margin:auto 10px 10px;
+    border-radius:20px;
+  }
+  .sever2-command-shell{border-radius:20px}
+  .sever2-command-head{padding:10px 12px}
+  .sever2-command-head input{min-height:44px;font-size:16px}
+  .sever2-command-shell footer{display:none}
+  .sever2-density-setting{grid-template-columns:1fr;gap:12px}
+  .sever2-density-options{grid-template-columns:1fr}
+  .sever2-density-choice{
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:center;
+    min-height:50px;
+  }
+  .sever2-density-choice small{text-align:right}
+  /* Phone layout always keeps comfortable touch targets, regardless of the
+     desktop density preference. */
+  html[data-density] .task button,
+  html[data-density] .sever2-timeline-actions button,
+  html[data-density] .sever2-inbox-actions button,
+  html[data-density] .bottom-nav button{
+    min-width:44px;
+    min-height:44px;
+  }
+}
+
+@media (max-width:360px){
+  /* No feature disappears just because the phone is narrow. Reflow actions
+     instead of hiding edit / tomorrow controls. */
+  .sever2-timeline-task{
+    grid-template-columns:44px minmax(0,1fr)!important;
+    align-items:center;
+  }
+  .sever2-timeline-actions{
+    grid-column:2;
+    display:flex!important;
+    justify-self:end;
+    gap:6px;
+    padding:0 8px 8px 0;
+  }
+  .sever2-timeline-actions [data-edit]{display:grid!important}
+
+  .sever2-inbox-task,
+  .sever2-inbox-task.compact{
+    grid-template-columns:1fr!important;
+    gap:8px;
+  }
+  .sever2-inbox-actions{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    width:100%;
+  }
+  .sever2-inbox-actions [data-plan-tomorrow],
+  .sever2-inbox-actions [data-inbox-edit],
+  .sever2-inbox-task.compact .sever2-inbox-actions [data-plan-today]{
+    display:flex!important;
+  }
+  .sever2-inbox-actions [data-inbox-focus],
+  .sever2-inbox-actions [data-inbox-edit]{
+    width:auto!important;
+  }
+  .sever2-inbox-actions [data-inbox-focus] svg,
+  .sever2-inbox-actions [data-inbox-edit] svg{margin:auto}
+}
