@@ -28,11 +28,11 @@ test('Q opens quick add with the title field already focused', async ({ page }) 
   await expect(page.locator('#quickCaptureInput')).toBeFocused();
 });
 
-test('Ctrl+K opens command center and can navigate to Focus', async ({ page }) => {
+test('slash opens command center and can navigate to Focus', async ({ page }) => {
   await seed(page);
   await page.goto('/');
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severEfficiency)).toBe('ready');
-  await page.keyboard.press('Control+K');
+  await page.keyboard.press('/');
   await expect(page.locator('#sever2CommandDialog')).toBeVisible();
   await page.locator('#sever2CommandInput').fill('фокус');
   await page.keyboard.press('Enter');
