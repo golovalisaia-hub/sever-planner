@@ -4,14 +4,12 @@
   /*
    * SEVER 2 — unified presentation bootstrap.
    *
-   * The product remains the same planner and keeps the existing persisted
-   * data/auth/sync model.  The legacy internal theme ids are deliberately
-   * retained as a compatibility boundary so old accounts do not lose their
-   * saved appearance setting:
+   * This is still the same planner: the existing data, accounts, Supabase,
+   * sync, notes, timer and AI are not replaced. Only the visible product shell
+   * is rebuilt. Legacy internal theme ids remain a compatibility boundary:
    *   light  -> Calm Balance
    *   motion -> Cozy Mood
    *   black  -> Focus Peak
-   *
    * Aurora/North are retired from the visible product and migrate to Calm.
    */
   const allowed = new Set(['light', 'motion', 'black']);
@@ -33,21 +31,21 @@
     light: {
       name: 'Calm Balance',
       description: 'Светлая, спокойная и воздушная',
-      color: '#F3ECE6',
+      color: '#F1E9E3',
       preview: 'theme-calm',
       ui: 'calm'
     },
     motion: {
       name: 'Cozy Mood',
       description: 'Тёплая, мягкая и уютная',
-      color: '#F5ECE7',
+      color: '#F3ECE7',
       preview: 'theme-cozy',
       ui: 'cozy'
     },
     black: {
       name: 'Focus Peak',
       description: 'Тёмная, тихая и концентрированная',
-      color: '#111718',
+      color: '#111618',
       preview: 'theme-focus',
       ui: 'focus'
     }
@@ -55,7 +53,6 @@
 
   const stylesheets = [
     ['sever-desktop-system', 'desktop-system.css?v=60'],
-    ['sever-desktop-home', 'desktop-home.css?v=60'],
     ['sever-theme-pack', 'themes.css?v=60'],
     ['sever2-ui-pack', 'sever2-ui.css?v=60']
   ];
@@ -63,6 +60,17 @@
   function normalize(value) {
     const candidate = aliases[value] || value;
     return allowed.has(candidate) ? candidate : 'light';
+  }
+
+  function retireLegacyHomeLayer() {
+    /* mobile-home.css was the old SEVER Home owner and contained the previous
+     * mountain composition. The new sever2-ui.css owns Home on every viewport. */
+    const oldMobileHome = [...document.querySelectorAll('link[rel="stylesheet"]')]
+      .find(link => /(?:^|\/)mobile-home\.css(?:\?|$)/.test(link.getAttribute('href') || ''));
+    if (oldMobileHome) {
+      oldMobileHome.disabled = true;
+      oldMobileHome.dataset.retiredBySever2 = 'true';
+    }
   }
 
   function installStylesheets() {
@@ -136,7 +144,7 @@
     const allButtons = [...picker.querySelectorAll('[data-sever-theme]')];
     const buttons = new Map(allButtons.map(button => [button.dataset.severTheme, button]));
 
-    /* Legacy themes are removed from the rendered product, not merely hidden. */
+    /* Old visible choices are physically removed from the rendered settings. */
     buttons.get('north')?.remove();
     buttons.get('aurora')?.remove();
 
@@ -153,8 +161,7 @@
       button.dataset.themeDisplayName = info.name;
       button.dataset.themeMood = info.ui;
 
-      /* app.js remains the owner of persistence. We preserve its handler and
-       * synchronize the presentation immediately after the stored change. */
+      /* app.js keeps persistence ownership; only presentation is wrapped. */
       if (button.dataset.severThemeWrapped !== 'true') {
         const original = button.onclick;
         button.onclick = function (event) {
@@ -168,8 +175,7 @@
 
     picker.dataset.severThemePackReady = 'true';
 
-    /* Migrate an old Aurora/North selection through the real app handler so
-     * local and signed-in user settings stay coherent. */
+    /* Existing Aurora/North users migrate through the real app handler. */
     const currentRaw = document.documentElement.dataset.theme || '';
     const selected = normalize(currentRaw);
     if (!allowed.has(currentRaw)) {
@@ -210,6 +216,7 @@
     observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
   }
 
+  retireLegacyHomeLayer();
   installStylesheets();
   applyEarlyTheme();
   installLegacyThemeGuard();
