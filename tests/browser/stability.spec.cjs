@@ -4,6 +4,7 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({ tasks: [], notes: [], habits: [], folders: [], onboarded: true, appearance: { theme: 'black', animations: 'off', reduceEffects: true } })));
   await page.goto('/');
   await page.waitForFunction(() => window.SeverApp && window.SeverNotes);
+  await expect.poll(() => page.evaluate(() => Boolean(document.documentElement.dataset.severNotesVault))).toBe(true);
 });
 test('old task draft cannot be submitted into a different account', async ({ page }) => {
   await page.evaluate(() => { window.SeverApp.switchView('today'); document.querySelector('#globalAddBtn').click(); document.querySelector('#quickAddTask').click(); });
@@ -42,7 +43,7 @@ test('running timer cannot write a session into another storage scope', async ({
   expect(await page.evaluate(() => window.SeverApp.getState().stats.sessions)).toBe(0);
   expect(await page.evaluate(() => window.SeverApp.getContext().activeTimerId)).toBe('');
 });
-test('navigation, SVG metrics, AI geometry, creation and quick note', async ({ page }, info) => {
+test('navigation, SVG metrics, AI geometry, creation and secure note entry', async ({ page }, info) => {
   const phone = info.project.name !== 'desktop';
   await only(page, 'today');
   if (phone) {
@@ -71,8 +72,10 @@ test('navigation, SVG metrics, AI geometry, creation and quick note', async ({ p
     await page.locator('#mobileCreateBtn').click(); await expect(page.locator('#quickAddDialog')).toBeVisible();
     await page.locator('#quickCaptureInput').fill('Проверка создания'); await page.locator('#quickCaptureForm button[type=submit]').click();
     await expect(page.locator('#todayTasks')).toContainText('Проверка создания');
-    await page.locator('#sever2HomeQuickNoteButton').click(); await page.locator('#quickNoteText').fill('Проверка заметки');
-    await page.locator('#quickNoteForm .primary').click();
+    await page.locator('#sever2HomeQuickNoteButton').click();
+    await expect(page.locator('#notesVaultDialog')).toBeVisible();
+    await expect(page.locator('#notesVaultDialogTitle')).toContainText('Зашифровать');
+    await page.locator('#notesVaultCancel').click();
   }
   const nav = phone ? '.bottom-nav' : '.side-nav';
   for (const view of ['calendar', 'notes', 'today']) { await page.locator(`${nav} [data-view="${view}"]`).click(); await only(page, view); }
