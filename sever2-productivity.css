@@ -1,0 +1,333 @@
+/* SEVER 2 productivity layer: day planning, quick reschedule, focus-first actions. */
+
+.sever2-calendar-modes{
+  display:flex;
+  gap:4px;
+  padding:4px;
+  margin-left:12px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:12px;
+  background:var(--surface-2,var(--panel2));
+}
+.sever2-calendar-modes button{
+  min-height:36px;
+  padding:0 14px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:var(--text-secondary,var(--muted));
+  font:inherit;
+  font-size:13px;
+  font-weight:700;
+}
+.sever2-calendar-modes button.active{
+  background:var(--surface-1,var(--panel));
+  color:var(--text-primary,var(--text));
+  box-shadow:var(--shadow-sm,0 6px 20px rgba(0,0,0,.06));
+}
+
+.sever2-day-panel{
+  margin-top:18px;
+  padding:18px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:20px;
+  background:var(--surface-1,var(--panel));
+  box-shadow:var(--shadow-sm,0 10px 30px rgba(0,0,0,.06));
+}
+.sever2-day-panel.hidden{display:none!important}
+.sever2-day-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:18px;
+}
+.sever2-day-head small,
+.sever2-reschedule>small,
+.sever2-plan-copy small{
+  display:block;
+  color:var(--text-muted,var(--muted));
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.09em;
+}
+.sever2-day-head h2{
+  margin:4px 0 3px;
+  color:var(--text-primary,var(--text));
+  font-size:22px;
+  line-height:1.18;
+}
+.sever2-day-head p{
+  margin:0;
+  color:var(--text-secondary,var(--muted));
+  font-size:13px;
+}
+.sever2-day-nav{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.sever2-day-nav button,
+.sever2-timeline-actions button,
+.sever2-reschedule-row button,
+.sever2-ask-ai{
+  border:1px solid var(--border-subtle,var(--line));
+  background:var(--surface-2,var(--panel2));
+  color:var(--text-primary,var(--text));
+}
+.sever2-day-nav button{
+  min-height:38px;
+  padding:0 12px;
+  border-radius:10px;
+  font:inherit;
+  font-size:12px;
+  font-weight:700;
+}
+.sever2-day-nav button:first-child svg{transform:rotate(180deg)}
+.sever2-day-nav svg,
+.sever2-timeline-actions svg,
+.sever2-plan-start svg,
+.sever2-date-picker svg,
+.sever2-ask-ai svg,
+.sever2-plan-copy>svg,
+.sever2-timeline-empty svg{
+  width:18px;
+  height:18px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.sever2-timeline{
+  position:relative;
+  display:grid;
+  gap:8px;
+}
+.sever2-timeline::before{
+  content:"";
+  position:absolute;
+  left:55px;
+  top:7px;
+  bottom:7px;
+  width:1px;
+  background:var(--border-subtle,var(--line));
+}
+.sever2-timeline-task{
+  position:relative;
+  display:grid;
+  grid-template-columns:56px minmax(0,1fr) auto;
+  align-items:center;
+  min-height:66px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:14px;
+  background:var(--surface-1,var(--panel));
+  overflow:hidden;
+}
+.sever2-timeline-task::before{
+  content:"";
+  position:absolute;
+  left:52px;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--accent,var(--sever-blue));
+  box-shadow:0 0 0 4px var(--surface-1,var(--panel));
+}
+.sever2-timeline-task.done{opacity:.58}
+.sever2-time-marker{
+  display:grid;
+  justify-items:start;
+  gap:2px;
+  padding-left:10px;
+  color:var(--text-secondary,var(--muted));
+}
+.sever2-time-marker b{font-size:12px}
+.sever2-time-marker span{font-size:10px;color:var(--text-muted,var(--muted))}
+.sever2-timeline-copy{
+  min-width:0;
+  padding:10px 12px 10px 18px;
+}
+.sever2-timeline-copy b{
+  display:block;
+  overflow:hidden;
+  color:var(--text-primary,var(--text));
+  font-size:14px;
+  line-height:1.25;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.sever2-timeline-copy span{
+  display:block;
+  margin-top:4px;
+  color:var(--text-muted,var(--muted));
+  font-size:11px;
+}
+.sever2-timeline-actions{
+  display:flex;
+  gap:6px;
+  padding-right:9px;
+}
+.sever2-timeline-actions button{
+  display:grid;
+  width:40px;
+  height:40px;
+  place-items:center;
+  padding:0;
+  border-radius:11px;
+}
+.sever2-timeline-actions [data-focus]{
+  background:var(--accent,var(--sever-blue));
+  border-color:var(--accent,var(--sever-blue));
+  color:#fff;
+}
+html[data-theme="black"] .sever2-timeline-actions [data-focus]{color:#06110d}
+.sever2-timeline-empty{
+  display:grid;
+  justify-items:center;
+  gap:7px;
+  padding:34px 18px;
+  color:var(--text-muted,var(--muted));
+  text-align:center;
+}
+.sever2-timeline-empty svg{width:28px;height:28px}
+.sever2-timeline-empty b{color:var(--text-primary,var(--text));font-size:14px}
+.sever2-timeline-empty span{font-size:12px}
+
+.sever2-reschedule{
+  display:grid;
+  gap:8px;
+  margin:14px 0;
+  padding-top:14px;
+  border-top:1px solid var(--border-subtle,var(--line));
+}
+.sever2-reschedule-row{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:7px;
+}
+.sever2-reschedule-row button,
+.sever2-date-picker,
+.sever2-ask-ai{
+  min-height:44px;
+  border-radius:11px;
+  font:inherit;
+  font-size:12px;
+  font-weight:700;
+}
+.sever2-date-picker{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  border:1px solid var(--border-subtle,var(--line));
+  background:var(--surface-2,var(--panel2));
+  color:var(--text-primary,var(--text));
+  overflow:hidden;
+}
+.sever2-date-picker input{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  opacity:.001;
+  cursor:pointer;
+}
+.sever2-ask-ai{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:100%;
+  padding:0 12px;
+  color:var(--accent,var(--sever-blue));
+}
+
+.sever2-today-plan{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:12px 0 2px;
+  padding:13px 14px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:16px;
+  background:var(--surface-1,var(--panel));
+}
+.sever2-plan-copy{
+  display:flex;
+  align-items:center;
+  min-width:0;
+  gap:10px;
+}
+.sever2-plan-copy>svg{
+  flex:0 0 auto;
+  width:22px;
+  height:22px;
+  color:var(--accent,var(--sever-blue));
+}
+.sever2-plan-copy span{display:grid;min-width:0;gap:2px}
+.sever2-plan-copy b{color:var(--text-primary,var(--text));font-size:14px}
+.sever2-plan-copy em{color:var(--text-muted,var(--muted));font-size:11px;font-style:normal}
+.sever2-plan-start{
+  display:flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-height:42px;
+  padding:0 14px;
+  border:0;
+  border-radius:12px;
+  background:var(--accent,var(--sever-blue));
+  color:#fff;
+  font:inherit;
+  font-size:12px;
+  font-weight:800;
+}
+html[data-theme="black"] .sever2-plan-start{color:#06110d}
+
+@media (max-width:900px){
+  #calendarView>.heading{
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+  .sever2-calendar-modes{
+    order:3;
+    width:100%;
+    margin:8px 0 0;
+  }
+  .sever2-calendar-modes button{flex:1;min-height:42px}
+  .sever2-day-panel{
+    margin-top:12px;
+    padding:14px 12px;
+    border-radius:17px;
+  }
+  .sever2-day-head{
+    display:grid;
+    gap:12px;
+  }
+  .sever2-day-head h2{font-size:19px}
+  .sever2-day-nav{width:100%;display:grid;grid-template-columns:44px 1fr 44px}
+  .sever2-day-nav button{min-height:44px;padding:0}
+  .sever2-timeline::before{left:46px}
+  .sever2-timeline-task{grid-template-columns:47px minmax(0,1fr) auto;min-height:70px}
+  .sever2-timeline-task::before{left:43px}
+  .sever2-time-marker{padding-left:6px}
+  .sever2-timeline-copy{padding-left:16px}
+  .sever2-timeline-actions button{width:44px;height:44px}
+  .sever2-timeline-actions{gap:4px;padding-right:6px}
+  .sever2-today-plan{margin:10px 0 0;padding:12px;border-radius:15px}
+  .sever2-plan-start{min-width:44px;min-height:44px;padding:0 12px}
+  .sever2-plan-start span{display:none}
+  .sever2-reschedule-row{grid-template-columns:1fr 1fr 1fr}
+}
+
+@media (max-width:360px){
+  .sever2-timeline-task{grid-template-columns:44px minmax(0,1fr) 48px}
+  .sever2-timeline-actions [data-edit]{display:none}
+  .sever2-reschedule-row{grid-template-columns:1fr 1fr}
+  .sever2-date-picker{grid-column:1/-1}
+}
