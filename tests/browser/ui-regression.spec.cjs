@@ -25,7 +25,12 @@ for(const [width,height] of [[320,568],[360,800],[375,812],[390,844],[393,852],[
       const geom=await page.evaluate(()=>{const r=s=>document.querySelector(s).getBoundingClientRect().toJSON();return{ai:r('#severAiOpen'),nav:r('.bottom-nav'),circle:r('.mobile-create .nav-icon'),home:r('#sever2HomeFocus'),summaryDisplay:getComputedStyle(document.querySelector('#todayDashboard')).display,legacyTasksDisplay:getComputedStyle(document.querySelector('#todayTasks')).display,theme:document.documentElement.dataset.theme,topbar:r('.topbar')};});
       expect(geom.ai.top).toBeGreaterThanOrEqual(0);expect(geom.ai.bottom).toBeLessThanOrEqual(geom.nav.top);expect(geom.ai.width).toBeGreaterThanOrEqual(44);expect(geom.ai.right).toBeLessThanOrEqual(width);expect(Math.abs(geom.circle.width-geom.circle.height)).toBeLessThan(1);
       expect(geom.theme).toBe('light');expect(geom.summaryDisplay).toBe('none');expect(geom.legacyTasksDisplay).toBe('none');expect(geom.home.top).toBeGreaterThanOrEqual(geom.topbar.bottom-1);
-      const lastShortcut=page.locator('.sever2-home-shortcuts>button').last();await lastShortcut.scrollIntoViewIfNeeded();const last=await lastShortcut.boundingBox();const navTop=await page.locator('.bottom-nav').evaluate(el=>el.getBoundingClientRect().top);expect(last.y+last.height).toBeLessThanOrEqual(navTop+1);
+      expect(await page.locator('#sever2HomeCreate').count()).toBe(0);
+      await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
+      await page.waitForTimeout(50);
+      const lastShortcut=page.locator('.sever2-home-shortcuts>button').last(),last=await lastShortcut.boundingBox(),navTop=await page.locator('.bottom-nav').evaluate(el=>el.getBoundingClientRect().top);
+      expect(last.y+last.height).toBeLessThanOrEqual(navTop+1);
+      const createBox=await page.locator('#mobileCreateBtn').boundingBox();expect(createBox.height).toBeGreaterThanOrEqual(44);
       await page.locator('#mobileCreateBtn').click();await expect(page.locator('#quickAddDialog')).toBeVisible();await check();await page.locator('[data-close="quickAddDialog"]').first().click();
     }
     expect(errors).toEqual([]);
