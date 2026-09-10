@@ -65,7 +65,8 @@
     ['sever2-productivity-script', 'sever2-productivity.js?v=64'],
     ['sever2-focus-flow-script', 'sever2-focus-flow.js?v=66'],
     ['sever2-efficiency-script', 'sever2-efficiency.js?v=67'],
-    ['sever2-calendar-clarity-script', 'sever2-calendar-clarity.js?v=68']
+    ['sever2-calendar-clarity-script', 'sever2-calendar-clarity.js?v=68'],
+    ['sever2-create-flow-script', 'sever2-create-flow.js?v=69']
   ];
 
   function normalize(value) {
@@ -104,7 +105,7 @@
       const script = document.createElement('script');
       script.src = src;
       script.defer = true;
-      script.setAttribute(`data-${marker}`, 'v68');
+      script.setAttribute(`data-${marker}`, 'v69');
       document.head.appendChild(script);
     });
   }
