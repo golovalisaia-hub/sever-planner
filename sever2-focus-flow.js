@@ -176,7 +176,11 @@
   function installObservers() {
     if (document.documentElement.dataset.severFocusFlowObservers === 'ready') return;
     document.documentElement.dataset.severFocusFlowObservers = 'ready';
-    const targets = [$('#timerView'), $('#timerDisplay'), $('#todayTasks'), $('#activeTimerTask')].filter(Boolean);
+
+    /* Never observe #timerView itself: #sever2FocusQueue lives inside it and
+       renderQueue() replaces queue children. Observing the parent caused a
+       self-triggering render loop that detached buttons while users clicked. */
+    const targets = [$('#timerDisplay'), $('#todayTasks'), $('#activeTimerTask')].filter(Boolean);
     const observer = new MutationObserver(requestRender);
     targets.forEach(target => observer.observe(target, { childList:true, subtree:true, characterData:true, attributes:true }));
 
