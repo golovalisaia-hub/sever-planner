@@ -10,7 +10,7 @@
    *   light  -> Calm Balance
    *   motion -> Cozy Mood
    *   black  -> Focus Peak
-   * Aurora/North are retired from the visible product and migrate to Calm.
+   * Aurora/North are retired from the visible product and present as Calm.
    */
   const allowed = new Set(['light', 'motion', 'black']);
   const aliases = {
@@ -54,8 +54,8 @@
   const stylesheets = [
     ['sever-desktop-system', 'desktop-system.css?v=60'],
     ['sever-theme-pack', 'themes.css?v=60'],
-    ['sever2-ui-pack', 'sever2-ui.css?v=60'],
-    ['sever2-qa-pack', 'sever2-qa.css?v=60']
+    ['sever2-ui-pack', 'sever2-ui.css?v=61'],
+    ['sever2-qa-pack', 'sever2-qa.css?v=61']
   ];
 
   function normalize(value) {
@@ -85,7 +85,7 @@
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
-      link.setAttribute(`data-${marker}`, 'v60');
+      link.setAttribute(`data-${marker}`, 'v61');
       document.head.appendChild(link);
     });
   }
@@ -179,18 +179,18 @@
 
     picker.dataset.severThemePackReady = 'true';
 
-    /* Existing Aurora/North users migrate through the real app handler. Check
-     * both DOM and persisted value because app.js may briefly restore a legacy
-     * setting before this bootstrap receives DOMContentLoaded. */
+    /* Legacy Aurora/North values stay valid in old synchronized records so a
+     * visual-only release does not rewrite user data merely because it loaded.
+     * Their visible presentation is normalized to Calm. A deliberate theme
+     * choice still persists through the existing app handler. */
     const currentRaw = document.documentElement.dataset.theme || '';
     const persistedRaw = readPersistedTheme();
     const selected = normalize(persistedRaw || currentRaw);
     if (!allowed.has(currentRaw) || (persistedRaw && !allowed.has(persistedRaw))) {
-      const target = buttons.get(selected) || buttons.get('light');
-      if (target?.onclick) target.click();
-      else document.documentElement.dataset.theme = selected;
+      try { localStorage.setItem('sever-theme', selected); } catch {}
+      document.documentElement.dataset.theme = selected;
     }
-    syncPresentation(document.documentElement.dataset.theme);
+    syncPresentation(selected);
   }
 
   function polishCopy() {
