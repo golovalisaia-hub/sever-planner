@@ -241,7 +241,9 @@
   function installMonthNavigation() {
     const heading = $('#calendarView > .heading');
     if (!heading) return;
-    const actions = heading.querySelector(':scope > div:last-child');
+    const next = $('#nextMonth');
+    const prev = $('#prevMonth');
+    const actions = next?.parentElement || prev?.parentElement || heading.querySelector(':scope > div:last-child');
     if (!actions) return;
     actions.classList.add('sever2-calendar-heading-actions');
     if (!$('#sever2CalendarToday')) {
@@ -251,8 +253,7 @@
       today.className = 'sever2-calendar-today';
       today.textContent = 'Сегодня';
       today.addEventListener('click', goToCurrentMonth);
-      const next = $('#nextMonth');
-      if (next) actions.insertBefore(today, next);
+      if (next && next.parentElement === actions) actions.insertBefore(today, next);
       else actions.appendChild(today);
     }
   }
