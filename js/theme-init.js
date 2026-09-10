@@ -54,7 +54,8 @@
   const stylesheets = [
     ['sever-desktop-system', 'desktop-system.css?v=60'],
     ['sever-theme-pack', 'themes.css?v=60'],
-    ['sever2-ui-pack', 'sever2-ui.css?v=60']
+    ['sever2-ui-pack', 'sever2-ui.css?v=60'],
+    ['sever2-qa-pack', 'sever2-qa.css?v=60']
   ];
 
   function normalize(value) {
