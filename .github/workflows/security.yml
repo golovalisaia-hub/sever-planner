@@ -28,6 +28,14 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Browser E2E (phones and desktop)
         run: pnpm exec playwright test
+      - name: Upload SEVER 2 visual review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sever2-visual-review
+          path: test-results/sever2-visual
+          if-no-files-found: ignore
+          retention-days: 3
       - name: Concurrent sync (isolated PostgreSQL and desktop/mobile contexts)
         run: node tests/browser/concurrent-db.cjs
       - name: Static regression
