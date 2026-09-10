@@ -29,11 +29,11 @@ test.beforeEach(async ({ page }) => {
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severHomeFocus)).toBe('ready');
 });
 
-test('Home is reduced to today priorities, Inbox and Focus without changing planner data', async ({ page }) => {
+test('Home is one focused surface without duplicated legacy sections or planner mutations', async ({ page }) => {
   const before = await page.evaluate(() => JSON.stringify(window.SeverApp.getState()));
   await expect(page.locator('#sever2HomeFocus')).toBeVisible();
   await expect(page.locator('#todayView')).toHaveClass(/sever2-home-simple/);
-  for (const selector of ['.today-motivation','.course-card','#quickForm','#todayDashboard','.today-quote','.sever2-today-plan','.sever2-home-inbox']) {
+  for (const selector of ['.today-hero','.today-motivation','.course-card','#quickForm','#todayDashboard','#todayFocusWidget','.today-quote','.sever2-today-plan','.sever2-home-inbox','.today-list-head','#todayFilters','#todayTasks','.today-utilities']) {
     await expect(page.locator(`#todayView ${selector}`).first()).toBeHidden();
   }
   const titles = await page.locator('#sever2HomeTopTasks .sever2-home-focus-copy b').allTextContents();
@@ -41,10 +41,11 @@ test('Home is reduced to today priorities, Inbox and Focus without changing plan
   await expect(page.locator('#sever2HomeFocusSummary')).toContainText('3 осталось');
   await expect(page.locator('#sever2HomeFocusSummary')).toContainText('1 готово');
   await expect(page.locator('#sever2HomeInboxCount')).toContainText('1 задача без даты');
+  await expect(page.locator('#sever2HomeQuickNoteButton')).toBeVisible();
   expect(await page.evaluate(() => JSON.stringify(window.SeverApp.getState()))).toBe(before);
 });
 
-test('Home shortcuts keep Create, Inbox and Focus as direct actions', async ({ page }, info) => {
+test('Home keeps Create, Inbox, Focus and Quick note as direct actions', async ({ page }, info) => {
   if (info.project.name !== 'desktop') {
     const createBox = await page.locator('#sever2HomeCreate').boundingBox();
     expect(createBox).not.toBeNull();
@@ -61,6 +62,10 @@ test('Home shortcuts keep Create, Inbox and Focus as direct actions', async ({ p
   await expect(page.locator('#sever2InboxPanel')).toContainText('Без даты');
 
   await page.evaluate(() => window.SeverApp.switchView('today'));
+  await page.locator('#sever2HomeQuickNoteButton').click();
+  await expect(page.locator('#quickNoteDialog')).toBeVisible();
+  await page.locator('[data-close="quickNoteDialog"]').click();
+
   await page.locator('#sever2HomeFocusButton').click();
   await expect(page.locator('#timerView')).toBeVisible();
 });
