@@ -98,28 +98,30 @@ html[data-theme="black"] .sever2-home-focus-start{color:#06110d}
 .sever2-home-top-tasks{display:grid;gap:8px}
 .sever2-home-focus-task{
   display:grid;
-  grid-template-columns:34px minmax(0,1fr) 44px;
+  grid-template-columns:44px minmax(0,1fr) 44px;
   align-items:center;
   gap:10px;
   min-height:64px;
-  padding:8px 9px 8px 10px;
+  padding:8px 9px;
   border:1px solid var(--border-subtle,var(--line));
   border-radius:15px;
   background:var(--surface-2,var(--panel2));
   transition:border-color .16s ease,transform .16s ease,background .16s ease;
 }
 .sever2-home-focus-task:hover{border-color:var(--border-strong,var(--line));transform:translateY(-1px)}
-.sever2-home-focus-number{
+.sever2-home-focus-check{
   display:grid;
-  width:30px;
-  height:30px;
+  width:44px;
+  height:44px;
   place-items:center;
-  border-radius:10px;
-  background:color-mix(in srgb,var(--accent,var(--sever-blue)) 12%,transparent);
+  padding:0;
+  border:1px solid var(--border-strong,var(--line));
+  border-radius:12px;
+  background:var(--surface-1,var(--panel));
   color:var(--accent,var(--sever-blue));
-  font-size:12px;
-  font-weight:900;
 }
+.sever2-home-focus-check:hover{background:var(--accent-soft,var(--surface-1));border-color:var(--accent,var(--sever-blue))}
+.sever2-home-focus-check svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .sever2-home-focus-copy{
   display:grid;
   min-width:0;
@@ -238,8 +240,8 @@ html[data-theme="black"] .sever2-home-focus-start{color:#06110d}
   .sever2-home-focus-head p{font-size:12px}
   #sever2HomeCreate{min-width:44px;min-height:44px;padding:0 12px}
   #sever2HomeCreate span{display:none}
-  .sever2-home-focus-task{grid-template-columns:32px minmax(0,1fr) 44px;min-height:62px;gap:8px}
-  .sever2-home-focus-start{width:44px;height:44px}
+  .sever2-home-focus-task{grid-template-columns:44px minmax(0,1fr) 44px;min-height:62px;gap:8px}
+  .sever2-home-focus-check,.sever2-home-focus-start{width:44px;height:44px}
   .sever2-home-shortcuts{grid-template-columns:1fr}
   .sever2-home-shortcuts>button{min-height:56px}
 }
@@ -247,6 +249,7 @@ html[data-theme="black"] .sever2-home-focus-start{color:#06110d}
 @media (max-width:360px){
   .sever2-home-focus-head h2{font-size:20px}
   .sever2-home-focus{padding:12px}
+  .sever2-home-focus-task{gap:6px;padding:7px}
 }
 
 @media (prefers-reduced-motion:reduce){
