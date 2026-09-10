@@ -141,19 +141,19 @@ async function main() {
       s.notes.push({id:id.note,title:'Desktop note',body:'Body',folderId:id.folder,kind:'text',items:[],createdAt:t,updatedAt:t});
       s.habits.push({id:id.habit,title:'Regression habit',createdAt:t,updatedAt:t});s.checks[id.habit]=[date];
       s.focusSessions.push({id:id.focus,taskId:id.task,durationMinutes:25,startedAt:t-1500000,completedAt:t,status:'completed',createdAt:t,updatedAt:t});
-      s.profile.name='Regression A';s.appearance.theme='focus';
+      s.profile.name='Regression A';s.appearance.theme='aurora';
     },ids);
     await until(async()=>(await snapshot(m)).tasks.some(x=>x.id===ids.task),'automatic event delivery');
     await converge([p,m]);const s=await snapshot(m);
     assert.ok(s.notes.some(x=>x.id===ids.note&&x.folderId===ids.folder));assert.ok(s.folders.some(x=>x.id===ids.folder));
-    assert.ok(s.focusSessions.some(x=>x.id===ids.focus));assert.equal(s.checks[ids.habit].length,1);assert.equal(s.profile.name,'Regression A');assert.equal(s.appearance.theme,'focus');
+    assert.ok(s.focusSessions.some(x=>x.id===ids.focus));assert.equal(s.checks[ids.habit].length,1);assert.equal(s.profile.name,'Regression A');assert.equal(s.appearance.theme,'aurora');
     assert.ok(s.tasks.some(x=>x.category==='Regression tag'));
   });
   await check('Mobile to desktop: edits, progress and settings',async()=>{
     await edit(m,(s,id)=>{s.tasks.find(x=>x.id===id.task).completed=true;s.tasks.find(x=>x.id===id.task).completedAt=Date.now();
-      s.notes.find(x=>x.id===id.note).body='Mobile body';s.folders.find(x=>x.id===id.folder).name='Mobile folder';s.appearance.theme='cozy';},ids);
+      s.notes.find(x=>x.id===id.note).body='Mobile body';s.folders.find(x=>x.id===id.folder).name='Mobile folder';s.appearance.theme='aurora';},ids);
     await until(async()=>(await snapshot(p)).notes.some(x=>x.body==='Mobile body'),'reverse event delivery');await converge([p,m]);
-    const s=await snapshot(p);assert.equal(s.tasks.find(x=>x.id===ids.task).completed,true);assert.equal(s.appearance.theme,'cozy');assert.equal(s.folders.find(x=>x.id===ids.folder).name,'Mobile folder');
+    const s=await snapshot(p);assert.equal(s.tasks.find(x=>x.id===ids.task).completed,true);assert.equal(s.appearance.theme,'aurora');assert.equal(s.folders.find(x=>x.id===ids.folder).name,'Mobile folder');
   });
   await check('B UI cannot see A data',async()=>{
     await converge([b]);const s=await snapshot(b);
@@ -233,7 +233,7 @@ async function main() {
   await check('New independent browser context restores all records from DB only',async()=>{
     const ctx=await context(A,true),q=await open(ctx);await converge([q,p]);const s=await snapshot(q);
     assert.ok(s.tasks.some(x=>x.id===ids.task));assert.equal(s.notes.find(x=>x.id===ids.note).body,'After reconnect');
-    assert.ok(s.folders.some(x=>x.id===ids.folder));assert.ok(s.focusSessions.some(x=>x.id===ids.focus));assert.equal(s.appearance.theme,'cozy');await ctx.close();
+    assert.ok(s.folders.some(x=>x.id===ids.folder));assert.ok(s.focusSessions.some(x=>x.id===ids.focus));assert.equal(s.appearance.theme,'aurora');await ctx.close();
   });
   await check('Concurrent different fields of the same record retain BOTH edits (strict no-loss requirement)',async()=>{
     await converge([p,m]);
