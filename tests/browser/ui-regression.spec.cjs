@@ -18,9 +18,13 @@ for(const [width,height] of [[320,568],[360,800],[375,812],[390,844],[393,852],[
     await page.locator('#severAiOpen').click();await expect(page.locator('#severAiInput')).toBeVisible();await check();await page.locator('#severAiClose').click();await expect(page.locator('#severAiPanel')).toBeHidden();
     await page.evaluate(()=>{const a=window.SeverApp,s=a.getState();s.profile.name='Очень длинное имя пользователя без сокращений';const d=new Date().toLocaleDateString('sv-SE');s.tasks=Array.from({length:12},(_,i)=>({id:'visual-'+i,title:'Длинное название задачи с подробностями '.repeat(3),date:d,completed:false,category:'Личное',duration:null}));a.render();a.switchView('today');});await check();
     if(width<=900){
-      const geom=await page.evaluate(()=>{const r=s=>document.querySelector(s).getBoundingClientRect().toJSON();return{ai:r('#severAiOpen'),nav:r('.bottom-nav'),circle:r('.mobile-create .nav-icon'),tasks:r('#todayTasks'),summary:r('#todayDashboard')};});
-      expect(geom.ai.top).toBeGreaterThanOrEqual(0);expect(geom.ai.bottom).toBeLessThanOrEqual(geom.nav.top);expect(geom.ai.width).toBeGreaterThanOrEqual(44);expect(geom.ai.right).toBeLessThanOrEqual(width);expect(Math.abs(geom.circle.width-geom.circle.height)).toBeLessThan(1);expect(geom.tasks.top).toBeLessThan(geom.summary.top);
-      await page.locator('#todayTasks .task').last().scrollIntoViewIfNeeded();const last=await page.locator('#todayTasks .task').last().boundingBox();expect(last.y+last.height).toBeLessThanOrEqual(geom.nav.top);
+      const geom=await page.evaluate(()=>{const r=s=>document.querySelector(s).getBoundingClientRect().toJSON();return{ai:r('#severAiOpen'),nav:r('.bottom-nav'),circle:r('.mobile-create .nav-icon'),tasks:r('#todayTasks'),summary:r('#todayDashboard'),summaryDisplay:getComputedStyle(document.querySelector('#todayDashboard')).display,theme:document.documentElement.dataset.theme,topbar:r('.topbar')};});
+      expect(geom.ai.top).toBeGreaterThanOrEqual(0);expect(geom.ai.bottom).toBeLessThanOrEqual(geom.nav.top);expect(geom.ai.width).toBeGreaterThanOrEqual(44);expect(geom.ai.right).toBeLessThanOrEqual(width);expect(Math.abs(geom.circle.width-geom.circle.height)).toBeLessThan(1);
+      /* The legacy Aurora setting must migrate into Calm Balance. Calm's mobile
+         reference intentionally removes the old dashboard wall, so task order
+         is validated against the fixed app header instead of a hidden summary. */
+      expect(geom.theme).toBe('light');expect(geom.summaryDisplay).toBe('none');expect(geom.tasks.top).toBeGreaterThanOrEqual(geom.topbar.bottom-1);
+      await page.locator('#todayTasks .task').last().scrollIntoViewIfNeeded();const last=await page.locator('#todayTasks .task').last().boundingBox();const navTop=await page.locator('.bottom-nav').evaluate(el=>el.getBoundingClientRect().top);expect(last.y+last.height).toBeLessThanOrEqual(navTop);
       await page.locator('#mobileCreateBtn').click();await expect(page.locator('#quickAddDialog')).toBeVisible();await check();await page.locator('[data-close="quickAddDialog"]').click();
     }
     expect(errors).toEqual([]);
@@ -74,6 +78,3 @@ test('task metadata and neutral checklist hints are presentation only',async({pa
   await expect(page.locator('#noteItemsEditor input[type="text"]').first()).toHaveAttribute('placeholder','Название пункта');
   expect(errors).toEqual([]);
 });
-
-
-
