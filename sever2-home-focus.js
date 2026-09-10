@@ -35,6 +35,9 @@
       return Number(a.createdAt || 0) - Number(b.createdAt || 0);
     });
   }
+  function dateLabel() {
+    return new Intl.DateTimeFormat('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toLocaleUpperCase('ru-RU');
+  }
   function simplifyLegacyShell(view) {
     LEGACY_HOME_SELECTORS.forEach(selector => {
       view.querySelectorAll(selector).forEach(node => {
@@ -55,11 +58,6 @@
     const id = String(task?.id ?? '');
     if (!id) return null;
     return [...document.querySelectorAll('#todayTasks .task')].find(item => item.dataset.taskId === id) || null;
-  }
-  function openCreate() {
-    const desktop = $('#globalAddBtn'), mobile = $('#mobileCreateBtn');
-    const trigger = desktop && getComputedStyle(desktop).display !== 'none' ? desktop : mobile;
-    trigger?.click();
   }
   function openInbox() {
     window.SeverApp?.switchView?.('calendar');
@@ -91,8 +89,7 @@
     shell.setAttribute('aria-label', 'Главное на сегодня');
     shell.innerHTML = `
       <div class="sever2-home-focus-head">
-        <div><small>СЕГОДНЯ</small><h2>Главное на день</h2><p id="sever2HomeFocusSummary">План на сегодня</p></div>
-        <button id="sever2HomeCreate" type="button" aria-label="Создать"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Создать</span></button>
+        <div><small id="sever2HomeDate">СЕГОДНЯ</small><h2>Сегодня</h2><p id="sever2HomeFocusSummary">План на сегодня</p></div>
       </div>
       <div id="sever2HomeTopTasks" class="sever2-home-top-tasks"></div>
       <button id="sever2HomeMoreTasks" class="sever2-home-more" type="button" hidden></button>
@@ -104,7 +101,6 @@
     const anchor = $('.today-list-head') || $('#todayTasks') || view.firstChild;
     if (anchor?.parentNode === view) view.insertBefore(shell, anchor);
     else view.prepend(shell);
-    $('#sever2HomeCreate')?.addEventListener('click', openCreate);
     $('#sever2HomeMoreTasks')?.addEventListener('click', openDay);
     $('#sever2HomeInboxButton')?.addEventListener('click', openInbox);
     $('#sever2HomeFocusButton')?.addEventListener('click', () => window.SeverApp?.switchView?.('timer'));
@@ -119,7 +115,8 @@
     indexOriginalRows(all);
     const pending = all.filter(task => !task.completed), done = all.filter(task => task.completed), inbox = inboxTasks();
     const minutes = pending.reduce((sum, task) => sum + (Number(task.duration) || 0), 0), top = rankTasks(pending).slice(0, 3);
-    $('#sever2HomeFocusSummary').textContent = all.length ? `${pending.length} осталось · ${done.length} готово${minutes ? ` · ${minutes} мин` : ''}` : 'День свободен — добавьте только то, что действительно нужно';
+    const date = $('#sever2HomeDate'); if (date) date.textContent = dateLabel();
+    $('#sever2HomeFocusSummary').textContent = all.length ? `${pending.length} осталось · ${done.length} готово${minutes ? ` · ${minutes} мин` : ''}` : 'План свободен — добавляйте только то, что действительно нужно';
     $('#sever2HomeInboxCount').textContent = inbox.length ? `${inbox.length} ${taskWord(inbox.length)} без даты` : 'Нет задач без даты';
     const more = Math.max(0, pending.length - top.length), moreButton = $('#sever2HomeMoreTasks');
     if (moreButton) {
@@ -129,8 +126,8 @@
     const list = $('#sever2HomeTopTasks'); list.replaceChildren();
     if (!top.length) {
       const empty = document.createElement('div'); empty.className = 'sever2-home-focus-empty';
-      empty.innerHTML = '<b>На сегодня всё спокойно</b><span>Можно добавить одно важное дело или оставить день свободным.</span>';
-      const button = document.createElement('button'); button.type = 'button'; button.textContent = 'Добавить задачу'; button.addEventListener('click', openCreate); empty.appendChild(button); list.appendChild(empty);
+      empty.innerHTML = '<b>На сегодня всё спокойно</b><span>Если появится важное дело, добавьте его через центральную кнопку «Создать».</span>';
+      list.appendChild(empty);
     } else {
       top.forEach(task => {
         const row = document.createElement('article'); row.className = 'sever2-home-focus-task'; row.dataset.taskId = task.id;
@@ -151,9 +148,8 @@
     if (!window.SeverApp?.getState) return false;
     ensureShell(); scheduleRender();
     const tasks = $('#todayTasks');
-    if (tasks && !observer) { observer = new MutationObserver(scheduleRender); observer.observe(tasks, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] }); }
+    if (tasks && !observer) { observer = new MutationObserver(scheduleRender); observer.observe(tasks, { childList: true, subtree: true }); }
     window.addEventListener('sever:ready', scheduleRender);
-    window.addEventListener('focus', scheduleRender);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleRender(); });
     return true;
   }
