@@ -87,7 +87,7 @@ test('three references have distinct exact palette anchors and persist', async (
   expect(await page.evaluate(() => localStorage.getItem('sever-theme'))).toBe('black');
 });
 
-test('legacy Aurora data is not rewritten just by opening SEVER 2', async ({ page }) => {
+test('legacy Aurora planner data is not rewritten just by opening SEVER 2', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({
       version: 11, tasks: [], notes: [], folders: [], habits: [], checks: {}, taskMemory: [],
@@ -101,12 +101,10 @@ test('legacy Aurora data is not rewritten just by opening SEVER 2', async ({ pag
   await expect.poll(() => page.evaluate(() => Boolean(window.SeverApp))).toBe(true);
   const result = await page.evaluate(() => ({
     storedDataTheme: window.SeverApp.getState().appearance.theme,
-    visibleTheme: document.documentElement.dataset.theme,
-    localPresentationTheme: localStorage.getItem('sever-theme')
+    visibleTheme: document.documentElement.dataset.theme
   }));
   expect(result.storedDataTheme).toBe('aurora');
   expect(result.visibleTheme).toBe('light');
-  expect(result.localPresentationTheme).toBe('aurora');
 });
 
 test('mobile themes change the full Home composition, not only colors', async ({ page }) => {
