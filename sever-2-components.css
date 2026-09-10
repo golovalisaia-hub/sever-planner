@@ -1,0 +1,89 @@
+/* SEVER 2 shared component owners.
+ * Cross-page controls, empty states and completed-state legibility live here.
+ */
+
+/* Quick capture CTA: legacy layers must never hide its label. */
+#todayView > .quick button {
+  position:relative;
+  z-index:1;
+  opacity:1!important;
+  visibility:visible!important;
+  color:#06111b!important;
+  -webkit-text-fill-color:#06111b!important;
+  font-size:12px!important;
+  line-height:1!important;
+  text-indent:0!important;
+  letter-spacing:0!important;
+  overflow:visible!important;
+}
+#todayView > .quick button::before,
+#todayView > .quick button::after { display:none!important; content:none!important; }
+
+/* Completed items stay readable instead of fading the entire card. */
+#todayView .task.done { opacity:.86!important; }
+#todayView .task.done .task-name { opacity:.72; }
+#todayView .task.done .task-meta { opacity:.78; }
+
+/* Notes owns a calm, compact empty state. The old decorative placeholder is removed. */
+#notesView .note-list > .empty {
+  grid-column:1/-1;
+  display:grid!important;
+  min-height:230px!important;
+  width:100%!important;
+  max-width:none!important;
+  place-items:center;
+  align-content:center;
+  gap:8px;
+  padding:28px!important;
+  overflow:hidden;
+  border:1px dashed color-mix(in srgb,var(--accent) 16%,var(--border-subtle))!important;
+  border-radius:17px!important;
+  background:var(--surface-1)!important;
+  color:var(--text-secondary)!important;
+  text-align:center;
+}
+#notesView .note-list > .empty::before,
+#notesView .note-list > .empty::after { display:none!important; content:none!important; }
+#notesView .note-list > .empty > :not(b):not(p):not(button) {
+  display:none!important;
+  width:0!important;
+  height:0!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-width:0!important;
+  max-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+}
+#notesView .note-list > .empty b {
+  display:block;
+  max-width:520px;
+  margin:0!important;
+  color:var(--text-primary)!important;
+  font-size:15px!important;
+  line-height:1.35;
+}
+#notesView .note-list > .empty p {
+  display:block;
+  max-width:480px;
+  margin:0!important;
+  color:var(--text-muted)!important;
+  font-size:11.5px!important;
+  line-height:1.5;
+}
+/* Generic legacy empty CTA points at task creation, so Notes uses its dedicated + action instead. */
+#notesView .note-list > .empty button { display:none!important; }
+
+/* Prevent legacy media rules from enlarging decorative empty-state SVGs anywhere. */
+.view .empty svg {
+  width:20px!important;
+  height:20px!important;
+  max-width:20px!important;
+  max-height:20px!important;
+}
+
+@media (max-width:900px){
+  #todayView > .quick button { font-size:12px!important; }
+  #notesView .note-list > .empty { min-height:180px!important; padding:22px 16px!important; }
+}
