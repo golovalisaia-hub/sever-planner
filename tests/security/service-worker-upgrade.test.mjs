@@ -6,9 +6,9 @@ import vm from 'node:vm';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-const RELEASE_CACHE = 'sever-v64-calendar-clarity-v1';
+const RELEASE_CACHE = 'sever-v65-core-audit-v1';
 
-test('v64 service worker installs the calendar clarity release atomically and removes stale caches', async () => {
+test('v65 service worker installs the core audit release atomically and removes stale caches', async () => {
   const handlers = new Map();
   const deleted = [];
   let cachedAssets = [];
@@ -22,7 +22,7 @@ test('v64 service worker installs the calendar clarity release atomically and re
   };
   const caches = {
     open: async name => ({ addAll: async assets => { assert.equal(name, RELEASE_CACHE); cachedAssets = assets; }, put: async () => {} }),
-    keys: async () => ['sever-v35', 'sever-v62-focus-flow-v3', 'sever-v63-efficiency-v1'],
+    keys: async () => ['sever-v35', 'sever-v63-efficiency-v1', 'sever-v64-calendar-clarity-v1'],
     delete: async name => { deleted.push(name); return true; },
     match: async () => null
   };
@@ -48,7 +48,8 @@ test('v64 service worker installs the calendar clarity release atomically and re
   assert.ok(cachedAssets.includes('./sever2-efficiency.js?v=67'));
   assert.ok(cachedAssets.includes('./sever2-calendar-clarity.css?v=68'));
   assert.ok(cachedAssets.includes('./sever2-calendar-clarity.js?v=68'));
-  assert.ok(cachedAssets.includes('./js/theme-init.js?v=68'));
+  assert.ok(cachedAssets.includes('./sever2-create-flow.js?v=69'));
+  assert.ok(cachedAssets.includes('./js/theme-init.js?v=69'));
   assert.ok(cachedAssets.includes('./sever-ai.css?v=52'));
   assert.ok(cachedAssets.includes('./js/sever-ai.js?v=45'));
   assert.ok(!cachedAssets.includes('./aurora.webp'));
@@ -57,7 +58,7 @@ test('v64 service worker installs the calendar clarity release atomically and re
   let activateWork;
   handlers.get('activate')({ waitUntil: promise => { activateWork = promise; } });
   await activateWork;
-  assert.ok(deleted.includes('sever-v63-efficiency-v1'));
+  assert.ok(deleted.includes('sever-v64-calendar-clarity-v1'));
   assert.ok(!deleted.includes(RELEASE_CACHE));
   assert.equal(claimed, true);
   assert.equal(skipped, true);
@@ -66,11 +67,11 @@ test('v64 service worker installs the calendar clarity release atomically and re
   assert.equal(skipped, true);
 });
 
-test('installed release serves HTML and critical calendar assets from one release cache', async () => {
+test('installed release serves HTML and critical core assets from one release cache', async () => {
   const handlers = new Map(), requests = [];
   let network = 0;
   const self = { location: { origin: 'https://example.test' }, registration: { scope: 'https://example.test/sever-planner/' }, addEventListener: (name, fn) => handlers.set(name, fn) };
-  const caches = { open: async name => { assert.equal(name, RELEASE_CACHE); return { match: async key => { requests.push(key); return { release: 64, key }; } }; } };
+  const caches = { open: async name => { assert.equal(name, RELEASE_CACHE); return { match: async key => { requests.push(key); return { release: 65, key }; } }; } };
   vm.runInNewContext(source, { self, caches, URL, Response, fetch: async () => { network++; throw Error('network must not update a release'); } });
   for (const [pathValue, mode, expected] of [
     ['?verify=new','navigate','./index.html'],
@@ -87,7 +88,8 @@ test('installed release serves HTML and critical calendar assets from one releas
     ['sever2-efficiency.js?v=old','cors','./sever2-efficiency.js?v=67'],
     ['sever2-calendar-clarity.css?v=old','cors','./sever2-calendar-clarity.css?v=68'],
     ['sever2-calendar-clarity.js?v=old','cors','./sever2-calendar-clarity.js?v=68'],
-    ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=68'],
+    ['sever2-create-flow.js?v=old','cors','./sever2-create-flow.js?v=69'],
+    ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=69'],
     ['app.js?v=new','cors','./app.js?v=51']
   ]) {
     let response;
@@ -95,5 +97,5 @@ test('installed release serves HTML and critical calendar assets from one releas
     assert.equal((await response).key, expected);
   }
   assert.equal(network, 0);
-  assert.equal(requests.length, 16);
+  assert.equal(requests.length, 17);
 });
