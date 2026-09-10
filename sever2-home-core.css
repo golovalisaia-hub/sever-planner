@@ -1,0 +1,298 @@
+/* SEVER 2 Home core: Today first, no dashboard wall, no duplicated summary cards. */
+
+#todayView > .today-motivation,
+#todayView > .course-card,
+#todayView > #todayDashboard,
+#todayView > .today-quote,
+#todayView > .sever2-today-plan,
+#todayView > .sever2-home-inbox{
+  display:none!important;
+}
+
+#todayView .today-hero{
+  min-height:0;
+  margin-bottom:10px;
+  padding:4px 2px 2px;
+  border:0;
+  background:none!important;
+  box-shadow:none!important;
+}
+#todayView .today-hero::before,
+#todayView .today-hero::after{display:none!important}
+#todayView .today-hero-copy{max-width:none}
+#todayView .today-hero-copy small{color:var(--text-muted,var(--muted));font-size:10px;letter-spacing:.08em}
+#todayView .today-hero-copy h1{margin:3px 0 2px;font-size:clamp(24px,3vw,32px);line-height:1.1}
+#todayView .today-hero-copy p{margin:0;color:var(--text-secondary,var(--muted));font-size:13px}
+
+.sever2-home-core{
+  display:grid;
+  gap:12px;
+  margin:12px 0 14px;
+}
+.sever2-home-core svg{
+  width:18px;
+  height:18px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.sever2-home-core button{font:inherit}
+.sever2-home-core .hidden{display:none!important}
+
+.sever2-home-now{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:18px;
+  align-items:stretch;
+  padding:22px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:22px;
+  background:
+    linear-gradient(135deg,color-mix(in srgb,var(--accent,var(--sever-blue)) 8%,transparent),transparent 58%),
+    var(--surface-1,var(--panel));
+  box-shadow:var(--shadow-sm,0 10px 30px rgba(0,0,0,.06));
+}
+.sever2-home-now-copy{display:grid;align-content:center;min-width:0}
+.sever2-home-now-copy>small,
+.sever2-home-priority header small,
+.sever2-home-inbox-link small,
+.sever2-home-stats small{
+  color:var(--text-muted,var(--muted));
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.09em;
+}
+.sever2-home-now-copy h2{
+  max-width:760px;
+  margin:5px 0 4px;
+  overflow-wrap:anywhere;
+  color:var(--text-primary,var(--text));
+  font-size:clamp(21px,2.5vw,30px);
+  line-height:1.12;
+}
+.sever2-home-now-copy p{
+  margin:0;
+  color:var(--text-secondary,var(--muted));
+  font-size:13px;
+  line-height:1.45;
+}
+.sever2-home-now-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:16px;
+}
+.sever2-home-now-actions button{
+  display:inline-flex;
+  min-height:44px;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:0 14px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:12px;
+  background:var(--surface-2,var(--panel2));
+  color:var(--text-primary,var(--text));
+  font-size:12px;
+  font-weight:800;
+}
+.sever2-home-now-actions button.primary{
+  border-color:var(--accent,var(--sever-blue));
+  background:var(--accent,var(--sever-blue));
+  color:#fff;
+}
+html[data-theme="black"] .sever2-home-now-actions button.primary{color:#06110d}
+
+.sever2-home-stats{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(84px,1fr));
+  align-items:stretch;
+  overflow:hidden;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:16px;
+  background:var(--surface-2,var(--panel2));
+}
+.sever2-home-stats>span{
+  display:grid;
+  min-width:84px;
+  align-content:center;
+  gap:4px;
+  padding:14px 16px;
+}
+.sever2-home-stats>span+span{border-left:1px solid var(--border-subtle,var(--line))}
+.sever2-home-stats b{color:var(--text-primary,var(--text));font-size:18px;line-height:1.1;white-space:nowrap}
+
+.sever2-home-priority{
+  padding:16px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:18px;
+  background:var(--surface-1,var(--panel));
+}
+.sever2-home-priority header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.sever2-home-priority header>span{display:grid;gap:2px}
+.sever2-home-priority header b{color:var(--text-primary,var(--text));font-size:14px}
+.sever2-home-priority header button{
+  display:flex;
+  min-height:40px;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  padding:0 10px;
+  border:0;
+  border-radius:10px;
+  background:transparent;
+  color:var(--text-secondary,var(--muted));
+  font-size:11px;
+  font-weight:800;
+}
+.sever2-home-priority header button:hover{background:var(--surface-2,var(--panel2));color:var(--text-primary,var(--text))}
+.sever2-home-priority>p{margin:8px 0 10px;color:var(--text-muted,var(--muted));font-size:11px}
+.sever2-home-priority-list{display:grid;gap:6px}
+.sever2-home-priority-row{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) 44px;
+  align-items:center;
+  gap:10px;
+  min-height:58px;
+  padding:6px 7px 6px 8px;
+  border:1px solid transparent;
+  border-radius:13px;
+  background:var(--surface-2,var(--panel2));
+}
+.sever2-home-priority-number{
+  display:grid;
+  width:30px;
+  height:30px;
+  place-items:center;
+  border-radius:9px;
+  background:color-mix(in srgb,var(--accent,var(--sever-blue)) 12%,var(--surface-1,var(--panel)));
+  color:var(--accent,var(--sever-blue));
+  font-size:12px;
+  font-weight:900;
+}
+.sever2-home-priority-copy{display:grid;min-width:0;gap:3px}
+.sever2-home-priority-copy b{
+  overflow:hidden;
+  color:var(--text-primary,var(--text));
+  font-size:13px;
+  line-height:1.3;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.sever2-home-priority-copy small{
+  overflow:hidden;
+  color:var(--text-muted,var(--muted));
+  font-size:10px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.sever2-home-priority-row>[data-home-focus]{
+  display:grid;
+  width:44px;
+  height:44px;
+  place-items:center;
+  padding:0;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:11px;
+  background:var(--surface-1,var(--panel));
+  color:var(--accent,var(--sever-blue));
+}
+.sever2-home-priority-row>[data-home-focus]:hover{border-color:var(--accent,var(--sever-blue));background:color-mix(in srgb,var(--accent,var(--sever-blue)) 8%,var(--surface-1,var(--panel)))}
+
+.sever2-home-empty-list{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:58px;
+  padding:10px 12px;
+  border-radius:13px;
+  background:var(--surface-2,var(--panel2));
+  color:var(--text-muted,var(--muted));
+}
+.sever2-home-empty-list>svg{flex:0 0 auto;width:22px;height:22px;color:var(--accent,var(--sever-blue))}
+.sever2-home-empty-list>span{display:grid;gap:2px}
+.sever2-home-empty-list b{color:var(--text-primary,var(--text));font-size:13px}
+.sever2-home-empty-list small{font-size:10px;line-height:1.35}
+
+.sever2-home-inbox-link{
+  display:flex;
+  width:100%;
+  min-height:58px;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:8px 12px;
+  border:1px solid var(--border-subtle,var(--line));
+  border-radius:15px;
+  background:var(--surface-1,var(--panel));
+  color:var(--text-primary,var(--text));
+  text-align:left;
+}
+.sever2-home-inbox-link>span{display:flex;align-items:center;gap:9px}
+.sever2-home-inbox-link>span:first-child>svg{width:22px;height:22px;color:var(--accent,var(--sever-blue))}
+.sever2-home-inbox-link>span:first-child>span{display:grid;gap:1px}
+.sever2-home-inbox-link b{font-size:12px}
+.sever2-home-inbox-link b i{font-style:normal}
+.sever2-home-inbox-link>span:last-child{color:var(--text-secondary,var(--muted));font-size:11px;font-weight:800}
+.sever2-home-inbox-link>span:last-child svg{width:15px;height:15px}
+
+#todayView #challengeBlock:not(.hidden){
+  margin:12px 0;
+  border-radius:18px;
+}
+#todayView .quick{
+  margin-top:12px;
+}
+#todayView .today-list-head{
+  margin-top:16px;
+}
+
+@media (max-width:1100px){
+  .sever2-home-now{grid-template-columns:minmax(0,1fr)}
+  .sever2-home-stats{grid-template-columns:repeat(3,1fr)}
+}
+
+@media (max-width:900px){
+  #todayView .today-hero{margin-bottom:6px;padding:2px 1px}
+  #todayView .today-hero-copy h1{font-size:24px}
+  #todayView .today-hero-copy p{font-size:12px}
+  .sever2-home-core{gap:9px;margin:8px 0 10px}
+  .sever2-home-now{gap:13px;padding:15px;border-radius:18px}
+  .sever2-home-now-copy h2{font-size:21px}
+  .sever2-home-now-copy p{font-size:12px}
+  .sever2-home-now-actions{display:grid;grid-template-columns:1fr 1fr;margin-top:13px}
+  .sever2-home-now-actions button{min-height:46px;padding:0 10px}
+  .sever2-home-now-actions button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sever2-home-stats{grid-template-columns:repeat(3,minmax(0,1fr));border-radius:14px}
+  .sever2-home-stats>span{min-width:0;padding:11px 8px}
+  .sever2-home-stats b{font-size:15px}
+  .sever2-home-stats small{font-size:8px}
+  .sever2-home-priority{padding:12px;border-radius:16px}
+  .sever2-home-priority header b{font-size:13px}
+  .sever2-home-priority header button{min-height:44px;padding:0 6px}
+  .sever2-home-priority-row{grid-template-columns:32px minmax(0,1fr) 44px;min-height:60px;padding-left:6px}
+  .sever2-home-priority-number{width:28px;height:28px}
+  .sever2-home-priority-copy b{font-size:12px}
+  .sever2-home-inbox-link{min-height:60px;border-radius:14px}
+  #todayView #challengeBlock:not(.hidden){margin:10px 0}
+  #todayView .quick{margin-top:9px}
+}
+
+@media (max-width:360px){
+  .sever2-home-now-actions{grid-template-columns:1fr}
+  .sever2-home-now-actions button{width:100%}
+  .sever2-home-priority header>span b{font-size:12px}
+  .sever2-home-priority header button{font-size:10px}
+  .sever2-home-inbox-link>span:last-child{font-size:10px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .sever2-home-core *{scroll-behavior:auto!important}
+}
