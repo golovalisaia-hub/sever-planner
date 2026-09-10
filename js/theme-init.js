@@ -57,11 +57,11 @@
     ['sever2-ui-pack', 'sever2-ui.css?v=61'],
     ['sever2-qa-pack', 'sever2-qa.css?v=61'],
     ['sever2-productivity-pack', 'sever2-productivity.css?v=64'],
-    ['sever2-focus-flow-pack', 'sever2-focus-flow.css?v=65']
+    ['sever2-focus-flow-pack', 'sever2-focus-flow.css?v=66']
   ];
   const scripts = [
     ['sever2-productivity-script', 'sever2-productivity.js?v=64'],
-    ['sever2-focus-flow-script', 'sever2-focus-flow.js?v=65']
+    ['sever2-focus-flow-script', 'sever2-focus-flow.js?v=66']
   ];
 
   function normalize(value) {
@@ -91,7 +91,7 @@
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
-      link.setAttribute(`data-${marker}`, 'v65');
+      link.setAttribute(`data-${marker}`, 'v66');
       document.head.appendChild(link);
     });
   }
@@ -102,7 +102,7 @@
       const script = document.createElement('script');
       script.src = src;
       script.defer = true;
-      script.setAttribute(`data-${marker}`, 'v65');
+      script.setAttribute(`data-${marker}`, 'v66');
       document.head.appendChild(script);
     });
   }
