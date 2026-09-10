@@ -55,7 +55,11 @@
     ['sever-desktop-system', 'desktop-system.css?v=60'],
     ['sever-theme-pack', 'themes.css?v=60'],
     ['sever2-ui-pack', 'sever2-ui.css?v=61'],
-    ['sever2-qa-pack', 'sever2-qa.css?v=61']
+    ['sever2-qa-pack', 'sever2-qa.css?v=61'],
+    ['sever2-productivity-pack', 'sever2-productivity.css?v=62']
+  ];
+  const scripts = [
+    ['sever2-productivity-script', 'sever2-productivity.js?v=62']
   ];
 
   function normalize(value) {
@@ -85,8 +89,19 @@
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
-      link.setAttribute(`data-${marker}`, 'v61');
+      link.setAttribute(`data-${marker}`, 'v62');
       document.head.appendChild(link);
+    });
+  }
+
+  function installScripts() {
+    scripts.forEach(([marker, src]) => {
+      if (document.querySelector(`script[data-${marker}]`)) return;
+      const script = document.createElement('script');
+      script.src = src;
+      script.defer = true;
+      script.setAttribute(`data-${marker}`, 'v62');
+      document.head.appendChild(script);
     });
   }
 
@@ -225,6 +240,7 @@
 
   retireLegacyHomeLayer();
   installStylesheets();
+  installScripts();
   applyEarlyTheme();
   installLegacyThemeGuard();
 
