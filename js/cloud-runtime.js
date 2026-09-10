@@ -1,4 +1,4 @@
-import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState, settleCloudOperations, changedCollections, changedRecordIds, stableStringify } from './sync-core.mjs?v=43';
+import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState, settleCloudOperations, changedCollections, changedRecordIds, stableStringify } from './sync-core.mjs?v=55';
 
 const QUEUE_PREFIX = 'sever-cloud-queue-v2';
 const MARKER_PREFIX = 'sever-cloud-migration-v2';
@@ -44,7 +44,7 @@ const authMessage = reason => {
 };
 
 function rowFor(collection, record, userId) {
-  const base = { user_id: userId, updated_at: cloudTime(record.updatedAt), deleted_at: record.deletedAt ? cloudTime(record.deletedAt) : null };
+  const base = { user_id: userId, updated_at: cloudTime(record.updatedAt), deleted_at: record.deletedAt ? cloudTime(record.deletedAt) : null, ...(record.syncVersions ? { sync_versions: record.syncVersions } : {}) };
   if (collection === 'tasks') return { ...base, id: record.id, title: record.title, scheduled_for: record.date || null, scheduled_time: record.time || null, duration_minutes: record.duration, category: record.category, priority: record.priority, challenge: record.challenge, completed: record.completed, completed_at: record.completedAt ? cloudTime(record.completedAt) : null };
   if (collection === 'habits') return { ...base, id: record.id, title: record.title };
   if (collection === 'habitEntries') return { ...base, habit_id: record.habitId, entry_date: record.date, completed: !record.deletedAt && Boolean(record.completed) };
@@ -87,6 +87,7 @@ class SeverCloud {
     this.sessionTask = null;
     this.sessionTarget = undefined;
     this.sessionVersion = 0;
+    this.protocolReady = false;
   }
 
   get configured() { return Boolean(window.SeverSupabase?.configured()); }
@@ -301,6 +302,24 @@ class SeverCloud {
     const current = () => this.user?.id === userId && this.sessionVersion === version;
     this.setStatus('syncing');
     try {
+      if (!this.protocolReady) {
+        const client=await this.client();
+        const { data, error }=await client.rpc('sever_sync_protocol');
+        if(error || data!==1){
+          this.lastErrorCode='SYNC_SCHEMA_UPGRADE_REQUIRED';
+          this.setStatus('pending');
+          return;
+        }
+        if(!current())return;
+        this.protocolReady=true;
+      }
+      // Do not guess which fields were edited in a pre-v55 offline outbox.
+      // Keep both the account cache and queue intact for explicit reconciliation.
+      if (this.queued.some(operation => operation.record?.syncVersions?.v !== 1)) {
+        this.lastErrorCode = 'SYNC_LEGACY_QUEUE_REVIEW';
+        this.setStatus('pending');
+        return;
+      }
       this.syncStage = 'download';
       const remoteRows = await this.fetchAll();
       if (!current()) return;
