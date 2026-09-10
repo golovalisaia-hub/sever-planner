@@ -1,6 +1,7 @@
 @import url("desktop-system.css?v=57");
 @import url("desktop-home.css?v=57");
 @import url("sever-2-pages.css?v=57");
+@import url("sever-2-components.css?v=57");
 
 /* SEVER 2 Aurora tokens. Artwork is intentionally local, not a page wallpaper. */
 html[data-theme="aurora"] {
