@@ -66,7 +66,7 @@ test('Home keeps Create, Inbox, Focus and Quick note as direct actions', async (
 
   await page.locator('#sever2HomeCreate').click();
   await expect(page.locator('#quickAddDialog')).toBeVisible();
-  await page.locator('[data-close="quickAddDialog"]').click();
+  await page.locator('[data-close="quickAddDialog"]').first().click();
 
   await page.locator('#sever2HomeInboxButton').click();
   await expect(page.locator('#calendarView')).toBeVisible();
@@ -76,7 +76,7 @@ test('Home keeps Create, Inbox, Focus and Quick note as direct actions', async (
   await page.evaluate(() => window.SeverApp.switchView('today'));
   await page.locator('#sever2HomeQuickNoteButton').click();
   await expect(page.locator('#quickNoteDialog')).toBeVisible();
-  await page.locator('[data-close="quickNoteDialog"]').click();
+  await page.locator('[data-close="quickNoteDialog"]').first().click();
 
   await page.locator('#sever2HomeFocusButton').click();
   await expect(page.locator('#timerView')).toBeVisible();
