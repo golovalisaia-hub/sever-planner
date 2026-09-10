@@ -58,6 +58,7 @@ test('navigation, SVG metrics, AI geometry, creation and quick note', async ({ p
     await expect(page.locator('#todayDashboard')).toBeHidden();
     await expect(page.locator('#todayFocusWidget')).toBeHidden();
     await expect(page.locator('#sever2HomeFocusButton')).toBeVisible();
+    await expect(page.locator('#sever2HomeQuickNoteButton')).toBeVisible();
 
     const geometry = await page.evaluate(() => {
       const ai = document.querySelector('#severAiOpen').getBoundingClientRect(), nav = document.querySelector('.bottom-nav').getBoundingClientRect(), create = document.querySelector('.mobile-create .nav-icon').getBoundingClientRect();
@@ -70,7 +71,7 @@ test('navigation, SVG metrics, AI geometry, creation and quick note', async ({ p
     await page.locator('#mobileCreateBtn').click(); await expect(page.locator('#quickAddDialog')).toBeVisible();
     await page.locator('#quickCaptureInput').fill('Проверка создания'); await page.locator('#quickCaptureForm button[type=submit]').click();
     await expect(page.locator('#todayTasks')).toContainText('Проверка создания');
-    await page.locator('#mobileQuickNote').click(); await page.locator('#quickNoteText').fill('Проверка заметки');
+    await page.locator('#sever2HomeQuickNoteButton').click(); await page.locator('#quickNoteText').fill('Проверка заметки');
     await page.locator('#quickNoteForm .primary').click();
   }
   const nav = phone ? '.bottom-nav' : '.side-nav';
