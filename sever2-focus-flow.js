@@ -67,8 +67,8 @@
 
   function startTask(task) {
     if (!task) return;
-    const runningId = context().activeTimerId || '';
-    if (runningId && runningId !== task.id) return;
+    const currentId = currentTaskId();
+    if (currentId && currentId !== task.id) return;
     window.SeverApp?.startTimer?.({ taskId: task.id, durationMinutes: Number(task.duration) || 25 });
     requestRender();
   }
@@ -80,6 +80,9 @@
     const tasks = pendingToday();
     const activeId = currentTaskId();
     const running = timerRunning();
+    const displayTasks = activeId
+      ? [...tasks].sort((a, b) => Number(b.id === activeId) - Number(a.id === activeId))
+      : tasks;
     const plannedMinutes = tasks.reduce((sum, task) => sum + (Number(task.duration) || 0), 0);
     const focusedMinutes = focusMinutesToday();
     const inboxCount = pendingInboxCount();
@@ -116,10 +119,10 @@
 
     const list = document.createElement('div');
     list.className = 'sever2-focus-queue-list';
-    tasks.forEach((task, index) => {
+    displayTasks.forEach((task, index) => {
       const focused = focusMinutesForTask(task.id);
       const isActive = activeId === task.id;
-      const blocked = running && !isActive;
+      const blocked = Boolean(activeId && !isActive);
       const row = document.createElement('article');
       row.className = `sever2-focus-queue-task${isActive ? ' active' : ''}`;
       row.dataset.taskId = task.id;
