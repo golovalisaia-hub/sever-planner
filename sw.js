@@ -1,4 +1,4 @@
-const CACHE = 'sever-v52-ui-stabilization';
+const CACHE = 'sever-v55-field-sync';
 const ASSETS = [
   './',
   './index.html',
@@ -27,8 +27,8 @@ const ASSETS = [
   './js/security-core.js?v=43',
   './js/supabase-client.js?v=43',
   './js/ui-state.js?v=51',
-  './js/sync-core.mjs?v=43',
-  './js/cloud-runtime.js?v=47',
+  './js/sync-core.mjs?v=55',
+  './js/cloud-runtime.js?v=55',
   './js/sever-ai.js?v=45',
   './manifest.webmanifest',
   './icon.svg',
@@ -92,7 +92,6 @@ self.addEventListener('fetch', event => {
   });
   const core = event.request.mode === 'navigate' || CORE_PATHS.some(path => url.pathname.endsWith(path));
   if (core || asset) {
-    // An installed worker serves its immutable release, never a mixture from the network.
     const key = event.request.mode === 'navigate' ? './index.html' : asset;
     event.respondWith(caches.open(CACHE).then(async cache => {
       const hit = key ? await cache.match(key) : null;

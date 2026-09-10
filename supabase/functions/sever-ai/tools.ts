@@ -1,6 +1,7 @@
 import { SEVER_MANIFEST } from './manifest.ts';
 import { object,text,day,clock,number,uuid,range,checked,fail,publicRecord } from './validation.ts';
 import { calculatePlan } from './plans.ts';
+import { versionedPatch } from './sync-versions.ts';
 export const needsConfirmation=(name:string)=>['task.delete','note.delete','plan.create','memory.remember'].includes(name);
 export async function owned(db:any,table:string,id:string,userId:string) {
   const row=checked(await db.from(table).select('*').eq('id',uuid(id)).eq('user_id',userId).is('deleted_at',null).maybeSingle());
@@ -61,7 +62,9 @@ export async function executeTool(db:any,userId:string,name:string,raw:any,optio
       if(a.time!==undefined)patch.scheduled_time=clock(a.time);
       if(a.durationMinutes!==undefined)patch.duration_minutes=number(a.durationMinutes,1,600,true);
     }
-    return publicRecord(checked(await db.from('tasks').update(patch).eq('id',row.id).eq('user_id',userId).is('deleted_at',null).select().single()));
+    let query=db.from('tasks').update(versionedPatch('tasks',row,patch)).eq('id',row.id).eq('user_id',userId).is('deleted_at',null);
+    if(row.sync_versions?.v===1)query=query.eq('sync_versions',JSON.stringify(row.sync_versions));
+    return publicRecord(checked(await query.select().single()));
   }
   if(name==='calendar.get'||name==='progress.get') {
     const [from,to]=range(a.from||options.today,a.to||a.from||options.today);
@@ -82,7 +85,9 @@ export async function executeTool(db:any,userId:string,name:string,raw:any,optio
     const patch:any={updated_at:now};
     if(name==='note.delete')patch.deleted_at=now;
     else {if(a.title!==undefined)patch.title=text(a.title);if(a.body!==undefined)patch.body=text(a.body,8000,true);}
-    return publicRecord(checked(await db.from('notes').update(patch).eq('id',note.id).eq('user_id',userId).eq('protected',false).select().single()));
+    let query=db.from('notes').update(versionedPatch('notes',note,patch)).eq('id',note.id).eq('user_id',userId).eq('protected',false);
+    if(note.sync_versions?.v===1)query=query.eq('sync_versions',JSON.stringify(note.sync_versions));
+    return publicRecord(checked(await query.select().single()));
   }
   if(name==='plan.get')return publicRecord(await owned(db,'ai_plans',a.planId,userId));
   if(name==='plan.create') {

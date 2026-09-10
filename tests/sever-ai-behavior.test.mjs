@@ -8,6 +8,24 @@ import { createHandler } from '../supabase/functions/sever-ai/handler.ts';
 import { GroqProvider, providerConfig } from '../supabase/functions/sever-ai/provider.ts';
 const user='11111111-1111-4111-8111-111111111111',other='22222222-2222-4222-8222-222222222222';
 const secret='unit-test-secret-not-a-production-key';
+test('AI edits versioned tasks with field clock and optimistic precondition',async()=>{
+  const meta={v:1,life:{generation:0,deleted:false,stamp:[1000,'A']},fields:{title:[1000,'A'],category:[1000,'A']}};
+  const h=harness({row:{id:other,title:'Before',category:'Home',sync_versions:meta}});
+  await executeTool(h.db,user,'task.update',{taskId:other,title:'After'});
+  const call=h.calls.find(c=>c.write);
+  assert.equal(call.write.title,'After');
+  assert.ok(call.write.sync_versions.fields.title[0]>1000);
+  assert.deepEqual(call.write.sync_versions.fields.category,meta.fields.category);
+  assert.ok(call.filters.some(([k,v])=>k==='sync_versions'&&v===JSON.stringify(meta)));
+});
+test('AI delete stamps lifecycle without bypassing account ownership',async()=>{
+  const meta={v:1,life:{generation:0,deleted:false,stamp:[1000,'A']},fields:{content:[1000,'A']}};
+  const h=harness({row:{id:other,title:'Note',protected:false,sync_versions:meta}});
+  await executeTool(h.db,user,'note.delete',{noteId:other},{confirmed:true});
+  const call=h.calls.find(c=>c.write);
+  assert.equal(call.write.sync_versions.life.deleted,true);
+  assert.ok(call.filters.some(([k,v])=>k==='user_id'&&v===user));
+});
 function harness({role='user',row=null,dbError=false,authError=false,reply,quota=true}={}) {
   const calls=[];
   const db={auth:{getUser:async()=>({data:{user:authError?null:{id:user}},error:authError?{}:null})},rpc:async(name,args)=>{calls.push({name,args});return {data:quota,error:null};},from(table){

@@ -44,5 +44,5 @@ export function checked(result:any) {
 }
 export function publicRecord(row:any) {
   if(!row)return row;
-  const {user_id,secure,...safe}=row; return safe;
+  const {user_id,secure,sync_versions,...safe}=row; return safe;
 }
