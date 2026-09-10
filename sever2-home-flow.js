@@ -19,6 +19,19 @@
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 
+  function remainingLabel(count) {
+    const mod100 = count % 100;
+    const mod10 = count % 10;
+    const word = mod100 >= 11 && mod100 <= 14
+      ? 'дел'
+      : mod10 === 1
+        ? 'дело'
+        : mod10 >= 2 && mod10 <= 4
+          ? 'дела'
+          : 'дел';
+    return `${count} ${word} осталось`;
+  }
+
   function plannerState() {
     return window.SeverApp?.getState?.() || { tasks: [] };
   }
@@ -113,7 +126,7 @@
       <div class="sever2-home-command-title">
         <small>СЕГОДНЯ</small>
         <h2>${pending.length ? 'Главное на сегодня' : all.length ? 'День закрыт' : 'Спокойный старт'}</h2>
-        <p>${pending.length ? `${pending.length} ${pending.length === 1 ? 'дело осталось' : 'дел осталось'}${totalMinutes ? ` · ${totalMinutes} мин` : ''}` : all.length ? 'Все задачи на сегодня выполнены.' : 'Добавь первое дело — остальное можно решить потом.'}</p>
+        <p>${pending.length ? `${remainingLabel(pending.length)}${totalMinutes ? ` · ${totalMinutes} мин` : ''}` : all.length ? 'Все задачи на сегодня выполнены.' : 'Добавь первое дело — остальное можно решить потом.'}</p>
       </div>
       <div class="sever2-home-command-progress" aria-label="Выполнено ${percent}%">
         <b>${percent}%</b><span><i style="width:${percent}%"></i></span>
