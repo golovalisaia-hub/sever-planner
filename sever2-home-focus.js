@@ -8,7 +8,7 @@
   };
   const INBOX_DATE = '9999-12-31';
   const LEGACY_HOME_SELECTORS = [
-    '.today-motivation', '.course-card', '#quickForm', '#todayDashboard', '.today-quote',
+    '.today-motivation', '.course-card', '#quickForm', '#todayDashboard', '#todayFocusWidget', '.today-quote',
     '.sever2-today-plan', '.sever2-home-inbox'
   ];
   let observer = null;
