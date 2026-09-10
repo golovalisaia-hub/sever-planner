@@ -45,11 +45,23 @@ test('Home is one focused surface without duplicated legacy sections or planner 
   expect(await page.evaluate(() => JSON.stringify(window.SeverApp.getState()))).toBe(before);
 });
 
+test('Home completes a task through the existing task checkbox path', async ({ page }) => {
+  const row = page.locator('#sever2HomeTopTasks [data-task-id="priority"]');
+  await expect(row).toContainText('Самое важное');
+  await row.locator('.sever2-home-focus-check').click();
+  await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.find(task => task.id === 'priority')?.completed)).toBe(true);
+  await expect(page.locator('#sever2HomeFocusSummary')).toContainText('2 осталось');
+  await expect(page.locator('#sever2HomeTopTasks [data-task-id="priority"]')).toHaveCount(0);
+});
+
 test('Home keeps Create, Inbox, Focus and Quick note as direct actions', async ({ page }, info) => {
   if (info.project.name !== 'desktop') {
     const createBox = await page.locator('#sever2HomeCreate').boundingBox();
     expect(createBox).not.toBeNull();
     expect(createBox.height).toBeGreaterThanOrEqual(44);
+    const checkBox = await page.locator('.sever2-home-focus-check').first().boundingBox();
+    expect(checkBox).not.toBeNull();
+    expect(checkBox.height).toBeGreaterThanOrEqual(44);
   }
 
   await page.locator('#sever2HomeCreate').click();
