@@ -1,4 +1,4 @@
-const CACHE = 'sever-v58-productivity-v1';
+const CACHE = 'sever-v59-productivity-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -19,7 +19,7 @@ const ASSETS = [
   './sever2-ui.css?v=61',
   './sever2-qa.css?v=61',
   './sever2-productivity.css?v=62',
-  './sever2-productivity.js?v=62',
+  './sever2-productivity.js?v=63',
   './app.js?v=51',
   './notes-pro.js?v=52',
   './mobile-ui.js?v=52',
