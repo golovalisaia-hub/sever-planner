@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const VAULT_PASSWORD = 'SEVER core audit vault 2026!';
 
 async function seed(page) {
   await page.route('**/supabase-config.js*', route => route.fulfill({ contentType: 'text/javascript', body: 'window.SEVER_SUPABASE_CONFIG={};' }));
@@ -19,6 +20,20 @@ async function seed(page) {
   await page.waitForFunction(() => window.SeverApp && window.SeverNotes);
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severCreateFlow)).toBe('ready');
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severHomeFocus)).toBe('ready');
+  await expect.poll(() => page.evaluate(() => Boolean(document.documentElement.dataset.severNotesVault))).toBe(true);
+}
+
+async function setupVault(page) {
+  await page.evaluate(() => window.SeverApp.switchView('notes'));
+  if (await page.evaluate(() => document.documentElement.dataset.severNotesVault !== 'unlocked')) {
+    await page.locator('#notesVaultStatusAction').click();
+    await expect(page.locator('#notesVaultDialog')).toBeVisible();
+    await page.locator('#notesVaultPassword').fill(VAULT_PASSWORD);
+    await page.locator('#notesVaultConfirm').fill(VAULT_PASSWORD);
+    await page.locator('#notesVaultSubmit').click();
+    await expect(page.locator('#notesVaultDialog')).toBeHidden({ timeout:15000 });
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesVault), { timeout:15000 }).toBe('unlocked');
+  }
 }
 
 function createButton(page, projectName) {
@@ -53,10 +68,10 @@ test('Home keeps the primary task flow stable', async ({ page }, info) => {
   expect(errors).toEqual([]);
 });
 
-test('Notes create, edit, checklist and search stay functional', async ({ page }, info) => {
+test('encrypted Notes create, edit, checklist and search stay functional', async ({ page }, info) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.evaluate(() => window.SeverApp.switchView('notes'));
+  await setupVault(page);
   await onlyView(page, 'notes');
 
   if (info.project.name === 'desktop') {
@@ -72,9 +87,10 @@ test('Notes create, edit, checklist and search stay functional', async ({ page }
   await page.locator('#noteForm .primary').click();
 
   await expect(page.locator('#noteList')).toContainText('Проверка заметок');
-  expect(await page.evaluate(() => window.SeverApp.getState().notes.length)).toBe(1);
+  const stored = await page.evaluate(() => window.SeverApp.getState().notes[0]);
+  expect(stored.protected).toBe(true); expect(stored.title).toBe(''); expect(stored.body).toBe(''); expect(stored.secure?.version).toBe(3);
 
-  await page.locator('#noteList .note-edit').click();
+  await page.locator('#noteList .vault-note-edit').click();
   await page.locator('[data-note-type="checklist"]').click();
   const itemInputs = page.locator('#noteItemsEditor input[type="text"]');
   await itemInputs.first().fill('Первый пункт');
@@ -82,9 +98,10 @@ test('Notes create, edit, checklist and search stay functional', async ({ page }
   await itemInputs.nth(1).fill('Второй пункт');
   await page.locator('#noteForm .primary').click();
 
-  expect(await page.evaluate(() => window.SeverApp.getState().notes[0].items.length)).toBe(2);
+  await expect(page.locator('#noteList .note-check')).toHaveCount(2);
   await page.locator('#noteList .note-check input').first().check();
-  await expect.poll(() => page.evaluate(() => window.SeverApp.getState().notes[0].items[0].done)).toBe(true);
+  await expect(page.locator('#noteList .note-check').first()).toHaveClass(/done/);
+  expect((await page.evaluate(() => window.SeverApp.getState().notes[0].items))).toEqual([]);
 
   await page.locator('#noteSearch').fill('Второй пункт');
   await expect(page.locator('#noteList .note-card')).toHaveCount(1);
@@ -94,6 +111,8 @@ test('Notes create, edit, checklist and search stay functional', async ({ page }
 });
 
 test('Create child editors go Back to the same Create menu instead of dropping to the page', async ({ page }, info) => {
+  await setupVault(page);
+  await page.evaluate(() => window.SeverApp.switchView('today'));
   const routes = [
     ['#quickAddTask', '#taskDialog'],
     ['#quickAddNote', '#noteDialog'],
@@ -128,6 +147,7 @@ test('Create child editors go Back to the same Create menu instead of dropping t
 
 test('phone Notes keeps Create as a real Back stack over the Notes page', async ({ page }, info) => {
   test.skip(info.project.name === 'desktop', 'Phone-only Create flow');
+  await setupVault(page);
   await page.evaluate(() => window.SeverApp.switchView('notes'));
   await onlyView(page, 'notes');
 
