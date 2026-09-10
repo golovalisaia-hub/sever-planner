@@ -62,6 +62,11 @@
     return allowed.has(candidate) ? candidate : 'light';
   }
 
+  function readPersistedTheme() {
+    try { return localStorage.getItem('sever-theme') || ''; }
+    catch { return ''; }
+  }
+
   function retireLegacyHomeLayer() {
     /* mobile-home.css was the old SEVER Home owner and contained the previous
      * mountain composition. The new sever2-ui.css owns Home on every viewport. */
@@ -85,9 +90,7 @@
   }
 
   function applyEarlyTheme() {
-    let saved = '';
-    try { saved = localStorage.getItem('sever-theme') || ''; } catch {}
-    const selected = normalize(saved);
+    const selected = normalize(readPersistedTheme());
     document.documentElement.dataset.theme = selected;
     document.documentElement.dataset.severMood = themes[selected].ui;
     const meta = document.querySelector('meta[name="theme-color"]');
@@ -175,10 +178,13 @@
 
     picker.dataset.severThemePackReady = 'true';
 
-    /* Existing Aurora/North users migrate through the real app handler. */
+    /* Existing Aurora/North users migrate through the real app handler. Check
+     * both DOM and persisted value because app.js may briefly restore a legacy
+     * setting before this bootstrap receives DOMContentLoaded. */
     const currentRaw = document.documentElement.dataset.theme || '';
-    const selected = normalize(currentRaw);
-    if (!allowed.has(currentRaw)) {
+    const persistedRaw = readPersistedTheme();
+    const selected = normalize(persistedRaw || currentRaw);
+    if (!allowed.has(currentRaw) || (persistedRaw && !allowed.has(persistedRaw))) {
       const target = buttons.get(selected) || buttons.get('light');
       if (target?.onclick) target.click();
       else document.documentElement.dataset.theme = selected;
