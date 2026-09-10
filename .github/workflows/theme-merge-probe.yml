@@ -1,0 +1,28 @@
+name: Three-design merge probe
+on:
+  push:
+    branches: [sever-2-three-designs-final]
+    paths: ['.github/workflows/theme-merge-probe.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Probe merge without changing branch
+        shell: bash
+        run: |
+          set +e
+          git config user.name 'SEVER Merge Probe'
+          git config user.email 'actions@users.noreply.github.com'
+          git merge --no-commit --no-ff origin/sever-2-three-designs-source
+          code=$?
+          echo '--- CONFLICTS ---'
+          git diff --name-only --diff-filter=U || true
+          echo '--- STATUS ---'
+          git status --short
+          git merge --abort 2>/dev/null || true
+          exit 0
