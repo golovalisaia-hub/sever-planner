@@ -40,6 +40,7 @@ test('capture SEVER 2 reference review set', async ({ page }, testInfo) => {
   await page.goto('/');
   await expect.poll(() => page.evaluate(() => Boolean(window.SeverApp))).toBe(true);
   await expect(page.locator('link[data-sever2-ui-pack]')).toHaveCount(1);
+  await expect(page.locator('link[data-sever2-qa-pack]')).toHaveCount(1);
 
   const out = path.join(process.cwd(), 'test-results', 'sever2-visual');
   fs.mkdirSync(out, { recursive: true });
@@ -51,13 +52,13 @@ test('capture SEVER 2 reference review set', async ({ page }, testInfo) => {
     await page.waitForTimeout(80);
 
     for (const view of VIEWS) {
-      await page.evaluate(name => window.SeverApp.switchView(name), view);
+      await page.evaluate(name => { window.SeverApp.switchView(name); window.scrollTo(0, 0); }, view);
       await page.waitForTimeout(50);
       const target = page.locator(`#${view}View`);
       await expect(target).toBeVisible();
       await page.screenshot({
         path: path.join(out, `${testInfo.project.name}-${label}-${view}.png`),
-        fullPage: true,
+        fullPage: view !== 'today',
         animations: 'disabled'
       });
     }
