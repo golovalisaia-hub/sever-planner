@@ -109,31 +109,31 @@ test('legacy Aurora planner data is not rewritten just by opening SEVER 2', asyn
   expect(result.visibleTheme).toBe('light');
 });
 
-test('mobile themes change the full Home composition, not only colors', async ({ page }) => {
+test('all mobile themes keep one Home composition and only change the skin', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await seedPlanner(page);
   await page.goto('/');
-  await expect.poll(() => page.evaluate(() => Boolean(window.SeverApp))).toBe(true);
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severHomeFocus)).toBe('ready');
 
-  await page.evaluate(() => window.SeverApp.switchView('settings'));
-  await page.locator('.theme-picker [data-sever-theme="light"]').click();
-  await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
-  await expect(page.locator('.today-motivation')).toBeVisible();
-  await expect(page.locator('#todayDashboard')).toBeHidden();
-
-  await page.evaluate(() => window.SeverApp.switchView('settings'));
-  await page.locator('.theme-picker [data-sever-theme="motion"]').click();
-  await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
-  await expect(page.locator('.today-motivation')).toBeHidden();
-  await expect(page.locator('#todayDashboard')).toBeVisible();
-  await expect(page.locator('#todayDashboard .dashboard-card:visible')).toHaveCount(3);
-
-  await page.evaluate(() => window.SeverApp.switchView('settings'));
-  await page.locator('.theme-picker [data-sever-theme="black"]').click();
-  await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
-  await expect(page.locator('#todayDashboard')).toBeHidden();
-  const focus = await page.locator('#todayFocusWidget').boundingBox();
-  expect(focus.height).toBeGreaterThan(220);
+  let baseline = null;
+  for (const id of ['light', 'motion', 'black']) {
+    await page.evaluate(() => window.SeverApp.switchView('settings'));
+    await page.locator(`.theme-picker [data-sever-theme="${id}"]`).click();
+    await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
+    await expect(page.locator('#sever2HomeFocus')).toBeVisible();
+    await expect(page.locator('.today-motivation')).toBeHidden();
+    await expect(page.locator('#todayDashboard')).toBeHidden();
+    await expect(page.locator('#todayFocusWidget')).toBeHidden();
+    const geometry = await page.locator('#sever2HomeFocus').evaluate(el => {
+      const r = el.getBoundingClientRect();
+      return { width: Math.round(r.width), top: Math.round(r.top) };
+    });
+    if (!baseline) baseline = geometry;
+    else {
+      expect(Math.abs(geometry.width - baseline.width)).toBeLessThanOrEqual(2);
+      expect(Math.abs(geometry.top - baseline.top)).toBeLessThanOrEqual(2);
+    }
+  }
   await expect(page.locator('.bottom-nav')).toBeVisible();
 });
 
@@ -150,56 +150,48 @@ test('mobile Notes empty state is compact and Focus controls stay inside their c
   const emptyBox = await empty.boundingBox();
   expect(emptyBox.height).toBeLessThanOrEqual(260);
 
-  await page.evaluate(() => window.SeverApp.switchView('settings'));
-  await page.locator('.theme-picker [data-sever-theme="black"]').click();
-  await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
+  await page.evaluate(() => window.SeverApp.switchView('timer'));
   const geometry = await page.evaluate(() => {
     const box = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
     return {
-      widget: box('#todayFocusWidget'),
-      label: box('#todayFocusWidget small'),
-      time: box('#todayFocusDisplay'),
-      task: box('#todayFocusTask'),
-      button: box('#todayFocusToggle')
+      widget: box('.focus-stage'),
+      display: box('#timerDisplay'),
+      toggle: box('#timerToggle')
     };
   });
-  for (const part of [geometry.label, geometry.time, geometry.task, geometry.button]) {
+  for (const part of [geometry.display, geometry.toggle]) {
     expect(part.left).toBeGreaterThanOrEqual(geometry.widget.left);
     expect(part.right).toBeLessThanOrEqual(geometry.widget.right);
     expect(part.top).toBeGreaterThanOrEqual(geometry.widget.top);
     expect(part.bottom).toBeLessThanOrEqual(geometry.widget.bottom);
   }
-  expect(geometry.label.bottom).toBeLessThanOrEqual(geometry.time.top + 2);
-  expect(geometry.time.bottom).toBeLessThanOrEqual(geometry.task.top + 4);
-  expect(geometry.button.top).toBeGreaterThan(geometry.time.top);
 });
 
-test('desktop Focus Peak becomes focus-first while Calm remains task-first', async ({ page }) => {
+test('desktop themes keep the same task-first Home layout', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await seedPlanner(page);
   await page.goto('/');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severHomeFocus)).toBe('ready');
   await openSettings(page);
 
-  await page.locator('.theme-picker [data-sever-theme="light"]').click();
-  await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
-  const calm = await page.evaluate(() => getComputedStyle(document.querySelector('#todayView')).display);
-  expect(calm).toBe('flex');
-
-  await page.evaluate(() => window.SeverApp.switchView('settings'));
-  await page.locator('.theme-picker [data-sever-theme="black"]').click();
-  await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
-  const focusLayout = await page.evaluate(() => ({
-    display: getComputedStyle(document.querySelector('#todayView')).display,
-    columns: getComputedStyle(document.querySelector('#todayView')).gridTemplateColumns,
-    height: document.querySelector('#todayFocusWidget').getBoundingClientRect().height,
-    sidebar: document.querySelector('.desktop-sidebar').getBoundingClientRect().width,
-    filters: getComputedStyle(document.querySelector('#todayFilters')).display
-  }));
-  expect(focusLayout.display).toBe('grid');
-  expect(focusLayout.columns.split(' ').length).toBeGreaterThanOrEqual(2);
-  expect(focusLayout.height).toBeGreaterThan(280);
-  expect(focusLayout.sidebar).toBeGreaterThan(180);
-  expect(focusLayout.filters).toBe('none');
+  let baseline = null;
+  for (const id of ['light', 'motion', 'black']) {
+    await page.locator(`.theme-picker [data-sever-theme="${id}"]`).click();
+    await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
+    const layout = await page.evaluate(() => {
+      const view = document.querySelector('#todayView');
+      const home = document.querySelector('#sever2HomeFocus').getBoundingClientRect();
+      return { display: getComputedStyle(view).display, width: Math.round(home.width), top: Math.round(home.top), focus: getComputedStyle(document.querySelector('#todayFocusWidget')).display };
+    });
+    expect(layout.display).toBe('flex');
+    expect(layout.focus).toBe('none');
+    if (!baseline) baseline = layout;
+    else {
+      expect(Math.abs(layout.width - baseline.width)).toBeLessThanOrEqual(2);
+      expect(Math.abs(layout.top - baseline.top)).toBeLessThanOrEqual(2);
+    }
+    await page.evaluate(() => window.SeverApp.switchView('settings'));
+  }
 });
 
 test('desktop AI is a header action and does not overlap Create', async ({ page }) => {
