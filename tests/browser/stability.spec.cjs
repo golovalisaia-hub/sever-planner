@@ -53,17 +53,11 @@ test('navigation, SVG metrics, AI geometry, creation and quick note', async ({ p
     expect(metrics).toHaveLength(4);
     for (const metric of metrics) { expect(metric.svg).toBe(1); expect(metric.vectorParts).toBeGreaterThan(0); }
 
-    /* Focus Peak intentionally replaces the phone dashboard wall with the
-       large focus card from the new reference. This is the expected layout,
-       not a missing-icon regression. */
-    const focusMode = await page.evaluate(() => ({
-      theme: document.documentElement.dataset.theme,
-      dashboardDisplay: getComputedStyle(document.querySelector('#todayDashboard')).display,
-      focusHeight: document.querySelector('#todayFocusWidget').getBoundingClientRect().height
-    }));
-    expect(focusMode.theme).toBe('black');
-    expect(focusMode.dashboardDisplay).toBe('none');
-    expect(focusMode.focusHeight).toBeGreaterThan(220);
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severHomeFocus)).toBe('ready');
+    await expect(page.locator('#sever2HomeFocus')).toBeVisible();
+    await expect(page.locator('#todayDashboard')).toBeHidden();
+    await expect(page.locator('#todayFocusWidget')).toBeHidden();
+    await expect(page.locator('#sever2HomeFocusButton')).toBeVisible();
 
     const geometry = await page.evaluate(() => {
       const ai = document.querySelector('#severAiOpen').getBoundingClientRect(), nav = document.querySelector('.bottom-nav').getBoundingClientRect(), create = document.querySelector('.mobile-create .nav-icon').getBoundingClientRect();
@@ -82,7 +76,7 @@ test('navigation, SVG metrics, AI geometry, creation and quick note', async ({ p
   const nav = phone ? '.bottom-nav' : '.side-nav';
   for (const view of ['calendar', 'notes', 'today']) { await page.locator(`${nav} [data-view="${view}"]`).click(); await only(page, view); }
   if (phone) {
-    await page.locator('#todayFocusWidget').click(); await only(page, 'timer');
+    await page.locator('#sever2HomeFocusButton').click(); await only(page, 'timer');
     for (const view of ['habits', 'progress', 'settings']) {
       await page.locator('#mobileNavMore').click();
       await page.locator(view === 'settings' ? '#openSettingsMenu' : `[data-menu-view="${view}"]`).click(); await only(page, view);
