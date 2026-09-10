@@ -1,4 +1,4 @@
-const CACHE = 'sever-v55-field-sync-theme3-v1';
+const CACHE = 'sever-v55-field-sync-theme3-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -73,7 +73,11 @@ const CORE_PATHS = [
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
+  event.waitUntil(
+    caches.open(CACHE)
+      .then(cache => cache.addAll(ASSETS))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', event => {
