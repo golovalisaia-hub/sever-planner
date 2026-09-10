@@ -2,16 +2,18 @@ const { test, expect } = require('@playwright/test');
 
 async function seedPlanner(page) {
   await page.addInitScript(() => {
-    localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({
-      version: 11,
-      tasks: [], notes: [], folders: [], habits: [], checks: {}, taskMemory: [],
-      profile: { name: '' }, appearance: { theme: 'light', animations: 'off', reduceEffects: true },
-      focusSessions: [], stats: { focusMs: 0, sessions: 0 },
-      reminders: { enabled: false, time: '19:00', lastDate: '' },
-      security: { protectedNotesAutoLockMinutes: 5, lockInBackground: true },
-      onboarded: true
-    }));
-    localStorage.setItem('sever-theme', 'light');
+    if (!localStorage.getItem('sever-anonymous-state-v1')) {
+      localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({
+        version: 11,
+        tasks: [], notes: [], folders: [], habits: [], checks: {}, taskMemory: [],
+        profile: { name: '' }, appearance: { theme: 'light', animations: 'off', reduceEffects: true },
+        focusSessions: [], stats: { focusMs: 0, sessions: 0 },
+        reminders: { enabled: false, time: '19:00', lastDate: '' },
+        security: { protectedNotesAutoLockMinutes: 5, lockInBackground: true },
+        onboarded: true
+      }));
+    }
+    if (!localStorage.getItem('sever-theme')) localStorage.setItem('sever-theme', 'light');
   });
 }
 
