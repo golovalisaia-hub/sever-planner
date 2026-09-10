@@ -56,10 +56,12 @@ test('Notes create, edit, checklist and search stay functional', async ({ page }
   await page.evaluate(() => window.SeverApp.switchView('notes'));
   await onlyView(page, 'notes');
 
-  await page.locator('#openNote').click();
-  if (info.project.name !== 'desktop') {
-    await expect(page.locator('#noteCreateSheet')).toBeVisible();
-    await page.locator('#noteCreateNote').click();
+  if (info.project.name === 'desktop') {
+    await page.locator('#openNote').click();
+  } else {
+    await createButton(page, info.project.name).click();
+    await expect(page.locator('#quickAddDialog')).toBeVisible();
+    await page.locator('#quickAddNote').click();
   }
   await expect(page.locator('#noteDialog')).toBeVisible();
   await page.locator('#noteTitle').fill('Проверка заметок');
@@ -84,6 +86,7 @@ test('Notes create, edit, checklist and search stay functional', async ({ page }
   await page.locator('#noteSearch').fill('Второй пункт');
   await expect(page.locator('#noteList .note-card')).toHaveCount(1);
   await expect(page.locator('#noteList')).toContainText('Проверка заметок');
+  await onlyView(page, 'notes');
   expect(errors).toEqual([]);
 });
 
@@ -120,22 +123,26 @@ test('Create child editors go Back to the same Create menu instead of dropping t
   await expect(page.locator('dialog[open]')).toHaveCount(0);
 });
 
-test('phone Notes create sheet also behaves like a real Back stack', async ({ page }, info) => {
-  test.skip(info.project.name === 'desktop', 'Phone-only Notes sheet');
+test('phone Notes keeps Create as a real Back stack over the Notes page', async ({ page }, info) => {
+  test.skip(info.project.name === 'desktop', 'Phone-only Create flow');
   await page.evaluate(() => window.SeverApp.switchView('notes'));
-  await page.locator('#openNote').click();
-  await expect(page.locator('#noteCreateSheet')).toBeVisible();
+  await onlyView(page, 'notes');
 
-  await page.locator('#noteCreateNote').click();
+  await page.locator('#mobileCreateBtn').click();
+  await expect(page.locator('#quickAddDialog')).toBeVisible();
+  await page.locator('#quickAddNote').click();
   await expect(page.locator('#noteDialog')).toBeVisible();
   await page.locator('[data-close="noteDialog"]').click();
-  await expect(page.locator('#noteCreateSheet')).toBeVisible();
+  await expect(page.locator('#noteDialog')).toBeHidden();
+  await expect(page.locator('#quickAddDialog')).toBeVisible();
+  await onlyView(page, 'notes');
 
-  await page.locator('#noteCreateFolder').click();
+  await page.locator('#quickAddFolder').click();
   await expect(page.locator('#folderDialog')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('#folderDialog')).toBeHidden();
-  await expect(page.locator('#noteCreateSheet')).toBeVisible();
-  await page.locator('[data-close="noteCreateSheet"]').click();
+  await expect(page.locator('#quickAddDialog')).toBeVisible();
+  await page.locator('[data-close="quickAddDialog"]').click();
   await expect(page.locator('dialog[open]')).toHaveCount(0);
+  await onlyView(page, 'notes');
 });
