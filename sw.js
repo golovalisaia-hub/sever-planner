@@ -1,6 +1,6 @@
 // Upgrade lineage retained for static release-audit compatibility:
 // sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.
-const CACHE = 'sever-v65-core-audit-v1';
+const CACHE = 'sever-v66-home-core-v1';
 const ASSETS = [
   './',
   './index.html',
@@ -29,12 +29,14 @@ const ASSETS = [
   './sever2-calendar-clarity.css?v=68',
   './sever2-calendar-clarity.js?v=68',
   './sever2-create-flow.js?v=69',
+  './sever2-home-core.css?v=70',
+  './sever2-home-core.js?v=70',
   './app.js?v=51',
   './notes-pro.js?v=52',
   './mobile-ui.js?v=52',
   './supabase-config.js?v=43',
   './vendor/supabase.min.js?v=2.57.4',
-  './js/theme-init.js?v=69',
+  './js/theme-init.js?v=70',
   './js/protected-notes-crypto.js?v=43',
   './js/security-core.js?v=43',
   './js/supabase-client.js?v=43',
@@ -79,6 +81,8 @@ const CORE_PATHS = [
   '/sever2-calendar-clarity.css',
   '/sever2-calendar-clarity.js',
   '/sever2-create-flow.js',
+  '/sever2-home-core.css',
+  '/sever2-home-core.js',
   '/mobile-ui.js',
   '/app.js',
   '/notes-pro.js',
