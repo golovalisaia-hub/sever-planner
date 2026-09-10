@@ -10,10 +10,10 @@ test('installed release reloads offline with one complete asset set', async ({ b
     await expect.poll(async () => {
       try {
         cached = await page.evaluate(async () => {
-          const cache = await caches.open('sever-v64-calendar-clarity-v1');
+          const cache = await caches.open('sever-v65-core-audit-v1');
           return (await cache.keys()).map(request => new URL(request.url).pathname + new URL(request.url).search);
         });
-        return cached.includes('/sever2-calendar-clarity.js?v=68') && cached.includes('/js/theme-init.js?v=68');
+        return cached.includes('/sever2-create-flow.js?v=69') && cached.includes('/js/theme-init.js?v=69');
       } catch {
         return false;
       }
@@ -32,7 +32,8 @@ test('installed release reloads offline with one complete asset set', async ({ b
     expect(cached).toContain('/sever2-efficiency.js?v=67');
     expect(cached).toContain('/sever2-calendar-clarity.css?v=68');
     expect(cached).toContain('/sever2-calendar-clarity.js?v=68');
-    expect(cached).toContain('/js/theme-init.js?v=68');
+    expect(cached).toContain('/sever2-create-flow.js?v=69');
+    expect(cached).toContain('/js/theme-init.js?v=69');
     expect(cached).toContain('/app.js?v=51');
     expect(cached).toContain('/notes-pro.js?v=52');
     expect(cached).toContain('/js/sync-core.mjs?v=55');
@@ -44,6 +45,7 @@ test('installed release reloads offline with one complete asset set', async ({ b
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severFocusFlow)).toBe('ready');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severEfficiency)).toBe('ready');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severCalendarClarity)).toBe('ready');
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severCreateFlow)).toBe('ready');
     await page.locator('.bottom-nav [data-view="calendar"]').click();
     await expect(page.locator('#calendarView')).toBeVisible();
     await expect(page.locator('#todayView')).toBeHidden();
