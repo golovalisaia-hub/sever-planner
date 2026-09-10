@@ -7,7 +7,7 @@ async function seed(page) {
       version: 11, onboarded: true, tasks: [
         { id:'t1', title:'Первое дело', date:today, time:'10:00', duration:30, category:'Личное', priority:true, challenge:false, completed:false, createdAt:Date.now(), updatedAt:Date.now() },
         { id:'t2', title:'Второе дело', date:today, time:'', duration:15, category:'Работа', priority:false, challenge:false, completed:false, createdAt:Date.now(), updatedAt:Date.now() },
-        { id:'t3', title:'Дело без даты', date:'', time:'', duration:20, category:'Личное', priority:false, challenge:false, completed:false, createdAt:Date.now(), updatedAt:Date.now() }
+        { id:'t3', title:'Дело без даты', date:'9999-12-31', time:'', duration:20, category:'Личное', priority:false, challenge:false, completed:false, createdAt:Date.now(), updatedAt:Date.now() }
       ], notes:[], folders:[], habits:[], checks:{}, taskMemory:[], profile:{name:''}, appearance:{theme:'light',animations:'off',reduceEffects:true}, focusSessions:[], stats:{focusMs:0,sessions:0}, reminders:{enabled:false,time:'19:00',lastDate:''}, security:{protectedNotesAutoLockMinutes:5,lockInBackground:true}
     }));
     localStorage.setItem('sever-theme','light');
@@ -74,7 +74,7 @@ test('quick create can save a task without a date and persistence survives rende
   await page.locator('[data-sever2-inbox-date]').click();
   await page.locator('#quickCaptureInput').fill('Новая входящая задача');
   await page.locator('#quickCaptureForm button[type="submit"]').click();
-  await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.find(task => task.title === 'Новая входящая задача')?.date)).toBe('');
+  await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.find(task => task.title === 'Новая входящая задача')?.date)).toBe('9999-12-31');
   await expect(page.locator('#quickAddDialog')).toBeHidden();
   await expect(page.locator('#sever2HomeInbox')).toContainText('Новая входящая задача');
 });
