@@ -1,4 +1,4 @@
-const CACHE = 'sever-v56-unified-sever2-v1';
+const CACHE = 'sever-v56-unified-sever2-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -13,11 +13,11 @@ const ASSETS = [
   './sever-v41.css?v=52',
   './reference-theme.css?v=43',
   './desktop-system.css?v=60',
-  './desktop-home.css?v=60',
   './mobile-home.css?v=52',
   './sever-ai.css?v=52',
   './themes.css?v=60',
   './sever2-ui.css?v=60',
+  './sever2-qa.css?v=60',
   './app.js?v=51',
   './notes-pro.js?v=52',
   './mobile-ui.js?v=52',
@@ -54,11 +54,11 @@ const CORE_PATHS = [
   '/sever-v41.css',
   '/reference-theme.css',
   '/desktop-system.css',
-  '/desktop-home.css',
   '/sever-ai.css',
   '/mobile-home.css',
   '/themes.css',
   '/sever2-ui.css',
+  '/sever2-qa.css',
   '/mobile-ui.js',
   '/app.js',
   '/notes-pro.js',
