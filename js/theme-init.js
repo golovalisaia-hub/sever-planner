@@ -44,7 +44,7 @@
     ['sever2-efficiency-script', 'sever2-efficiency.js?v=67'],
     ['sever2-calendar-clarity-script', 'sever2-calendar-clarity.js?v=68'],
     ['sever2-create-flow-script', 'sever2-create-flow.js?v=69'],
-    ['sever2-home-core-script', 'sever2-home-core.js?v=70'],
+    ['sever2-home-core-script', 'sever2-home-core.js?v=85'],
     ['sever2-notes-core-script', 'sever2-notes-core.js?v=71'],
     ['sever2-notes-organization-script', 'sever2-notes-organization.js?v=72'],
     ['sever2-notes-editor-flow-script', 'sever2-notes-editor-flow.js?v=73'],
