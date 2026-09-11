@@ -51,7 +51,7 @@ test('cloud recovery v80 remains in the atomic v82 reminder PWA release', () => 
   assert.match(themeInit, /sever2-cloud-recovery\.css\?v=80/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v4'/);
+  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v5'/);
   for (const asset of [
     './sever2-cloud-recovery.css?v=80',
     './sever2-cloud-recovery.js?v=80',
