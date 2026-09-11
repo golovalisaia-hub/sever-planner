@@ -60,7 +60,7 @@ test('cloud recovery v80 remains in the atomic v84 usability PWA release', () =>
     './sever2-usability-v84.js?v=84',
     './sever2-cloud-recovery.css?v=80',
     './sever2-cloud-recovery.js?v=80',
-    './js/theme-init.js?v=81',
+    './js/theme-init.js?v=84',
     './sever2-reminders.css?v=82',
     './sever2-task-reminders.js?v=82'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
