@@ -71,22 +71,32 @@
     } catch {}
   }
 
+  function deadlineStatus(deadline) {
+    if (!deadline) return { valid: false, overdue: false, days: null };
+    const today = new Date(`${currentISO()}T12:00:00`);
+    const end = new Date(`${deadline}T12:00:00`);
+    if (!Number.isFinite(end.getTime())) return { valid: false, overdue: false, days: null };
+    const days = Math.round((end - today) / 86400000);
+    return { valid: true, overdue: days < 0, days };
+  }
+
   function monthsUntil(deadline) {
-    if (!deadline) return null;
+    const status = deadlineStatus(deadline);
+    if (!status.valid || status.overdue) return null;
     const today = new Date();
     const end = new Date(`${deadline}T12:00:00`);
-    if (!Number.isFinite(end.getTime())) return null;
     const months = (end.getFullYear() - today.getFullYear()) * 12 + end.getMonth() - today.getMonth() + 1;
     return Math.max(1, months);
   }
 
   function itemPlan(item) {
     const remaining = Math.max(0, item.targetAmount - item.currentAmount);
+    const deadline = deadlineStatus(item.deadline);
     const months = monthsUntil(item.deadline);
     const needed = months ? Math.ceil(remaining / months) : 0;
     const monthly = item.monthlyBudget || needed;
     const estimatedMonths = monthly > 0 ? Math.ceil(remaining / monthly) : null;
-    return { remaining, months, needed, monthly, estimatedMonths };
+    return { remaining, months, needed, monthly, estimatedMonths, overdue: deadline.overdue };
   }
 
   function monthDate(seed, offset) {
@@ -312,7 +322,12 @@
     meta.textContent = bits.join(' · ');
     card.appendChild(meta);
 
-    if (plan.remaining > 0 && (plan.monthly || item.deadline)) {
+    if (plan.remaining > 0 && plan.overdue) {
+      const pace = document.createElement('div');
+      pace.className = 'money-pace money-pace-overdue';
+      pace.innerHTML = '<small>СРОК ПРОШЁЛ</small><b>Обновите план</b><span>Измените срок или сумму в месяц — текущий прогресс сохранится.</span>';
+      card.appendChild(pace);
+    } else if (plan.remaining > 0 && (plan.monthly || item.deadline)) {
       const pace = document.createElement('div');
       pace.className = 'money-pace';
       const income = data.monthlyIncome;
@@ -337,8 +352,9 @@
     schedule.type = 'button'; schedule.textContent = 'В календарь';
     const activeIds = new Set((appState()?.tasks || []).map(task => task.id));
     const hasSchedule = item.calendarTaskIds.some(id => activeIds.has(id));
-    schedule.disabled = plan.remaining <= 0 || hasSchedule || plan.monthly <= 0;
+    schedule.disabled = plan.remaining <= 0 || hasSchedule || plan.monthly <= 0 || plan.overdue;
     if (hasSchedule) schedule.textContent = 'Уже в календаре';
+    if (plan.overdue && !hasSchedule) schedule.title = 'Обновите срок плана перед добавлением напоминаний';
     schedule.addEventListener('click', () => previewSchedule(item));
     const edit = document.createElement('button');
     edit.type = 'button'; edit.className = 'money-icon-action'; edit.setAttribute('aria-label', 'Изменить');
@@ -369,7 +385,7 @@
 
   function scheduleFor(item) {
     const plan = itemPlan(item);
-    if (plan.remaining <= 0 || plan.monthly <= 0) return [];
+    if (plan.remaining <= 0 || plan.monthly <= 0 || plan.overdue) return [];
     const limit = Math.min(90, plan.estimatedMonths || plan.months || 1);
     let left = plan.remaining;
     const rows = [];
