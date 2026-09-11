@@ -62,7 +62,8 @@
     ['sever2-calendar-clarity-pack', 'sever2-calendar-clarity.css?v=68'],
     ['sever2-home-core-pack', 'sever2-home-core.css?v=70'],
     ['sever2-notes-core-pack', 'sever2-notes-core.css?v=71'],
-    ['sever2-notes-organization-pack', 'sever2-notes-organization.css?v=72']
+    ['sever2-notes-organization-pack', 'sever2-notes-organization.css?v=72'],
+    ['sever2-notes-editor-flow-pack', 'sever2-notes-editor-flow.css?v=73']
   ];
   const scripts = [
     ['sever2-productivity-script', 'sever2-productivity.js?v=64'],
@@ -72,7 +73,8 @@
     ['sever2-create-flow-script', 'sever2-create-flow.js?v=69'],
     ['sever2-home-core-script', 'sever2-home-core.js?v=70'],
     ['sever2-notes-core-script', 'sever2-notes-core.js?v=71'],
-    ['sever2-notes-organization-script', 'sever2-notes-organization.js?v=72']
+    ['sever2-notes-organization-script', 'sever2-notes-organization.js?v=72'],
+    ['sever2-notes-editor-flow-script', 'sever2-notes-editor-flow.js?v=73']
   ];
 
   function normalize(value) {
@@ -100,7 +102,7 @@
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
-      link.setAttribute(`data-${marker}`, 'v72');
+      link.setAttribute(`data-${marker}`, 'v73');
       document.head.appendChild(link);
     });
   }
@@ -114,7 +116,7 @@
       // layers intentionally build on one another, so preserve declaration order.
       script.async = false;
       script.defer = true;
-      script.setAttribute(`data-${marker}`, 'v72');
+      script.setAttribute(`data-${marker}`, 'v73');
       document.head.appendChild(script);
     });
   }
