@@ -226,7 +226,11 @@
 
     cloud.signOut = async function () {
       resetCoordination({ resetSession: true });
-      return withTimeout(original.signOut(), AUTH_TIMEOUT_MS, 'AUTH_TIMEOUT');
+      this.app.lockProtectedNotes('logout');
+      const client = await withTimeout(this.client(), CLIENT_TIMEOUT_MS, 'AUTH_TIMEOUT');
+      const result = await withTimeout(client.auth.signOut({ scope: 'local' }), AUTH_TIMEOUT_MS, 'AUTH_TIMEOUT');
+      if (result?.error) throw result.error;
+      await this.applySession(null);
     };
 
     const dialog = document.querySelector('#accountDialog');
