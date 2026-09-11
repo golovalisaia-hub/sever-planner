@@ -163,6 +163,15 @@
     syncPresentation(selected);
   }
 
+  function pinFirstThemeForFreshProfile() {
+    const state = window.SeverApp?.getState?.();
+    if (!state || state.onboarded !== false) return;
+    state.appearance = { ...(state.appearance || {}), theme: 'light' };
+    try { localStorage.setItem('sever-theme', 'light'); } catch {}
+    document.documentElement.dataset.theme = 'light';
+    document.documentElement.dataset.severMood = themes.light.ui;
+  }
+
   function polishCopy() {
     const themeSection = document.querySelector('.settings-appearance > small');
     if (themeSection) themeSection.textContent = 'ОФОРМЛЕНИЕ';
@@ -201,6 +210,7 @@
   }, { once: true });
 
   window.addEventListener('sever:ready', () => {
+    pinFirstThemeForFreshProfile();
     preparePicker();
     polishCopy();
     syncPresentation(document.documentElement.dataset.theme);
