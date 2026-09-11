@@ -26,7 +26,7 @@
     ['sever2-focus-flow-pack', 'sever2-focus-flow.css?v=66'],
     ['sever2-efficiency-pack', 'sever2-efficiency.css?v=67'],
     ['sever2-calendar-clarity-pack', 'sever2-calendar-clarity.css?v=68'],
-    ['sever2-home-core-pack', 'sever2-home-core.css?v=70'],
+    ['sever2-home-core-pack', 'sever2-home-core.css?v=85'],
     ['sever2-notes-core-pack', 'sever2-notes-core.css?v=71'],
     ['sever2-notes-organization-pack', 'sever2-notes-organization.css?v=72'],
     ['sever2-notes-editor-flow-pack', 'sever2-notes-editor-flow.css?v=73'],
