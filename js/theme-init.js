@@ -33,7 +33,8 @@
     ['sever2-notes-navigation-pack', 'sever2-notes-navigation.css?v=74'],
     ['sever2-notes-polish-pack', 'sever2-notes-polish.css?v=75'],
     ['sever2-mobile-consistency-pack', 'sever2-mobile-consistency.css?v=76'],
-    ['sever2-money-pack', 'sever2-money.css?v=77']
+    ['sever2-money-pack', 'sever2-money.css?v=77'],
+    ['sever2-interaction-polish-pack', 'sever2-interaction-polish.css?v=78']
   ];
   const scripts = [
     ['sever2-productivity-script', 'sever2-productivity.js?v=64'],
@@ -47,7 +48,8 @@
     ['sever2-notes-editor-flow-script', 'sever2-notes-editor-flow.js?v=73'],
     ['sever2-notes-navigation-script', 'sever2-notes-navigation.js?v=74'],
     ['sever2-notes-polish-script', 'sever2-notes-polish.js?v=75'],
-    ['sever2-money-script', 'sever2-money.js?v=77']
+    ['sever2-money-script', 'sever2-money.js?v=77'],
+    ['sever2-interaction-polish-script', 'sever2-interaction-polish.js?v=78']
   ];
 
   function normalize(value) {
@@ -96,7 +98,7 @@
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
-      link.setAttribute(`data-${marker}`, 'v77');
+      link.setAttribute(`data-${marker}`, 'v78');
       document.head.appendChild(link);
     });
   }
@@ -108,7 +110,7 @@
       script.src = src;
       script.async = false;
       script.defer = true;
-      script.setAttribute(`data-${marker}`, 'v77');
+      script.setAttribute(`data-${marker}`, 'v78');
       document.head.appendChild(script);
     });
   }

@@ -26,12 +26,15 @@ test('month cells expose task status and phone history shows what happened on ea
   test.skip(testInfo.project.name === 'desktop', 'phone history surface');
   await seed(page);
   await page.goto('/');
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severCalendarClarity)).toBe('ready');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severInteractionPolish)).toBe('ready');
   await page.evaluate(() => window.SeverApp.switchView('calendar'));
 
   const todayCell = page.locator('#calendar > .day.today');
   await expect(todayCell).toHaveAttribute('data-sever-task-count', '2');
-  await expect(todayCell.locator('.sever2-day-status i')).toHaveCount(2);
+  const status = todayCell.locator('.sever2-day-status.sever2-v78-status');
+  await expect(status).toHaveCount(1);
+  await expect(status.locator('.sever2-v78-task-dot')).toHaveCount(1);
+  await expect(status).toContainText('2');
   await expect(page.locator('#sever2MonthHistory')).toBeVisible();
   await expect(page.locator('#sever2MonthHistory')).toContainText('Главное дело');
   await expect(page.locator('#sever2MonthHistory')).toContainText('Выполненное дело');
