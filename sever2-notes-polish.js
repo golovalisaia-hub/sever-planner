@@ -1,7 +1,6 @@
 (function () {
   'use strict';
 
-  const expandedChecklists = new Set();
   const expandedBodies = new Set();
   let observer = null;
   let scheduled = false;
@@ -24,51 +23,47 @@
   }
 
   function icon(name) {
-    if (name === 'more') return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+    if (name === 'more') return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
     if (name === 'less') return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>';
     if (name === 'check') return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>';
     return '';
   }
 
-  function markExpanded(card, noteId) {
-    card.classList.toggle('notes-polish-checklist-expanded', expandedChecklists.has(noteId));
-    card.classList.toggle('notes-polish-body-expanded', expandedBodies.has(noteId));
-  }
-
-  function ensureChecklistToggle(card, note, data) {
+  function ensureChecklistPreview(card, note, data) {
     const items = Array.isArray(data?.items) ? data.items : [];
-    let old = card.querySelector('.notes-core-more-items');
+    card.classList.remove('notes-polish-checklist-expanded');
+    card.dataset.notesCompactChecklist = String(items.length > 0);
+
+    let control = card.querySelector('.notes-core-more-items');
     if (items.length <= 2) {
-      old?.remove();
-      expandedChecklists.delete(note.id);
+      control?.remove();
       return;
     }
 
-    if (old && old.tagName !== 'BUTTON') {
+    if (control && control.tagName !== 'BUTTON') {
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = old.className;
-      old.replaceWith(button);
-      old = button;
+      button.className = control.className;
+      control.replaceWith(button);
+      control = button;
     }
-    if (!old) {
-      old = document.createElement('button');
-      old.type = 'button';
-      old.className = 'notes-core-more-items';
-      card.querySelector('.note-checklist')?.after(old);
+    if (!control) {
+      control = document.createElement('button');
+      control.type = 'button';
+      control.className = 'notes-core-more-items';
+      card.querySelector('.note-checklist')?.after(control);
     }
 
-    const expanded = expandedChecklists.has(note.id);
-    old.dataset.noteId = note.id;
-    old.setAttribute('aria-expanded', String(expanded));
-    old.setAttribute('aria-label', expanded ? 'Свернуть чек-лист' : `Показать ещё ${items.length - 2} пунктов`);
-    old.innerHTML = `${expanded ? icon('less') : icon('more')}<span>${expanded ? 'Свернуть' : `Ещё ${items.length - 2}`}</span>`;
-    old.onclick = event => {
+    const remaining = items.length - 2;
+    control.dataset.noteId = note.id;
+    control.dataset.notesCompactOpen = 'true';
+    control.setAttribute('aria-expanded', 'false');
+    control.setAttribute('aria-label', `Открыть чек-лист, ещё ${remaining} пунктов`);
+    control.innerHTML = `<span>Ещё ${remaining}</span>${icon('more')}`;
+    control.onclick = event => {
       event.preventDefault();
       event.stopPropagation();
-      if (expandedChecklists.has(note.id)) expandedChecklists.delete(note.id);
-      else expandedChecklists.add(note.id);
-      decorateCard(card, note);
+      window.SeverNotes?.openNote?.(note);
     };
   }
 
@@ -80,6 +75,7 @@
     if (!shouldOffer) {
       toggle?.remove();
       expandedBodies.delete(note.id);
+      card.classList.remove('notes-polish-body-expanded');
       return;
     }
     if (!toggle) {
@@ -89,6 +85,7 @@
       body?.after(toggle);
     }
     const expanded = expandedBodies.has(note.id);
+    card.classList.toggle('notes-polish-body-expanded', expanded);
     toggle.setAttribute('aria-expanded', String(expanded));
     toggle.innerHTML = `${expanded ? icon('less') : icon('more')}<span>${expanded ? 'Свернуть' : 'Показать полностью'}</span>`;
     toggle.onclick = event => {
@@ -115,12 +112,22 @@
     const data = visible(note);
     if (!data) return;
     card.classList.add('notes-polish-card');
-    markExpanded(card, note.id);
-    ensureChecklistToggle(card, note, data);
+    ensureChecklistPreview(card, note, data);
     ensureBodyToggle(card, note, data);
     polishBulkAction(card, data);
     card.querySelector('.note-card-footer')?.classList.add('notes-polish-footer');
     card.querySelector('.note-card-actions')?.classList.add('notes-polish-actions');
+  }
+
+  function decorateEditor() {
+    const dialog = document.querySelector('#noteDialog');
+    const form = document.querySelector('#noteForm');
+    if (!dialog || !form) return;
+    dialog.classList.add('notes-polish-editor');
+    form.classList.add('notes-polish-editor-form');
+    document.querySelector('#checklistEditor')?.classList.add('notes-polish-checklist-editor');
+    document.querySelector('#noteItemsEditor')?.classList.add('notes-polish-items-editor');
+    form.querySelector('.dialog-actions')?.classList.add('notes-polish-editor-actions');
   }
 
   function decorate() {
@@ -129,6 +136,7 @@
       const note = noteById(card.dataset.noteId);
       if (note) decorateCard(card, note);
     });
+    decorateEditor();
 
     const actionDialog = document.querySelector('#notesActionDialog');
     if (actionDialog) {
@@ -156,6 +164,7 @@
     const root = document.querySelector('#notesView');
     observer = new MutationObserver(schedule);
     observer.observe(root, { childList: true, subtree: true });
+    document.querySelector('#noteDialog')?.addEventListener('toggle', schedule);
     schedule();
     document.documentElement.dataset.severNotesPolish = 'ready';
   }
