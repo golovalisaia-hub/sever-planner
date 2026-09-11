@@ -6,7 +6,7 @@ import vm from 'node:vm';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-const RELEASE_CACHE = 'sever-v82-reminders-desktop-v7';
+const RELEASE_CACHE = 'sever-v82-reminders-desktop-v8';
 
 test('current service worker installs the guarded release atomically and removes stale caches', async () => {
   const handlers = new Map();
@@ -22,7 +22,7 @@ test('current service worker installs the guarded release atomically and removes
   };
   const caches = {
     open: async name => ({ addAll: async assets => { assert.equal(name, RELEASE_CACHE); cachedAssets = assets; } }),
-    keys: async () => ['sever-v75-notes-compact-v1', 'sever-v82-reminders-desktop-v6'],
+    keys: async () => ['sever-v75-notes-compact-v1', 'sever-v82-reminders-desktop-v7'],
     delete: async name => { deleted.push(name); return true; }
   };
   vm.runInNewContext(source, { self, caches, clients: self.clients, fetch: async () => ({}), URL, Promise, Response });
@@ -37,19 +37,20 @@ test('current service worker installs the guarded release atomically and removes
     './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=84','./sever2-usability-v84.js?v=84',
     './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
+    './sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./js/theme-init.js?v=85'
   ]) assert.ok(cachedAssets.includes(asset), `missing ${asset}`);
   let activateWork;
   handlers.get('activate')({ waitUntil: promise => { activateWork = promise; } });
   await activateWork;
   assert.ok(deleted.includes('sever-v75-notes-compact-v1'));
-  assert.ok(deleted.includes('sever-v82-reminders-desktop-v6'));
+  assert.ok(deleted.includes('sever-v82-reminders-desktop-v7'));
   assert.ok(!deleted.includes(RELEASE_CACHE));
   assert.equal(claimed, true);
   assert.equal(skipped, true);
 });
 
-test('installed current release serves Home v85 and recovery from one release cache', async () => {
+test('installed current release serves Home v85, reminder v86 styles and recovery from one release cache', async () => {
   const handlers = new Map();
   const requests = [];
   let network = 0;
@@ -61,7 +62,7 @@ test('installed current release serves Home v85 and recovery from one release ca
   const caches = {
     open: async name => {
       assert.equal(name, RELEASE_CACHE);
-      return { match: async key => { requests.push(key); return { release: 85, key }; } };
+      return { match: async key => { requests.push(key); return { release: 86, key }; } };
     }
   };
   vm.runInNewContext(source, { self, caches, URL, Response, fetch: async () => { network++; throw Error('network must not update a release'); } });
@@ -83,6 +84,8 @@ test('installed current release serves Home v85 and recovery from one release ca
     ['sever2-usability-v84.js?v=old','cors','./sever2-usability-v84.js?v=84'],
     ['sever2-interaction-polish.css?v=old','cors','./sever2-interaction-polish.css?v=78'],
     ['sever2-interaction-polish.js?v=old','cors','./sever2-interaction-polish.js?v=78'],
+    ['sever2-reminders.css?v=old','cors','./sever2-reminders.css?v=86'],
+    ['sever2-task-reminders.js?v=old','cors','./sever2-task-reminders.js?v=82'],
     ['sever2-cloud-recovery.css?v=old','cors','./sever2-cloud-recovery.css?v=80'],
     ['sever2-cloud-recovery.js?v=old','cors','./sever2-cloud-recovery.js?v=80'],
     ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=85'],
