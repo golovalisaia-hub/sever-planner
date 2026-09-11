@@ -1,0 +1,264 @@
+/* SEVER 2 interaction polish v78 — stable state feedback across all three themes. */
+
+/* ---------- Task completion: a completed task must look completed ---------- */
+.task .check {
+  position: relative;
+  display: grid !important;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  place-items: center;
+  padding: 0 !important;
+  overflow: hidden;
+  border-color: var(--border-strong, var(--line)) !important;
+  background: transparent !important;
+  color: transparent !important;
+}
+.task.done {
+  opacity: 1 !important;
+}
+.task.done .task-name {
+  color: var(--text-muted, var(--muted));
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: color-mix(in srgb, var(--text-muted, var(--muted)) 70%, transparent);
+}
+.task.done .task-meta {
+  opacity: .72;
+}
+.task.done .check {
+  border-color: var(--accent, var(--sever-blue)) !important;
+  background: var(--accent, var(--sever-blue)) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, var(--sever-blue)) 10%, transparent);
+}
+.task.done .check::after {
+  content: "";
+  display: block;
+  width: 7px;
+  height: 12px;
+  margin-top: -2px;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(45deg);
+  transform-origin: center;
+}
+html[data-theme="black"] .task.done .check::after {
+  border-color: #08120f;
+}
+.task .check:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent, var(--sever-blue)) 78%, transparent);
+  outline-offset: 3px;
+}
+
+/* ---------- Calendar: today and task presence are two different signals ---------- */
+#calendar > .day {
+  position: relative;
+}
+#calendar > .day.today > .sever2-day-status {
+  /* Defeat the legacy `.day.today > span` rule that accidentally turns the task
+     status into a second large "today" badge. */
+  width: auto !important;
+  min-width: 0 !important;
+  height: 13px !important;
+  min-height: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--accent, var(--sever-blue)) !important;
+}
+#calendar > .day .sever2-day-status.sever2-v78-status {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  display: flex !important;
+  width: auto !important;
+  height: 13px !important;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--accent, var(--sever-blue)) !important;
+  line-height: 1;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.sever2-v78-status .sever2-v78-task-dot {
+  display: block;
+  width: 5px;
+  min-width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: none;
+}
+.sever2-v78-status.all-done .sever2-v78-task-dot {
+  background: transparent;
+  border: 1.5px solid currentColor;
+  opacity: .72;
+}
+.sever2-v78-status b {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  color: currentColor !important;
+  font-size: 8px !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+}
+@media (max-width: 900px) {
+  #calendar > .day {
+    padding-bottom: 15px !important;
+  }
+}
+
+/* ---------- Habits: completion must never restyle every button in the card ---------- */
+.habit-card-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+.habit .habit-edit,
+.habit.done .habit-edit {
+  display: grid !important;
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  place-items: center;
+  padding: 0 !important;
+  border: 1px solid var(--border-strong, var(--line)) !important;
+  border-radius: var(--radius-control, 11px) !important;
+  background: var(--surface-1, var(--panel)) !important;
+  color: var(--text-primary, var(--text)) !important;
+  line-height: 1;
+}
+.habit .habit-week-total {
+  flex: 0 0 auto;
+}
+.habit.done .habit-week .habit-day,
+.habit .habit-week .habit-day {
+  position: relative;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  padding: 6px 3px !important;
+  align-content: center !important;
+  justify-items: center !important;
+  border: 1px solid var(--border-strong, var(--line)) !important;
+  border-radius: var(--radius-control, 11px) !important;
+  background: transparent !important;
+  color: var(--text-secondary, var(--muted)) !important;
+  box-shadow: none;
+}
+.habit.done .habit-week .habit-day b,
+.habit .habit-week .habit-day b {
+  color: var(--text-primary, var(--text)) !important;
+}
+.habit .habit-week .habit-day.today {
+  box-shadow: inset 0 0 0 1.5px var(--text-primary, var(--text)) !important;
+}
+.habit.done .habit-week .habit-day.done,
+.habit .habit-week .habit-day.done {
+  border-color: var(--accent, var(--sever-blue)) !important;
+  background: var(--accent, var(--sever-blue)) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+.habit.done .habit-week .habit-day.done b,
+.habit .habit-week .habit-day.done b {
+  color: #fff !important;
+}
+html[data-theme="black"] .habit.done .habit-week .habit-day.done,
+html[data-theme="black"] .habit .habit-week .habit-day.done,
+html[data-theme="black"] .habit.done .habit-week .habit-day.done b,
+html[data-theme="black"] .habit .habit-week .habit-day.done b {
+  color: #08120f !important;
+}
+.habit .habit-week .habit-day i {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  display: grid;
+  width: 13px;
+  height: 13px;
+  place-items: center;
+  margin: 0;
+  color: currentColor;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+}
+.habit .habit-week .habit-day i:empty {
+  display: none;
+}
+.habit .habit-week .habit-day:disabled {
+  opacity: .34 !important;
+}
+@media (max-width: 430px) {
+  .habit {
+    overflow: hidden;
+  }
+  .habit-card-head {
+    align-items: flex-start;
+  }
+  .habit-week {
+    width: 100%;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px !important;
+  }
+  .habit.done .habit-week .habit-day,
+  .habit .habit-week .habit-day {
+    height: 56px !important;
+    min-height: 56px !important;
+    border-radius: 10px !important;
+  }
+}
+
+/* ---------- Focus Peak: centered play affordance on Home and stable timer geometry ---------- */
+html[data-theme="black"] #todayView .today-focus-widget .primary {
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+  line-height: 1 !important;
+  overflow: hidden !important;
+}
+html[data-theme="black"] #todayView .today-focus-widget .primary::before {
+  content: "" !important;
+  display: block !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 0 0 3px !important;
+  border-top: 7px solid transparent !important;
+  border-bottom: 7px solid transparent !important;
+  border-left: 11px solid currentColor !important;
+  transform: none !important;
+}
+#timerView .timer-ring {
+  flex: 0 0 auto;
+  align-self: center;
+  margin-inline: auto;
+}
+#timerView .timer-ring > svg {
+  display: block;
+}
+#timerView .timer-center {
+  text-align: center;
+}
+#timerView .timer-center button {
+  margin-inline: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task.done .check {
+    animation: none !important;
+  }
+}
