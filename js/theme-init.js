@@ -28,27 +28,9 @@
     aurora: 'light'
   };
   const themes = {
-    light: {
-      name: 'Calm Balance',
-      description: 'Светлая, спокойная и воздушная',
-      color: '#F1E9E3',
-      preview: 'theme-calm',
-      ui: 'calm'
-    },
-    motion: {
-      name: 'Cozy Mood',
-      description: 'Тёплая, мягкая и уютная',
-      color: '#F3ECE7',
-      preview: 'theme-cozy',
-      ui: 'cozy'
-    },
-    black: {
-      name: 'Focus Peak',
-      description: 'Тёмная, тихая и концентрированная',
-      color: '#111618',
-      preview: 'theme-focus',
-      ui: 'focus'
-    }
+    light: { name: 'Calm Balance', description: 'Светлая, спокойная и воздушная', color: '#F1E9E3', preview: 'theme-calm', ui: 'calm' },
+    motion: { name: 'Cozy Mood', description: 'Тёплая, мягкая и уютная', color: '#F3ECE7', preview: 'theme-cozy', ui: 'cozy' },
+    black: { name: 'Focus Peak', description: 'Тёмная, тихая и концентрированная', color: '#111618', preview: 'theme-focus', ui: 'focus' }
   };
 
   const stylesheets = [
@@ -63,7 +45,8 @@
     ['sever2-home-core-pack', 'sever2-home-core.css?v=70'],
     ['sever2-notes-core-pack', 'sever2-notes-core.css?v=71'],
     ['sever2-notes-organization-pack', 'sever2-notes-organization.css?v=72'],
-    ['sever2-notes-editor-flow-pack', 'sever2-notes-editor-flow.css?v=73']
+    ['sever2-notes-editor-flow-pack', 'sever2-notes-editor-flow.css?v=73'],
+    ['sever2-notes-navigation-pack', 'sever2-notes-navigation.css?v=74']
   ];
   const scripts = [
     ['sever2-productivity-script', 'sever2-productivity.js?v=64'],
@@ -74,7 +57,8 @@
     ['sever2-home-core-script', 'sever2-home-core.js?v=70'],
     ['sever2-notes-core-script', 'sever2-notes-core.js?v=71'],
     ['sever2-notes-organization-script', 'sever2-notes-organization.js?v=72'],
-    ['sever2-notes-editor-flow-script', 'sever2-notes-editor-flow.js?v=73']
+    ['sever2-notes-editor-flow-script', 'sever2-notes-editor-flow.js?v=73'],
+    ['sever2-notes-navigation-script', 'sever2-notes-navigation.js?v=74']
   ];
 
   function normalize(value) {
@@ -102,7 +86,7 @@
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
-      link.setAttribute(`data-${marker}`, 'v73');
+      link.setAttribute(`data-${marker}`, 'v74');
       document.head.appendChild(link);
     });
   }
@@ -112,11 +96,9 @@
       if (document.querySelector(`script[data-${marker}]`)) return;
       const script = document.createElement('script');
       script.src = src;
-      // Dynamically inserted scripts are async by default. SEVER's presentation
-      // layers intentionally build on one another, so preserve declaration order.
       script.async = false;
       script.defer = true;
-      script.setAttribute(`data-${marker}`, 'v73');
+      script.setAttribute(`data-${marker}`, 'v74');
       document.head.appendChild(script);
     });
   }
@@ -132,9 +114,7 @@
   function rewriteToast(theme) {
     requestAnimationFrame(() => {
       const label = document.querySelector('#toast span');
-      if (label && /^Тема:/.test(label.textContent || '')) {
-        label.textContent = `Тема: ${themes[theme].name}`;
-      }
+      if (label && /^Тема:/.test(label.textContent || '')) label.textContent = `Тема: ${themes[theme].name}`;
     });
   }
 
@@ -164,10 +144,7 @@
 
   function preparePicker() {
     const picker = document.querySelector('.theme-picker');
-    if (!picker) {
-      syncPresentation(document.documentElement.dataset.theme);
-      return;
-    }
+    if (!picker) { syncPresentation(document.documentElement.dataset.theme); return; }
     const allButtons = [...picker.querySelectorAll('[data-sever-theme]')];
     const buttons = new Map(allButtons.map(button => [button.dataset.severTheme, button]));
     buttons.get('north')?.remove();
@@ -186,10 +163,7 @@
       button.dataset.themeMood = info.ui;
       if (button.dataset.severThemeWrapped !== 'true') {
         const original = button.onclick;
-        button.onclick = function (event) {
-          original?.call(this, event);
-          syncPresentation(id);
-        };
+        button.onclick = function (event) { original?.call(this, event); syncPresentation(id); };
         button.dataset.severThemeWrapped = 'true';
       }
       picker.appendChild(button);

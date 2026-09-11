@@ -4,36 +4,34 @@ import { readFile } from 'node:fs/promises';
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('Notes core, organization and editor-flow layers load in the SEVER 2 presentation bootstrap', async () => {
+test('Notes presentation layers load in deterministic order through navigation v74', async () => {
   const source = await read('js/theme-init.js');
-  assert.match(source, /sever2-notes-core\.css\?v=71/);
-  assert.match(source, /sever2-notes-core\.js\?v=71/);
-  assert.match(source, /sever2-notes-organization\.css\?v=72/);
-  assert.match(source, /sever2-notes-organization\.js\?v=72/);
-  assert.match(source, /sever2-notes-editor-flow\.css\?v=73/);
-  assert.match(source, /sever2-notes-editor-flow\.js\?v=73/);
-  assert.match(source, /data-\$\{marker\}.*v73/s);
-
-  const coreIndex = source.indexOf('sever2-notes-core-script');
-  const organizationIndex = source.indexOf('sever2-notes-organization-script');
-  const editorFlowIndex = source.indexOf('sever2-notes-editor-flow-script');
-  assert.ok(coreIndex >= 0 && organizationIndex > coreIndex && editorFlowIndex > organizationIndex);
+  for (const asset of [
+    'sever2-notes-core.css?v=71','sever2-notes-core.js?v=71',
+    'sever2-notes-organization.css?v=72','sever2-notes-organization.js?v=72',
+    'sever2-notes-editor-flow.css?v=73','sever2-notes-editor-flow.js?v=73',
+    'sever2-notes-navigation.css?v=74','sever2-notes-navigation.js?v=74'
+  ]) assert.ok(source.includes(asset), `missing ${asset}`);
+  assert.match(source, /data-\$\{marker\}.*v74/s);
+  const core = source.indexOf('sever2-notes-core-script');
+  const organization = source.indexOf('sever2-notes-organization-script');
+  const editor = source.indexOf('sever2-notes-editor-flow-script');
+  const navigation = source.indexOf('sever2-notes-navigation-script');
+  assert.ok(core >= 0 && organization > core && editor > organization && navigation > editor);
 });
 
-test('Notes editor flow ships in the atomic PWA release without dropping organization assets', async () => {
+test('Notes navigation ships in the atomic PWA release without dropping prior Notes layers', async () => {
   const source = await read('sw.js');
-  assert.match(source, /const CACHE = 'sever-v69-notes-editor-flow-v1'/);
-  assert.match(source, /\.\/sever2-notes-core\.css\?v=71/);
-  assert.match(source, /\.\/sever2-notes-core\.js\?v=71/);
-  assert.match(source, /\.\/sever2-notes-organization\.css\?v=72/);
-  assert.match(source, /\.\/sever2-notes-organization\.js\?v=72/);
-  assert.match(source, /\.\/sever2-notes-editor-flow\.css\?v=73/);
-  assert.match(source, /\.\/sever2-notes-editor-flow\.js\?v=73/);
-  assert.match(source, /'\/sever2-notes-organization\.css'/);
-  assert.match(source, /'\/sever2-notes-organization\.js'/);
-  assert.match(source, /'\/sever2-notes-editor-flow\.css'/);
-  assert.match(source, /'\/sever2-notes-editor-flow\.js'/);
-  assert.match(source, /\.\/js\/theme-init\.js\?v=73/);
+  assert.match(source, /const CACHE = 'sever-v70-notes-navigation-v1'/);
+  for (const asset of [
+    './sever2-notes-core.css?v=71','./sever2-notes-core.js?v=71',
+    './sever2-notes-organization.css?v=72','./sever2-notes-organization.js?v=72',
+    './sever2-notes-editor-flow.css?v=73','./sever2-notes-editor-flow.js?v=73',
+    './sever2-notes-navigation.css?v=74','./sever2-notes-navigation.js?v=74',
+    './js/theme-init.js?v=74'
+  ]) assert.ok(source.includes(`'${asset}'`), `missing ${asset}`);
+  assert.match(source, /'\/sever2-notes-navigation\.css'/);
+  assert.match(source, /'\/sever2-notes-navigation\.js'/);
 });
 
 test('Notes organization keeps pin and tags outside the notes table contract', async () => {

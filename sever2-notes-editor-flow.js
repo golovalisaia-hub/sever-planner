@@ -309,18 +309,20 @@
     }
   }
 
-  function handleDialogClose() {
+  function markDraftClosed() {
     clearTimeout(saveTimer);
+    saveTimer = 0;
     const draft = readDraft();
-    if (!draft) {
-      openedNoteId = '';
-      return;
-    }
+    if (!draft) return;
     if (draft.noteId === openedNoteId) {
       draft.wasOpen = false;
       draft.savedAt = Date.now();
       writeDraft(draft);
     }
+  }
+
+  function handleDialogClose() {
+    markDraftClosed();
     openedNoteId = '';
   }
 
@@ -382,6 +384,12 @@
     booted = true;
     ensureUi();
     bindForm();
+    // Native dialog `close` is queued. Capture explicit close/cancel intent first
+    // so a synchronous read after the dialog disappears cannot still see wasOpen=true.
+    dialog.addEventListener('click', event => {
+      if (event.target.closest('[data-close="noteDialog"]')) markDraftClosed();
+    }, true);
+    dialog.addEventListener('cancel', markDraftClosed, true);
     dialog.addEventListener('close', handleDialogClose);
     observer = new MutationObserver(() => { if (dialog.open) queueMicrotask(handleDialogOpen); });
     observer.observe(dialog, { attributes: true, attributeFilter: ['open'] });
