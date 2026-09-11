@@ -31,14 +31,14 @@ test('presentation layers load deterministically through cloud recovery v80', as
 
 test('cloud recovery v80 ships atomically inside the v82 reminder PWA release', async () => {
   const source = await read('sw.js');
-  assert.match(source, /const CACHE = 'sever-v82-reminders-desktop-v4'/);
+  assert.match(source, /const CACHE = 'sever-v82-reminders-desktop-v5'/);
   for (const asset of [
     './sever2-notes-core.css?v=71','./sever2-notes-core.js?v=71',
     './sever2-notes-organization.css?v=72','./sever2-notes-organization.js?v=72',
     './sever2-notes-editor-flow.css?v=73','./sever2-notes-editor-flow.js?v=73',
     './sever2-notes-navigation.css?v=74','./sever2-notes-navigation.js?v=74',
     './sever2-notes-polish.css?v=79','./sever2-notes-polish.js?v=79',
-    './sever2-mobile-consistency.css?v=76','./sever2-money.css?v=77','./sever2-money.js?v=77',
+    './sever2-mobile-consistency.css?v=76','./sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80',
     './sever2-reminders.css?v=82','./sever2-task-reminders.js?v=82','./js/theme-init.js?v=81'
