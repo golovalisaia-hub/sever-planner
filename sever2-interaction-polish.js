@@ -62,7 +62,7 @@
       const date = cell.dataset.severDate;
       if (!date) return;
       const summary = taskSummaryFor(date);
-      cell.querySelector('.sever2-day-status')?.remove();
+      cell.querySelectorAll(':scope > .sever2-day-status').forEach(status => status.remove());
       if (!summary.total) return;
 
       const status = document.createElement('div');
@@ -76,6 +76,16 @@
       count.textContent = String(summary.total);
       status.append(dot, count);
       cell.appendChild(status);
+    });
+  }
+
+  function calendarNeedsPolish() {
+    return $$('#calendar > .day').some(cell => {
+      const date = cell.dataset.severDate;
+      if (!date) return false;
+      const summary = taskSummaryFor(date);
+      const status = cell.querySelector(':scope > .sever2-v78-status');
+      return summary.total > 0 ? !status : Boolean(status);
     });
   }
 
@@ -107,9 +117,10 @@
     const calendar = $('#calendar');
     if (calendar && !calendarObserver) {
       calendarObserver = new MutationObserver(records => {
-        if (records.some(record => record.type === 'childList' && record.target === calendar)) scheduleCalendar();
+        const rebuilt = records.some(record => record.type === 'childList' && record.target === calendar);
+        if (rebuilt || calendarNeedsPolish()) scheduleCalendar();
       });
-      calendarObserver.observe(calendar, { childList: true });
+      calendarObserver.observe(calendar, { childList: true, subtree: true });
     }
 
     const tasks = $('#todayTasks');
