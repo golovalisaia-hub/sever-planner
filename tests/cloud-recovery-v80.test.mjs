@@ -44,17 +44,19 @@ test('account UI exposes sync health and a safe recovery action', () => {
   assert.match(css, /#accountDialog #accountRetry:not\(\.hidden\)/);
 });
 
-test('cloud recovery v80 remains in the atomic v81 PWA startup-guard release', () => {
+test('cloud recovery v80 remains in the atomic v82 reminder PWA release', () => {
   const interaction = themeInit.indexOf('sever2-interaction-polish-script');
   const recovery = themeInit.indexOf('sever2-cloud-recovery-script');
   assert.ok(interaction >= 0 && recovery > interaction);
   assert.match(themeInit, /sever2-cloud-recovery\.css\?v=80/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v77-pwa-startup-guard-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v1'/);
   for (const asset of [
     './sever2-cloud-recovery.css?v=80',
     './sever2-cloud-recovery.js?v=80',
-    './js/theme-init.js?v=81'
+    './js/theme-init.js?v=81',
+    './sever2-reminders.css?v=82',
+    './sever2-task-reminders.js?v=82'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
 });
