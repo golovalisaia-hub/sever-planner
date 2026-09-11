@@ -37,20 +37,24 @@ test('habit completion cannot restyle the whole card and Focus play stays center
   assert.match(css, /border-left:\s*11px solid currentColor/);
 });
 
-test('v78 interaction polish remains in the atomic v79 Notes release', () => {
+test('v78 interaction polish remains in the atomic v80 cloud recovery release', () => {
   const money = themeInit.indexOf('sever2-money-script');
   const polish = themeInit.indexOf('sever2-interaction-polish-script');
-  assert.ok(money >= 0 && polish > money);
+  const recovery = themeInit.indexOf('sever2-cloud-recovery-script');
+  assert.ok(money >= 0 && polish > money && recovery > polish);
   assert.match(themeInit, /sever2-interaction-polish\.css\?v=78/);
   assert.match(themeInit, /sever2-interaction-polish\.js\?v=78/);
-  assert.match(themeInit, /data-\$\{marker\}.*v79/s);
-  assert.match(sw, /const CACHE = 'sever-v75-notes-compact-v1'/);
+  assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
+  assert.match(themeInit, /data-\$\{marker\}.*v80/s);
+  assert.match(sw, /const CACHE = 'sever-v76-cloud-recovery-v1'/);
   for (const asset of [
     './sever2-notes-polish.css?v=79','./sever2-notes-polish.js?v=79',
     './sever2-money.css?v=77','./sever2-money.js?v=77',
     './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
-    './js/theme-init.js?v=79'
+    './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80',
+    './js/theme-init.js?v=80'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   assert.match(sw, /'\/sever2-interaction-polish\.css'/);
   assert.match(sw, /'\/sever2-interaction-polish\.js'/);
+  assert.match(sw, /'\/sever2-cloud-recovery\.js'/);
 });
