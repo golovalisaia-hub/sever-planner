@@ -292,10 +292,11 @@ html[data-sever-mood="focus"] #notesView .notes-polish-card {
   }
 
   .notes-org-sheet {
-    max-height: min(56dvh, 430px);
+    max-height: min(42dvh, 330px);
   }
 
   .notes-org-sheet-card {
+    gap: 6px;
     padding-top: 7px;
   }
 
@@ -305,6 +306,31 @@ html[data-sever-mood="focus"] #notesView .notes-polish-card {
 
   .notes-org-sheet-copy span {
     display: none;
+  }
+
+  .notes-org-sheet-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .notes-org-sheet-actions button {
+    min-width: 0;
+    min-height: 46px;
+    padding-inline: 6px;
+    overflow: hidden;
+    font-size: .7rem;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .notes-org-sheet-actions button + button {
+    border-top: 0;
+    border-left: 1px solid var(--border-subtle, var(--line));
+  }
+
+  .notes-org-sheet-cancel {
+    min-height: 40px;
+    font-size: .72rem;
   }
 }
 
