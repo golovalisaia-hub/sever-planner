@@ -6,9 +6,9 @@ import vm from 'node:vm';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-const RELEASE_CACHE = 'sever-v68-notes-organization-v1';
+const RELEASE_CACHE = 'sever-v69-notes-editor-flow-v1';
 
-test('v68 service worker installs the Notes organization release atomically and removes stale caches', async () => {
+test('v69 service worker installs the Notes editor-flow release atomically and removes stale caches', async () => {
   const handlers = new Map();
   const deleted = [];
   let cachedAssets = [];
@@ -22,7 +22,7 @@ test('v68 service worker installs the Notes organization release atomically and 
   };
   const caches = {
     open: async name => ({ addAll: async assets => { assert.equal(name, RELEASE_CACHE); cachedAssets = assets; }, put: async () => {} }),
-    keys: async () => ['sever-v35', 'sever-v66-home-core-v1', 'sever-v67-notes-core-v1'],
+    keys: async () => ['sever-v35', 'sever-v67-notes-core-v1', 'sever-v68-notes-organization-v1'],
     delete: async name => { deleted.push(name); return true; },
     match: async () => null
   };
@@ -55,7 +55,9 @@ test('v68 service worker installs the Notes organization release atomically and 
   assert.ok(cachedAssets.includes('./sever2-notes-core.js?v=71'));
   assert.ok(cachedAssets.includes('./sever2-notes-organization.css?v=72'));
   assert.ok(cachedAssets.includes('./sever2-notes-organization.js?v=72'));
-  assert.ok(cachedAssets.includes('./js/theme-init.js?v=72'));
+  assert.ok(cachedAssets.includes('./sever2-notes-editor-flow.css?v=73'));
+  assert.ok(cachedAssets.includes('./sever2-notes-editor-flow.js?v=73'));
+  assert.ok(cachedAssets.includes('./js/theme-init.js?v=73'));
   assert.ok(cachedAssets.includes('./sever-ai.css?v=52'));
   assert.ok(cachedAssets.includes('./js/sever-ai.js?v=45'));
   assert.ok(!cachedAssets.includes('./aurora.webp'));
@@ -64,7 +66,7 @@ test('v68 service worker installs the Notes organization release atomically and 
   let activateWork;
   handlers.get('activate')({ waitUntil: promise => { activateWork = promise; } });
   await activateWork;
-  assert.ok(deleted.includes('sever-v67-notes-core-v1'));
+  assert.ok(deleted.includes('sever-v68-notes-organization-v1'));
   assert.ok(!deleted.includes(RELEASE_CACHE));
   assert.equal(claimed, true);
   assert.equal(skipped, true);
@@ -77,7 +79,7 @@ test('installed release serves HTML and critical core assets from one release ca
   const handlers = new Map(), requests = [];
   let network = 0;
   const self = { location: { origin: 'https://example.test' }, registration: { scope: 'https://example.test/sever-planner/' }, addEventListener: (name, fn) => handlers.set(name, fn) };
-  const caches = { open: async name => { assert.equal(name, RELEASE_CACHE); return { match: async key => { requests.push(key); return { release: 68, key }; } }; } };
+  const caches = { open: async name => { assert.equal(name, RELEASE_CACHE); return { match: async key => { requests.push(key); return { release: 69, key }; } }; } };
   vm.runInNewContext(source, { self, caches, URL, Response, fetch: async () => { network++; throw Error('network must not update a release'); } });
   for (const [pathValue, mode, expected] of [
     ['?verify=new','navigate','./index.html'],
@@ -101,7 +103,9 @@ test('installed release serves HTML and critical core assets from one release ca
     ['sever2-notes-core.js?v=old','cors','./sever2-notes-core.js?v=71'],
     ['sever2-notes-organization.css?v=old','cors','./sever2-notes-organization.css?v=72'],
     ['sever2-notes-organization.js?v=old','cors','./sever2-notes-organization.js?v=72'],
-    ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=72'],
+    ['sever2-notes-editor-flow.css?v=old','cors','./sever2-notes-editor-flow.css?v=73'],
+    ['sever2-notes-editor-flow.js?v=old','cors','./sever2-notes-editor-flow.js?v=73'],
+    ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=73'],
     ['app.js?v=new','cors','./app.js?v=51']
   ]) {
     let response;
@@ -109,5 +113,5 @@ test('installed release serves HTML and critical core assets from one release ca
     assert.equal((await response).key, expected);
   }
   assert.equal(network, 0);
-  assert.equal(requests.length, 23);
+  assert.equal(requests.length, 25);
 });
