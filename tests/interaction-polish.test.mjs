@@ -46,7 +46,7 @@ test('v78 interaction polish remains in the atomic v82 reminder PWA release', ()
   assert.match(themeInit, /sever2-interaction-polish\.js\?v=78/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v2'/);
+  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v3'/);
   for (const asset of [
     './sever2-notes-polish.css?v=79','./sever2-notes-polish.js?v=79',
     './sever2-money.css?v=77','./sever2-money.js?v=77',
