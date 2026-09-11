@@ -13,6 +13,24 @@
 
   const state = () => window.SeverApp?.getState?.() || { tasks: [] };
 
+  function installReminderLayer() {
+    if (!document.querySelector('link[data-sever2-reminders]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'sever2-reminders.css?v=82';
+      link.dataset.sever2Reminders = 'v82';
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[data-sever2-reminders]')) {
+      const script = document.createElement('script');
+      script.src = 'sever2-task-reminders.js?v=82';
+      script.async = false;
+      script.defer = true;
+      script.dataset.sever2Reminders = 'v82';
+      document.head.appendChild(script);
+    }
+  }
+
   function taskSummaryFor(date) {
     const tasks = (state().tasks || []).filter(task => task?.date === date);
     const done = tasks.filter(task => task.completed).length;
@@ -112,6 +130,7 @@
     bootTimer = setTimeout(scheduleBoot, 50);
   }
 
+  installReminderLayer();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleBoot, { once: true });
   else scheduleBoot();
   window.addEventListener('load', scheduleBoot, { once: true });
