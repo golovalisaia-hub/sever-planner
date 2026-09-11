@@ -10,10 +10,10 @@ test('installed release reloads offline with one complete asset set', async ({ b
     await expect.poll(async () => {
       try {
         cached = await page.evaluate(async () => {
-          const cache = await caches.open('sever-v75-notes-compact-v1');
+          const cache = await caches.open('sever-v76-cloud-recovery-v1');
           return (await cache.keys()).map(request => new URL(request.url).pathname + new URL(request.url).search);
         });
-        return cached.includes('/sever2-notes-core.js?v=71') && cached.includes('/sever2-notes-organization.js?v=72') && cached.includes('/sever2-notes-editor-flow.js?v=73') && cached.includes('/sever2-notes-navigation.js?v=74') && cached.includes('/sever2-notes-polish.js?v=79') && cached.includes('/sever2-mobile-consistency.css?v=76') && cached.includes('/sever2-money.js?v=77') && cached.includes('/sever2-interaction-polish.js?v=78') && cached.includes('/js/theme-init.js?v=79');
+        return cached.includes('/sever2-notes-core.js?v=71') && cached.includes('/sever2-notes-organization.js?v=72') && cached.includes('/sever2-notes-editor-flow.js?v=73') && cached.includes('/sever2-notes-navigation.js?v=74') && cached.includes('/sever2-notes-polish.js?v=79') && cached.includes('/sever2-mobile-consistency.css?v=76') && cached.includes('/sever2-money.js?v=77') && cached.includes('/sever2-interaction-polish.js?v=78') && cached.includes('/sever2-cloud-recovery.js?v=80') && cached.includes('/js/theme-init.js?v=80');
       } catch { return false; }
     }).toBe(true);
     for (const asset of [
@@ -24,19 +24,20 @@ test('installed release reloads offline with one complete asset set', async ({ b
       '/sever2-notes-organization.css?v=72','/sever2-notes-organization.js?v=72','/sever2-notes-editor-flow.css?v=73','/sever2-notes-editor-flow.js?v=73',
       '/sever2-notes-navigation.css?v=74','/sever2-notes-navigation.js?v=74','/sever2-notes-polish.css?v=79','/sever2-notes-polish.js?v=79',
       '/sever2-mobile-consistency.css?v=76','/sever2-money.css?v=77','/sever2-money.js?v=77',
-      '/sever2-interaction-polish.css?v=78','/sever2-interaction-polish.js?v=78','/js/theme-init.js?v=79','/app.js?v=51','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55'
+      '/sever2-interaction-polish.css?v=78','/sever2-interaction-polish.js?v=78','/sever2-cloud-recovery.css?v=80','/sever2-cloud-recovery.js?v=80','/js/theme-init.js?v=80','/app.js?v=51','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55'
     ]) expect(cached).toContain(asset);
     expect(cached).not.toContain('/desktop-home.css?v=60');
     await context.setOffline(true);
     await page.reload();
     await expect(page.locator('#todayView')).toBeVisible();
-    for (const key of ['severProductivity','severFocusFlow','severEfficiency','severCalendarClarity','severCreateFlow','severHomeCore','severNotesCore','severNotesOrganization','severNotesEditorFlow','severNotesNavigation','severNotesPolish','severMoney','severInteractionPolish']) {
+    for (const key of ['severProductivity','severFocusFlow','severEfficiency','severCalendarClarity','severCreateFlow','severHomeCore','severNotesCore','severNotesOrganization','severNotesEditorFlow','severNotesNavigation','severNotesPolish','severMoney','severInteractionPolish','severCloudRecovery']) {
       await expect.poll(() => page.evaluate(name => document.documentElement.dataset[name], key)).toBe('ready');
     }
     await expect(page.locator('link[data-sever2-notes-polish-pack]')).toHaveAttribute('href', /sever2-notes-polish\.css\?v=79$/);
     await expect(page.locator('link[data-sever2-mobile-consistency-pack]')).toHaveAttribute('href', /sever2-mobile-consistency\.css\?v=76$/);
     await expect(page.locator('link[data-sever2-money-pack]')).toHaveAttribute('href', /sever2-money\.css\?v=77$/);
     await expect(page.locator('link[data-sever2-interaction-polish-pack]')).toHaveAttribute('href', /sever2-interaction-polish\.css\?v=78$/);
+    await expect(page.locator('link[data-sever2-cloud-recovery-pack]')).toHaveAttribute('href', /sever2-cloud-recovery\.css\?v=80$/);
     await expect(page.locator('#sever2HomeCore')).toBeVisible();
     await page.locator('.bottom-nav [data-view="calendar"]').click();
     await expect(page.locator('#calendarView')).toBeVisible();
