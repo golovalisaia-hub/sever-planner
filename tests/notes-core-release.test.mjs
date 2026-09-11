@@ -7,7 +7,7 @@ const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 test('presentation layers load deterministically through cloud recovery v80', async () => {
   const source = await read('js/theme-init.js');
   for (const asset of [
-    'sever2-home-core.css?v=70','sever2-home-core.js?v=85',
+    'sever2-home-core.css?v=85','sever2-home-core.js?v=85',
     'sever2-notes-core.css?v=71','sever2-notes-core.js?v=71',
     'sever2-notes-organization.css?v=72','sever2-notes-organization.js?v=72',
     'sever2-notes-editor-flow.css?v=73','sever2-notes-editor-flow.js?v=73',
@@ -37,7 +37,7 @@ test('cloud recovery v80 ships atomically inside the Home v85 PWA release', asyn
   const source = await read('sw.js');
   assert.match(source, /const CACHE = 'sever-v82-reminders-desktop-v7'/);
   for (const asset of [
-    './sever2-home-core.css?v=70','./sever2-home-core.js?v=85',
+    './sever2-home-core.css?v=85','./sever2-home-core.js?v=85',
     './sever2-notes-core.css?v=71','./sever2-notes-core.js?v=71',
     './sever2-notes-organization.css?v=72','./sever2-notes-organization.js?v=72',
     './sever2-notes-editor-flow.css?v=73','./sever2-notes-editor-flow.js?v=73',
