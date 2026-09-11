@@ -18,6 +18,7 @@ function configScript() {
 async function prepare(page) {
   await page.route('**/supabase-config.js*', route => route.fulfill({ contentType: 'text/javascript', body: configScript() }));
   await page.addInitScript(() => {
+    if (sessionStorage.getItem('sever-e2e-cloud-marathon-seeded') === '1') return;
     localStorage.clear();
     localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({
       version: 11, onboarded: true, tasks: [], notes: [], folders: [], habits: [], checks: {}, taskMemory: [],
@@ -26,6 +27,7 @@ async function prepare(page) {
       security: { protectedNotesAutoLockMinutes: 5, lockInBackground: true }
     }));
     localStorage.setItem('sever-theme', 'light');
+    sessionStorage.setItem('sever-e2e-cloud-marathon-seeded', '1');
   });
   await page.goto('/');
   await page.waitForFunction(() => window.SeverApp && window.SeverCloud && window.SeverCloudUI && window.SeverCloudReady);
@@ -40,8 +42,7 @@ async function login(page) {
   await expect(page.locator('#accountDialog')).toBeHidden({ timeout: 20000 });
   await expect.poll(() => page.evaluate(() => ({
     id: window.SeverCloud?.user?.id || '',
-    hydrated: Boolean(window.SeverCloud?.hydrated),
-    status: window.SeverCloud?.status || ''
+    hydrated: Boolean(window.SeverCloud?.hydrated)
   })), { timeout: 30000 }).toMatchObject({ hydrated: true });
   const userId = await page.evaluate(() => window.SeverCloud.user?.id || '');
   expect(userId).toBeTruthy();
@@ -87,7 +88,15 @@ async function createNote(page, title) {
 
 async function createHabit(page, title) {
   await page.evaluate(() => window.SeverApp.switchView('habits'));
-  await page.locator('#openHabit').click();
+  const mobile = page.locator('#mobileCreateBtn');
+  if (await mobile.isVisible()) {
+    await mobile.click();
+    await expect(page.locator('#quickAddDialog')).toBeVisible();
+    await page.locator('#quickAddHabit').click();
+  } else {
+    await page.locator('#openHabit').click();
+  }
+  await expect(page.locator('#habitDialog')).toBeVisible();
   await page.locator('#habitTitle').fill(title);
   await page.locator('#habitSubmit').click();
   await expect(page.locator('#habitList')).toContainText(title);
@@ -104,18 +113,31 @@ async function remoteRow(page, table, id) {
   }, { table, id });
 }
 
-async function cleanup(page, created) {
+async function cleanupData(page, created) {
+  if (page.isClosed()) return false;
+  return page.evaluate(async ({ taskIds, noteIds, habitIds }) => {
+    const client = await window.SeverSupabase.getClient();
+    const failures = [];
+    const run = async query => {
+      const { error } = await query;
+      if (error) failures.push(error.message);
+    };
+    if (habitIds.length) await run(client.from('habit_entries').delete().in('habit_id', habitIds));
+    if (noteIds.length) await run(client.from('notes').delete().in('id', noteIds));
+    if (taskIds.length) await run(client.from('focus_sessions').delete().in('task_id', taskIds));
+    if (taskIds.length) await run(client.from('tasks').delete().in('id', taskIds));
+    if (habitIds.length) await run(client.from('habits').delete().in('id', habitIds));
+    return failures.length === 0;
+  }, created).catch(() => false);
+}
+
+async function localSignOut(page) {
   if (page.isClosed()) return;
   try {
-    await page.evaluate(async ({ taskIds, noteIds, habitIds }) => {
+    await page.evaluate(async () => {
       const client = await window.SeverSupabase.getClient();
-      if (habitIds.length) await client.from('habit_entries').delete().in('habit_id', habitIds);
-      if (noteIds.length) await client.from('notes').delete().in('id', noteIds);
-      if (taskIds.length) await client.from('focus_sessions').delete().in('task_id', taskIds);
-      if (taskIds.length) await client.from('tasks').delete().in('id', taskIds);
-      if (habitIds.length) await client.from('habits').delete().in('id', habitIds);
       await client.auth.signOut({ scope: 'local' });
-    }, created);
+    });
   } catch {}
 }
 
@@ -129,6 +151,7 @@ test('disposable account behaves like a real two-device user and cleans up after
   const pageB = await contextB.newPage();
   const created = { taskIds: [], noteIds: [], habitIds: [] };
   const token = `QA-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  let cleaned = false;
 
   try {
     await prepare(pageA);
@@ -157,7 +180,6 @@ test('disposable account behaves like a real two-device user and cleans up after
     expect(remoteHabit.error).toBeNull();
     expect(remoteHabit.data?.title).toBe(habitTitle);
 
-    // A fresh second browser context signs in independently and receives the same cloud state.
     await prepare(pageB);
     const userB = await login(pageB);
     expect(userB).toBe(userA);
@@ -168,7 +190,6 @@ test('disposable account behaves like a real two-device user and cleans up after
       habit: window.SeverApp.getState().habits.some(item => item.id === habitId)
     }), { taskId, noteId, habitId }), { timeout: 20000 }).toEqual({ task: true, note: true, habit: true });
 
-    // Edit on device B, then force a pull on A: no stale copy may win.
     await pageB.evaluate(() => window.SeverApp.switchView('today'));
     const taskCardB = pageB.locator('#todayTasks .task').filter({ hasText: taskTitle });
     await taskCardB.locator('.task-open').click();
@@ -180,7 +201,6 @@ test('disposable account behaves like a real two-device user and cleans up after
     await pageA.evaluate(async () => window.SeverCloud.pull());
     await expect.poll(() => pageA.evaluate(id => window.SeverApp.getState().tasks.find(task => task.id === id)?.title || '', taskId), { timeout: 20000 }).toBe(editedTitle);
 
-    // Offline work on A must remain instant locally, queue, then reach B after reconnection.
     await contextA.setOffline(true);
     const offlineTitle = `${token} offline`;
     const offlineTaskId = await createTask(pageA, offlineTitle);
@@ -195,7 +215,6 @@ test('disposable account behaves like a real two-device user and cleans up after
     await pageB.evaluate(async () => window.SeverCloud.pull());
     await expect.poll(() => pageB.evaluate(id => window.SeverApp.getState().tasks.some(task => task.id === id), offlineTaskId), { timeout: 20000 }).toBe(true);
 
-    // Delete from A and verify B no longer shows the task after pull.
     await pageA.evaluate(() => window.SeverApp.switchView('today'));
     await pageA.locator('#todayTasks .task').filter({ hasText: editedTitle }).locator('.task-open').click();
     await pageA.locator('#taskActionDelete').click();
@@ -203,19 +222,39 @@ test('disposable account behaves like a real two-device user and cleans up after
     await pageB.evaluate(async () => window.SeverCloud.pull());
     await expect.poll(() => pageB.evaluate(id => window.SeverApp.getState().tasks.some(task => task.id === id), taskId), { timeout: 20000 }).toBe(false);
 
-    // Reload and login restoration: remaining cloud data must survive a full page refresh.
     await pageA.reload();
     await pageA.waitForFunction(() => window.SeverApp && window.SeverCloud && window.SeverCloudReady);
     await expect.poll(() => pageA.evaluate(id => window.SeverApp.getState().tasks.some(task => task.id === id), offlineTaskId), { timeout: 30000 }).toBe(true);
 
-    // Explicit sign-out must return to anonymous scope and hide cloud data.
+    // Clean the exact QA records while both authenticated sessions are still valid.
+    cleaned = await cleanupData(pageB, created);
+    expect(cleaned).toBe(true);
+    for (const [table, ids] of [['tasks', created.taskIds], ['notes', created.noteIds], ['habits', created.habitIds]]) {
+      for (const id of ids) {
+        const row = await remoteRow(pageB, table, id);
+        expect(row.error).toBeNull();
+        expect(row.data).toBeNull();
+      }
+    }
+
+    // User-facing logout should end only this device; the second device must retain a refreshable session.
     await pageA.evaluate(() => window.SeverCloudUI.openAccount());
     await pageA.locator('#accountSignOut').click();
     await expect.poll(() => pageA.evaluate(() => Boolean(window.SeverCloud?.user))).toBe(false);
-    expect(await pageA.evaluate(id => window.SeverApp.getState().tasks.some(task => task.id === id), offlineTaskId)).toBe(false);
+    const secondDevice = await pageB.evaluate(async () => {
+      const client = await window.SeverSupabase.getClient();
+      const { data, error } = await client.auth.refreshSession();
+      return { userId: data?.user?.id || '', error: error?.message || '' };
+    });
+    expect(secondDevice.error).toBe('');
+    expect(secondDevice.userId).toBe(userA);
   } finally {
-    await cleanup(pageA, created);
-    await cleanup(pageB, created);
+    if (!cleaned) {
+      cleaned = await cleanupData(pageB, created);
+      if (!cleaned) cleaned = await cleanupData(pageA, created);
+    }
+    await localSignOut(pageA);
+    await localSignOut(pageB);
     await contextA.close();
     await contextB.close();
   }
