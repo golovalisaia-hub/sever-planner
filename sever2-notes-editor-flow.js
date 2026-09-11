@@ -12,6 +12,7 @@
   let saveTimer = 0;
   let restoring = false;
   let booted = false;
+  let openedNoteId = '';
 
   function plannerState() {
     return window.SeverApp?.getState?.() || null;
@@ -264,6 +265,7 @@
   }
 
   function handleDialogOpen() {
+    openedNoteId = currentNoteId();
     ensureUi();
     hideRecovery();
     if (isSensitiveDraft()) {
@@ -310,11 +312,16 @@
   function handleDialogClose() {
     clearTimeout(saveTimer);
     const draft = readDraft();
-    if (!draft || isSensitiveDraft()) return;
-    if (draft.noteId !== currentNoteId()) return;
-    draft.wasOpen = false;
-    draft.savedAt = Date.now();
-    writeDraft(draft);
+    if (!draft) {
+      openedNoteId = '';
+      return;
+    }
+    if (draft.noteId === openedNoteId) {
+      draft.wasOpen = false;
+      draft.savedAt = Date.now();
+      writeDraft(draft);
+    }
+    openedNoteId = '';
   }
 
   function flushOpenDraft() {
