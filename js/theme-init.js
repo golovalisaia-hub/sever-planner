@@ -110,6 +110,9 @@
       if (document.querySelector(`script[data-${marker}]`)) return;
       const script = document.createElement('script');
       script.src = src;
+      // Dynamically inserted scripts are async by default. SEVER's presentation
+      // layers intentionally build on one another, so preserve declaration order.
+      script.async = false;
       script.defer = true;
       script.setAttribute(`data-${marker}`, 'v72');
       document.head.appendChild(script);
