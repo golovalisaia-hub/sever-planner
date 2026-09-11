@@ -34,6 +34,7 @@
     ['sever2-notes-polish-pack', 'sever2-notes-polish.css?v=79'],
     ['sever2-mobile-consistency-pack', 'sever2-mobile-consistency.css?v=76'],
     ['sever2-money-pack', 'sever2-money.css?v=77'],
+    ['sever2-usability-v84-pack', 'sever2-usability-v84.css?v=84'],
     ['sever2-interaction-polish-pack', 'sever2-interaction-polish.css?v=78'],
     ['sever2-cloud-recovery-pack', 'sever2-cloud-recovery.css?v=80']
   ];
@@ -50,6 +51,7 @@
     ['sever2-notes-navigation-script', 'sever2-notes-navigation.js?v=74'],
     ['sever2-notes-polish-script', 'sever2-notes-polish.js?v=79'],
     ['sever2-money-script', 'sever2-money.js?v=77'],
+    ['sever2-usability-v84-script', 'sever2-usability-v84.js?v=84'],
     ['sever2-interaction-polish-script', 'sever2-interaction-polish.js?v=78'],
     ['sever2-cloud-recovery-script', 'sever2-cloud-recovery.js?v=80']
   ];
