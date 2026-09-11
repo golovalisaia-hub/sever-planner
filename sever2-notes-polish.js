@@ -21,11 +21,15 @@
     card.classList.toggle('notes-polish-expanded', expanded);
     if (!button) return;
     const hidden = Math.max(0, count - 2);
-    button.setAttribute('aria-expanded', String(expanded));
-    button.innerHTML = expanded
-      ? `${icon('less')}<span>Свернуть</span>`
-      : `${icon('more')}<span>Показать ещё ${hidden}</span>`;
-    button.setAttribute('aria-label', expanded ? 'Свернуть чек-лист' : `Показать ещё ${hidden} пунктов`);
+    const stateKey = `${expanded ? 'open' : 'closed'}:${hidden}`;
+    if (button.dataset.polishState !== stateKey) {
+      button.dataset.polishState = stateKey;
+      button.setAttribute('aria-expanded', String(expanded));
+      button.innerHTML = expanded
+        ? `${icon('less')}<span>Свернуть</span>`
+        : `${icon('more')}<span>Показать ещё ${hidden}</span>`;
+      button.setAttribute('aria-label', expanded ? 'Свернуть чек-лист' : `Показать ещё ${hidden} пунктов`);
+    }
     if (focusButton) button.focus({ preventScroll: true });
   }
 
