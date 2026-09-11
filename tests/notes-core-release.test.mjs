@@ -44,7 +44,7 @@ test('cloud recovery v80 ships atomically inside the v84 usability PWA release',
     './sever2-usability-v84.css?v=84','./sever2-usability-v84.js?v=84',
     './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80',
-    './sever2-reminders.css?v=82','./sever2-task-reminders.js?v=82','./js/theme-init.js?v=81'
+    './sever2-reminders.css?v=82','./sever2-task-reminders.js?v=82','./js/theme-init.js?v=84'
   ]) assert.ok(source.includes(`'${asset}'`), `missing ${asset}`);
   for (const path of [
     'sever2-notes-navigation.css','sever2-notes-navigation.js','sever2-notes-polish.css','sever2-notes-polish.js',
