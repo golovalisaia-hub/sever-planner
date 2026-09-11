@@ -35,7 +35,7 @@ test('installed release reloads offline with one complete active asset set', asy
           && cached.includes('/sever2-notes-navigation.js?v=74')
           && cached.includes('/sever2-notes-polish.js?v=79')
           && cached.includes('/sever2-mobile-consistency.css?v=76')
-          && cached.includes('/sever2-money.js?v=77')
+          && cached.includes('/sever2-money.js?v=83')
           && cached.includes('/sever2-interaction-polish.js?v=78')
           && cached.includes('/sever2-reminders.css?v=82')
           && cached.includes('/sever2-task-reminders.js?v=82')
@@ -53,7 +53,7 @@ test('installed release reloads offline with one complete active asset set', asy
       '/sever2-create-flow.js?v=69','/sever2-home-core.css?v=70','/sever2-home-core.js?v=70','/sever2-notes-core.css?v=71','/sever2-notes-core.js?v=71',
       '/sever2-notes-organization.css?v=72','/sever2-notes-organization.js?v=72','/sever2-notes-editor-flow.css?v=73','/sever2-notes-editor-flow.js?v=73',
       '/sever2-notes-navigation.css?v=74','/sever2-notes-navigation.js?v=74','/sever2-notes-polish.css?v=79','/sever2-notes-polish.js?v=79',
-      '/sever2-mobile-consistency.css?v=76','/sever2-money.css?v=77','/sever2-money.js?v=77',
+      '/sever2-mobile-consistency.css?v=76','/sever2-money.css?v=83','/sever2-money.js?v=83',
       '/sever2-interaction-polish.css?v=78','/sever2-interaction-polish.js?v=78','/sever2-reminders.css?v=82','/sever2-task-reminders.js?v=82',
       '/sever2-cloud-recovery.css?v=80','/sever2-cloud-recovery.js?v=80','/js/theme-init.js?v=81','/app.js?v=51','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55'
     ]) expect(cached).toContain(asset);
