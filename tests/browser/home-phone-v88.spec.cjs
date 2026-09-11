@@ -43,8 +43,13 @@ test('phone Home has one stable hierarchy without duplicate focus and utility bl
 
   const geometry = await page.evaluate(() => {
     const top = selector => document.querySelector(selector)?.getBoundingClientRect().top ?? -1;
-    const actionHeights = [...document.querySelectorAll('#sever2HomeCore .sever2-home-now-actions button:not(.hidden)')]
-      .map(button => button.getBoundingClientRect().height);
+    const visibleActions = [...document.querySelectorAll('#sever2HomeCore .sever2-home-now-actions button')]
+      .filter(button => {
+        const style = getComputedStyle(button);
+        const rect = button.getBoundingClientRect();
+        return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+      });
+    const actionHeights = visibleActions.map(button => button.getBoundingClientRect().height);
     const taskShadows = [...document.querySelectorAll('#todayView #todayTasks .task')]
       .map(task => getComputedStyle(task).boxShadow);
     return {
@@ -53,6 +58,7 @@ test('phone Home has one stable hierarchy without duplicate focus and utility bl
       listHead: top('#todayView > .today-list-head'),
       filters: top('#todayView > #todayFilters'),
       list: top('#todayView > #todayTasks'),
+      actionCount: visibleActions.length,
       actionHeights,
       taskShadows,
       overflow: Math.max(0, document.documentElement.scrollWidth - innerWidth)
@@ -63,6 +69,7 @@ test('phone Home has one stable hierarchy without duplicate focus and utility bl
   expect(geometry.core).toBeLessThan(geometry.listHead);
   expect(geometry.listHead).toBeLessThan(geometry.filters);
   expect(geometry.filters).toBeLessThan(geometry.list);
+  expect(geometry.actionCount).toBe(1);
   expect(Math.min(...geometry.actionHeights)).toBeGreaterThanOrEqual(44);
   expect(geometry.taskShadows.every(value => value === 'none')).toBe(true);
   expect(geometry.overflow).toBeLessThanOrEqual(1);
