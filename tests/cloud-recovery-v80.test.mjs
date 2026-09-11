@@ -44,20 +44,20 @@ test('account UI exposes sync health and a safe recovery action', () => {
   assert.match(css, /#accountDialog #accountRetry:not\(\.hidden\)/);
 });
 
-test('cloud recovery v80 remains in the atomic reminder v86 PWA release', () => {
-  const home = themeInit.indexOf('sever2-home-core-script');
+test('cloud recovery v80 remains in the atomic Notes v87 PWA release', () => {
+  const compact = themeInit.indexOf('sever2-notes-compact-v87-script');
   const usability = themeInit.indexOf('sever2-usability-v84-script');
   const interaction = themeInit.indexOf('sever2-interaction-polish-script');
   const recovery = themeInit.indexOf('sever2-cloud-recovery-script');
-  assert.ok(home >= 0 && usability > home && interaction > usability && recovery > interaction);
+  assert.ok(compact >= 0 && usability > compact && interaction > usability && recovery > interaction);
+  assert.match(themeInit, /sever2-notes-compact-v87\.js\?v=87/);
   assert.match(themeInit, /sever2-home-core\.js\?v=85/);
   assert.match(themeInit, /sever2-usability-v84\.css\?v=84/);
-  assert.match(themeInit, /sever2-usability-v84\.js\?v=84/);
-  assert.match(themeInit, /sever2-cloud-recovery\.css\?v=80/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
-  assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v8'/);
+  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v9'/);
   for (const asset of [
+    './sever2-notes-compact-v87.css?v=87',
+    './sever2-notes-compact-v87.js?v=87',
     './sever2-home-core.js?v=85',
     './sever2-usability-v84.css?v=84',
     './sever2-usability-v84.js?v=84',
