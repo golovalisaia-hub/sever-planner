@@ -48,7 +48,7 @@ test('Notes editor recovery loads before compact Notes polish and cloud recovery
   assert.match(sw, /sever2-notes-navigation\.js\?v=74/);
   assert.match(sw, /sever2-notes-polish\.js\?v=79/);
   assert.match(sw, /sever2-mobile-consistency\.css\?v=76/);
-  assert.match(sw, /sever2-money\.js\?v=77/);
+  assert.match(sw, /sever2-money\.js\?v=83/);
   assert.match(sw, /sever2-interaction-polish\.js\?v=78/);
   assert.match(sw, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(sw, /js\/theme-init\.js\?v=81/);
