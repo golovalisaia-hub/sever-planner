@@ -109,7 +109,7 @@ test('legacy Aurora planner data is not rewritten just by opening SEVER 2', asyn
   expect(result.visibleTheme).toBe('light');
 });
 
-test('all mobile themes keep the focused Home core while preserving their visual mood', async ({ page }) => {
+test('all mobile themes keep one Home hierarchy while preserving their visual mood', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await seedPlanner(page);
   await page.goto('/');
@@ -123,15 +123,16 @@ test('all mobile themes keep the focused Home core while preserving their visual
     await expect(page.locator('#sever2HomeCore')).toBeVisible();
     await expect(page.locator('.today-motivation')).toBeHidden();
     await expect(page.locator('#todayDashboard')).toBeHidden();
-    heights[id] = (await page.locator('#todayFocusWidget').boundingBox()).height;
+    await expect(page.locator('#todayFocusWidget')).toBeHidden();
+    await expect(page.locator('#todayView .today-utilities')).toBeHidden();
+    await expect(page.locator('#sever2HomeCore [data-home-action="create"]')).toBeVisible();
+    heights[id] = await page.locator('#sever2HomeCore').evaluate(el => el.getBoundingClientRect().height);
   }
-  expect(heights.black).toBeGreaterThan(220);
-  expect(heights.light).toBeLessThan(heights.black);
-  expect(heights.motion).toBeLessThan(heights.black);
+  expect(Math.max(...Object.values(heights)) - Math.min(...Object.values(heights))).toBeLessThanOrEqual(3);
   await expect(page.locator('.bottom-nav')).toBeVisible();
 });
 
-test('mobile Notes empty state is compact and Focus controls stay inside their card', async ({ page }) => {
+test('mobile Notes empty state is compact and the new Home focus action stays inside its card', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await seedPlanner(page);
   await page.goto('/');
@@ -144,28 +145,27 @@ test('mobile Notes empty state is compact and Focus controls stay inside their c
   const emptyBox = await empty.boundingBox();
   expect(emptyBox.height).toBeLessThanOrEqual(260);
 
-  await page.evaluate(() => window.SeverApp.switchView('settings'));
+  await page.evaluate(() => {
+    const app = window.SeverApp;
+    const state = app.getState();
+    const date = new Date().toLocaleDateString('sv-SE');
+    state.tasks.push({ id: 'theme-home-focus', title: 'Фокус', date, duration: 25, completed: false, category: 'Личное', createdAt: Date.now(), updatedAt: Date.now() });
+    app.render();
+    app.switchView('settings');
+  });
   await page.locator('.theme-picker [data-sever-theme="black"]').click();
   await page.evaluate(() => { window.SeverApp.switchView('today'); scrollTo(0, 0); });
+  await expect(page.locator('#todayFocusWidget')).toBeHidden();
   const geometry = await page.evaluate(() => {
-    const box = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
-    return {
-      widget: box('#todayFocusWidget'),
-      label: box('#todayFocusWidget small'),
-      time: box('#todayFocusDisplay'),
-      task: box('#todayFocusTask'),
-      button: box('#todayFocusToggle')
-    };
+    const card = document.querySelector('#sever2HomeCore .sever2-home-now').getBoundingClientRect();
+    const button = document.querySelector('#sever2HomeCore [data-home-action="focus"]').getBoundingClientRect();
+    return { card: card.toJSON(), button: button.toJSON() };
   });
-  for (const part of [geometry.label, geometry.time, geometry.task, geometry.button]) {
-    expect(part.left).toBeGreaterThanOrEqual(geometry.widget.left);
-    expect(part.right).toBeLessThanOrEqual(geometry.widget.right);
-    expect(part.top).toBeGreaterThanOrEqual(geometry.widget.top);
-    expect(part.bottom).toBeLessThanOrEqual(geometry.widget.bottom);
-  }
-  expect(geometry.label.bottom).toBeLessThanOrEqual(geometry.time.top + 2);
-  expect(geometry.time.bottom).toBeLessThanOrEqual(geometry.task.top + 4);
-  expect(geometry.button.top).toBeGreaterThan(geometry.time.top);
+  expect(geometry.button.left).toBeGreaterThanOrEqual(geometry.card.left);
+  expect(geometry.button.right).toBeLessThanOrEqual(geometry.card.right);
+  expect(geometry.button.top).toBeGreaterThanOrEqual(geometry.card.top);
+  expect(geometry.button.bottom).toBeLessThanOrEqual(geometry.card.bottom);
+  expect(geometry.button.height).toBeGreaterThanOrEqual(44);
 });
 
 test('desktop Focus Peak becomes focus-first while Calm remains task-first', async ({ page }) => {
