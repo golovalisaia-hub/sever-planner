@@ -30,7 +30,7 @@ test('current service worker installs the guarded release atomically and removes
   handlers.get('install')({ waitUntil: promise => { work = promise; } });
   await work;
   for (const asset of [
-    './index.html','./sever2-home-core.js?v=85','./sever2-notes-core.js?v=71','./sever2-notes-organization.js?v=72',
+    './index.html','./sever2-home-core.css?v=85','./sever2-home-core.js?v=85','./sever2-notes-core.js?v=71','./sever2-notes-organization.js?v=72',
     './sever2-notes-editor-flow.js?v=73','./sever2-notes-navigation.css?v=74',
     './sever2-notes-navigation.js?v=74','./sever2-notes-polish.css?v=79',
     './sever2-notes-polish.js?v=79','./sever2-mobile-consistency.css?v=76',
@@ -67,6 +67,7 @@ test('installed current release serves Home v85 and recovery from one release ca
   vm.runInNewContext(source, { self, caches, URL, Response, fetch: async () => { network++; throw Error('network must not update a release'); } });
   const cases = [
     ['?verify=new','navigate','./index.html'],
+    ['sever2-home-core.css?v=old','cors','./sever2-home-core.css?v=85'],
     ['sever2-home-core.js?v=old','cors','./sever2-home-core.js?v=85'],
     ['sever2-notes-core.js?v=old','cors','./sever2-notes-core.js?v=71'],
     ['sever2-notes-organization.js?v=old','cors','./sever2-notes-organization.js?v=72'],
