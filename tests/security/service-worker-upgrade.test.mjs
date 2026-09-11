@@ -6,7 +6,7 @@ import vm from 'node:vm';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-const RELEASE_CACHE = 'sever-v82-reminders-desktop-v8';
+const RELEASE_CACHE = 'sever-v82-reminders-desktop-v9';
 
 test('current service worker installs the guarded release atomically and removes stale caches', async () => {
   const handlers = new Map();
@@ -22,7 +22,7 @@ test('current service worker installs the guarded release atomically and removes
   };
   const caches = {
     open: async name => ({ addAll: async assets => { assert.equal(name, RELEASE_CACHE); cachedAssets = assets; } }),
-    keys: async () => ['sever-v75-notes-compact-v1', 'sever-v82-reminders-desktop-v7'],
+    keys: async () => ['sever-v75-notes-compact-v1', 'sever-v82-reminders-desktop-v8'],
     delete: async name => { deleted.push(name); return true; }
   };
   vm.runInNewContext(source, { self, caches, clients: self.clients, fetch: async () => ({}), URL, Promise, Response });
@@ -34,6 +34,7 @@ test('current service worker installs the guarded release atomically and removes
     './sever2-notes-editor-flow.js?v=73','./sever2-notes-navigation.css?v=74',
     './sever2-notes-navigation.js?v=74','./sever2-notes-polish.css?v=79',
     './sever2-notes-polish.js?v=79','./sever2-mobile-consistency.css?v=76',
+    './sever2-notes-compact-v87.css?v=87','./sever2-notes-compact-v87.js?v=87',
     './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=84','./sever2-usability-v84.js?v=84',
     './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
@@ -44,13 +45,13 @@ test('current service worker installs the guarded release atomically and removes
   handlers.get('activate')({ waitUntil: promise => { activateWork = promise; } });
   await activateWork;
   assert.ok(deleted.includes('sever-v75-notes-compact-v1'));
-  assert.ok(deleted.includes('sever-v82-reminders-desktop-v7'));
+  assert.ok(deleted.includes('sever-v82-reminders-desktop-v8'));
   assert.ok(!deleted.includes(RELEASE_CACHE));
   assert.equal(claimed, true);
   assert.equal(skipped, true);
 });
 
-test('installed current release serves Home v85, reminder v86 styles and recovery from one release cache', async () => {
+test('installed current release serves Notes v87, Home v85 and reminder v86 styles from one release cache', async () => {
   const handlers = new Map();
   const requests = [];
   let network = 0;
@@ -62,7 +63,7 @@ test('installed current release serves Home v85, reminder v86 styles and recover
   const caches = {
     open: async name => {
       assert.equal(name, RELEASE_CACHE);
-      return { match: async key => { requests.push(key); return { release: 86, key }; } };
+      return { match: async key => { requests.push(key); return { release: 87, key }; } };
     }
   };
   vm.runInNewContext(source, { self, caches, URL, Response, fetch: async () => { network++; throw Error('network must not update a release'); } });
@@ -78,6 +79,8 @@ test('installed current release serves Home v85, reminder v86 styles and recover
     ['sever2-notes-polish.css?v=old','cors','./sever2-notes-polish.css?v=79'],
     ['sever2-notes-polish.js?v=old','cors','./sever2-notes-polish.js?v=79'],
     ['sever2-mobile-consistency.css?v=old','cors','./sever2-mobile-consistency.css?v=76'],
+    ['sever2-notes-compact-v87.css?v=old','cors','./sever2-notes-compact-v87.css?v=87'],
+    ['sever2-notes-compact-v87.js?v=old','cors','./sever2-notes-compact-v87.js?v=87'],
     ['sever2-money.css?v=old','cors','./sever2-money.css?v=83'],
     ['sever2-money.js?v=old','cors','./sever2-money.js?v=83'],
     ['sever2-usability-v84.css?v=old','cors','./sever2-usability-v84.css?v=84'],
