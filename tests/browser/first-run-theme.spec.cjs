@@ -60,3 +60,28 @@ test('an existing user theme is preserved and is not reset by the first-run rule
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().appearance?.theme)).toBe('motion');
   await expect.poll(() => page.evaluate(() => localStorage.getItem('sever-theme'))).toBe('motion');
 });
+
+test('pending legacy planner data is migrated instead of being replaced by the fresh Calm seed', async ({ page }) => {
+  await page.route('**/supabase-config.js*', route => route.fulfill({ contentType: 'text/javascript', body: 'window.SEVER_SUPABASE_CONFIG={};' }));
+  await page.addInitScript(() => {
+    localStorage.setItem('sever-data-v2', JSON.stringify({
+      version: 11,
+      onboarded: true,
+      tasks: [{ id: 'legacy-task', title: 'Сохранить старые данные', date: '2099-01-01', completed: false, category: 'Личное' }],
+      notes: [], folders: [], habits: [], checks: {}, taskMemory: [],
+      profile: { name: 'Legacy' },
+      appearance: { theme: 'motion', animations: 'off', reduceEffects: true },
+      focusSessions: [], stats: { focusMs: 0, sessions: 0 },
+      reminders: { enabled: false, time: '19:00', lastDate: '' },
+      security: { protectedNotesAutoLockMinutes: 5, lockInBackground: true }
+    }));
+  });
+  await page.goto('/');
+  await waitForThemeShell(page);
+
+  await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.some(task => task.id === 'legacy-task'))).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.SeverApp.getState().profile?.name)).toBe('Legacy');
+  await expect.poll(() => page.evaluate(() => window.SeverApp.getState().appearance?.theme)).toBe('motion');
+  await expect.poll(() => page.evaluate(() => Boolean(localStorage.getItem('sever-anonymous-state-v1')))).toBe(true);
+  await expect.poll(() => page.evaluate(() => Boolean(localStorage.getItem('sever-legacy-migration-v1')))).toBe(true);
+});
