@@ -47,20 +47,20 @@ test('phone v84 reduces Money and Settings vertical chrome without shrinking tou
   assert.match(css, /@media \(max-width: 350px\)/);
 });
 
-test('v84 remains after Home v85 and is part of the atomic reminder v86 offline release', () => {
-  const home = loader.indexOf('sever2-home-core-script');
+test('v84 remains after Notes v87 and is part of the atomic offline release', () => {
+  const compact = loader.indexOf('sever2-notes-compact-v87-script');
   const money = loader.indexOf('sever2-money-script');
   const usability = loader.indexOf('sever2-usability-v84-script');
   const interaction = loader.indexOf('sever2-interaction-polish-script');
-  assert.ok(home >= 0 && money > home && usability > money && interaction > usability);
+  assert.ok(compact >= 0 && money > compact && usability > money && interaction > usability);
+  assert.match(loader, /sever2-notes-compact-v87\.js\?v=87/);
   assert.match(loader, /sever2-home-core\.js\?v=85/);
-  assert.match(loader, /sever2-usability-v84\.css\?v=84/);
   assert.match(loader, /sever2-usability-v84\.js\?v=84/);
-  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v8'/);
-  for (const asset of ['./sever2-home-core.js?v=85', './sever2-usability-v84.css?v=84', './sever2-usability-v84.js?v=84', './sever2-reminders.css?v=86', './js/theme-init.js?v=85']) {
+  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v9'/);
+  for (const asset of ['./sever2-notes-compact-v87.css?v=87', './sever2-notes-compact-v87.js?v=87', './sever2-home-core.js?v=85', './sever2-usability-v84.css?v=84', './sever2-usability-v84.js?v=84', './sever2-reminders.css?v=86', './js/theme-init.js?v=85']) {
     assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   }
+  assert.ok(sw.includes("'/sever2-notes-compact-v87.js'"));
   assert.ok(sw.includes("'/sever2-home-core.js'"));
-  assert.ok(sw.includes("'/sever2-usability-v84.css'"));
   assert.ok(sw.includes("'/sever2-usability-v84.js'"));
 });
