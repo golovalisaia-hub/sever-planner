@@ -82,8 +82,29 @@ html[data-theme="black"] .sever-reminder-note {
   background: color-mix(in srgb, var(--surface-1, var(--panel)) 88%, #fff 2%);
 }
 
+@media (min-width: 901px) {
+  .sever-reminder-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .sever-reminder-option {
+    min-height: 68px;
+  }
+
+  .sever-reminder-note,
+  .sever-reminder-status {
+    grid-column: 1 / -1;
+  }
+
+  .sever-reminder-note {
+    padding: 14px 16px;
+  }
+}
+
 @media (max-width: 900px) {
   .sever-reminder-options {
+    grid-template-columns: minmax(0, 1fr);
     gap: 8px;
   }
 
