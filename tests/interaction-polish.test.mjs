@@ -28,6 +28,14 @@ test('calendar task status no longer becomes a second today badge', () => {
   assert.match(css, /\.sever2-v78-status\.all-done/);
 });
 
+test('calendar polish recovers when a later presentation layer replaces a day status', () => {
+  assert.match(source, /function calendarNeedsPolish\(\)/);
+  assert.match(source, /cell\.querySelector\(':scope > \.sever2-v78-status'\)/);
+  assert.match(source, /calendarObserver\.observe\(calendar, \{ childList: true, subtree: true \}\)/);
+  assert.match(source, /if \(rebuilt \|\| calendarNeedsPolish\(\)\) scheduleCalendar\(\)/);
+  assert.match(source, /querySelectorAll\(':scope > \.sever2-day-status'\)\.forEach/);
+});
+
 test('habit completion cannot restyle the whole card and Focus play stays centered', () => {
   assert.match(css, /\.habit\.done \.habit-edit/);
   assert.match(css, /\.habit\.done \.habit-week \.habit-day/);
@@ -46,7 +54,7 @@ test('v78 interaction polish remains in the atomic v82 reminder PWA release', ()
   assert.match(themeInit, /sever2-interaction-polish\.js\?v=78/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v3'/);
+  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v4'/);
   for (const asset of [
     './sever2-notes-polish.css?v=79','./sever2-notes-polish.js?v=79',
     './sever2-money.css?v=77','./sever2-money.js?v=77',
