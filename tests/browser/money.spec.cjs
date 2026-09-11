@@ -17,6 +17,22 @@ async function boot(page) {
   await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severMoney === 'ready');
 }
 
+function channel(value) {
+  const normalized = value / 255;
+  return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+}
+
+function contrast(foreground, background) {
+  const parse = value => (value.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+  const luminance = value => {
+    const [r, g, b] = parse(value);
+    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+  };
+  const a = luminance(foreground);
+  const b = luminance(background);
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+}
+
 test.beforeEach(async ({ page }) => { await boot(page); });
 
 test('Money quick input creates a debt plan, tracks payments and survives reload', async ({ page }) => {
@@ -92,4 +108,21 @@ test('Money layout has no horizontal overflow on phone widths', async ({ page },
   expect(geometry.overflow).toBeLessThanOrEqual(1);
   expect(geometry.quickWidth).toBeLessThanOrEqual(geometry.viewWidth + 1);
   expect(Math.min(...geometry.actions)).toBeGreaterThanOrEqual(44);
+});
+
+test('Money primary action keeps readable contrast when hovered on desktop', async ({ page }, info) => {
+  if (info.project.name !== 'desktop') test.skip();
+  await page.evaluate(() => window.SeverApp.switchView('money'));
+  await page.locator('[data-money-create="goal"]').click();
+  await page.locator('#moneyItemName').fill('Резерв');
+  await page.locator('#moneyItemTarget').fill('10000');
+  await page.locator('#moneyItemForm button.primary').click();
+
+  const button = page.locator('.money-card-actions .money-primary').first();
+  await button.hover();
+  const colors = await button.evaluate(element => {
+    const style = getComputedStyle(element);
+    return { color: style.color, background: style.backgroundColor };
+  });
+  expect(contrast(colors.color, colors.background)).toBeGreaterThanOrEqual(4.5);
 });
