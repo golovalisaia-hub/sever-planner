@@ -9,6 +9,7 @@
   let observer = null;
   let scheduled = false;
   let repairQueued = false;
+  let saveGuardInstalled = false;
   let booted = false;
 
   function plannerState() {
@@ -102,6 +103,30 @@
       }
     });
     return changed;
+  }
+
+  function installSaveGuard() {
+    if (saveGuardInstalled || !window.SeverApp) return;
+    const app = window.SeverApp;
+    let downstreamHook = typeof app.beforeLocalSave === 'function' ? app.beforeLocalSave : null;
+    const guardedHook = function (...args) {
+      sanitizeOrganization();
+      return downstreamHook?.apply(app, args);
+    };
+    try {
+      Object.defineProperty(app, 'beforeLocalSave', {
+        configurable: true,
+        enumerable: true,
+        get: () => guardedHook,
+        set: next => {
+          if (next !== guardedHook) downstreamHook = typeof next === 'function' ? next : null;
+        }
+      });
+      saveGuardInstalled = true;
+    } catch {
+      app.beforeLocalSave = guardedHook;
+      saveGuardInstalled = true;
+    }
   }
 
   function queueRepair() {
@@ -484,6 +509,7 @@
       return;
     }
     booted = true;
+    installSaveGuard();
     ensureShell();
     observeNotes();
     scheduleOrganization();
@@ -492,7 +518,8 @@
       openActions,
       openTags,
       getMeta: noteId => metaFor(noteById(noteId)),
-      getActiveTag: () => activeTag
+      getActiveTag: () => activeTag,
+      sanitizeBeforeSave: sanitizeOrganization
     });
   }
 
