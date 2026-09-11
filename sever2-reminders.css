@@ -1,6 +1,6 @@
-/* SEVER 2 reminder experience v82 — task-based, quiet and explicit. */
+/* SEVER 2 reminder experience v86 — task-based, quiet and explicit. */
 
-/* The old once-a-day reminder time is retired by the v82 task reminder layer.
+/* The old once-a-day reminder time is retired by the task reminder layer.
    Some legacy Settings rules force rows to display:flex, so hidden must win. */
 .settings-section .settings-row[hidden] {
   display: none !important;
@@ -14,10 +14,32 @@
 
 .sever-reminder-option {
   margin: 0 !important;
+  transition: opacity .18s ease, background-color .18s ease, border-color .18s ease;
 }
 
+/* Keep the saved sub-preferences visible, but make it unmistakable that they
+   are inactive while the master reminder switch is off. */
 .sever-reminder-option:has(input:disabled) {
-  opacity: .52;
+  opacity: .66;
+  border-color: color-mix(in srgb, var(--border-subtle, var(--line)) 70%, transparent) !important;
+  background: color-mix(in srgb, var(--surface-2, var(--panel2)) 72%, transparent) !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+}
+
+.sever-reminder-option:has(input:disabled) b,
+.sever-reminder-option:has(input:disabled) em {
+  color: var(--text-muted, var(--muted)) !important;
+}
+
+.sever-reminder-option:has(input:disabled) .switch {
+  opacity: .5;
+  filter: saturate(.45);
+}
+
+.sever-reminder-option:has(input:disabled) .switch,
+.sever-reminder-option:has(input:disabled) .switch * {
+  cursor: not-allowed !important;
 }
 
 .sever-reminder-note {
@@ -86,6 +108,10 @@
 
 html[data-theme="black"] .sever-reminder-note {
   background: color-mix(in srgb, var(--surface-1, var(--panel)) 88%, #fff 2%);
+}
+
+html[data-theme="black"] .sever-reminder-option:has(input:disabled) {
+  background: color-mix(in srgb, var(--surface-1, var(--panel)) 90%, #fff 1%) !important;
 }
 
 @media (min-width: 901px) {

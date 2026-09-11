@@ -67,3 +67,30 @@ test('task reminder settings are readable and responsive on desktop and phone', 
     expect(geometry.dayWidth).toBeGreaterThan(geometry.optionsWidth * 0.9);
   }
 });
+
+test('disabled reminder kinds look inactive without losing the saved choices', async ({ page }) => {
+  const day = page.locator('#severReminderDayBefore');
+  const fifteen = page.locator('#severReminderFifteen');
+  await expect(page.locator('#settingsNotificationToggle')).not.toBeChecked();
+  await expect(day).toBeDisabled();
+  await expect(fifteen).toBeDisabled();
+  await expect(day).toBeChecked();
+  await expect(fifteen).toBeChecked();
+
+  const visual = await page.evaluate(() => {
+    const row = document.querySelector('#severReminderDayBefore').closest('.sever-reminder-option');
+    const toggle = row.querySelector('.switch');
+    const rowStyle = getComputedStyle(row);
+    const toggleStyle = getComputedStyle(toggle);
+    return {
+      opacity: Number(rowStyle.opacity),
+      cursor: rowStyle.cursor,
+      switchOpacity: Number(toggleStyle.opacity),
+      background: rowStyle.backgroundColor
+    };
+  });
+  expect(visual.opacity).toBeLessThanOrEqual(0.7);
+  expect(visual.cursor).toBe('not-allowed');
+  expect(visual.switchOpacity).toBeLessThanOrEqual(0.55);
+  expect(visual.background).not.toBe('rgba(0, 0, 0, 0)');
+});
