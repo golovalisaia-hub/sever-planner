@@ -80,7 +80,7 @@ test('navigation, SVG metrics, AI geometry, creation and note capture', async ({
 
     await page.locator('.bottom-nav [data-view="notes"]').click(); await only(page, 'notes');
     await page.locator('#notesQuickCaptureInput').fill('Проверка заметки');
-    await page.locator('#notesQuickCapture button[type="submit"]').click();
+    await page.locator('#notesQuickCaptureInput').press('Enter');
     await expect(page.locator('#noteList')).toContainText('Проверка заметки');
     await page.locator('.bottom-nav [data-view="today"]').click(); await only(page, 'today');
   }
