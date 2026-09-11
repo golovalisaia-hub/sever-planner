@@ -56,7 +56,7 @@ test('pinning, tags and tag filters stay synchronized with planner state', async
   await expect(page.locator('#notesOrganizationTags')).toContainText('#Проект');
   await page.locator('#notesOrganizationTags button', { hasText: '#Проект' }).click();
   await expect(page.locator('#notesPinnedList')).toContainText('Идея для SEVER');
-  await expect(page.locator('#noteList')).not.toContainText('Купить продукты');
+  await expect(page.locator('#noteList .note-card').filter({ hasText: 'Купить продукты' })).toBeHidden();
 
   const state = await page.evaluate(() => window.SeverApp.getState());
   const note = state.notes.find(item => item.title === 'Идея для SEVER');
@@ -89,9 +89,15 @@ test('phone swipe left opens note actions without horizontal overflow', async ({
   test.skip(info.project.name === 'desktop', 'Touch interaction check');
   await quickNote(page, 'Свайп заметка');
   const card = page.locator('#noteList .note-card').filter({ hasText: 'Свайп заметка' });
-  const box = await card.boundingBox();
-  await card.dispatchEvent('touchstart', { touches: [{ clientX: box.x + box.width - 20, clientY: box.y + 30 }] });
-  await card.dispatchEvent('touchend', { changedTouches: [{ clientX: box.x + 20, clientY: box.y + 32 }] });
+  await card.evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    const start = new Event('touchstart', { bubbles: true, cancelable: true });
+    Object.defineProperty(start, 'touches', { value: [{ clientX: rect.right - 20, clientY: rect.top + 30 }] });
+    element.dispatchEvent(start);
+    const end = new Event('touchend', { bubbles: true, cancelable: true });
+    Object.defineProperty(end, 'changedTouches', { value: [{ clientX: rect.left + 20, clientY: rect.top + 32 }] });
+    element.dispatchEvent(end);
+  });
   await expect(page.locator('#notesActionDialog')).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
