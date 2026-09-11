@@ -29,10 +29,12 @@ test('Notes editor recovery loads after Notes core and organization and ships of
   const coreIndex = themeInit.indexOf('sever2-notes-core-script');
   const organizationIndex = themeInit.indexOf('sever2-notes-organization-script');
   const editorIndex = themeInit.indexOf('sever2-notes-editor-flow-script');
-  assert.ok(coreIndex >= 0 && organizationIndex > coreIndex && editorIndex > organizationIndex);
+  const navigationIndex = themeInit.indexOf('sever2-notes-navigation-script');
+  assert.ok(coreIndex >= 0 && organizationIndex > coreIndex && editorIndex > organizationIndex && navigationIndex > editorIndex);
   assert.match(themeInit, /sever2-notes-editor-flow\.css\?v=73/);
   assert.match(themeInit, /sever2-notes-editor-flow\.js\?v=73/);
   assert.match(sw, /sever2-notes-editor-flow\.css\?v=73/);
   assert.match(sw, /sever2-notes-editor-flow\.js\?v=73/);
-  assert.match(sw, /js\/theme-init\.js\?v=73/);
+  assert.match(sw, /sever2-notes-navigation\.js\?v=74/);
+  assert.match(sw, /js\/theme-init\.js\?v=74/);
 });
