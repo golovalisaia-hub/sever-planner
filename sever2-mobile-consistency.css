@@ -1,0 +1,146 @@
+/* SEVER 2 mobile consistency v76 — safe navigation clearance and stable touch geometry. */
+
+:root {
+  --sever-mobile-nav-clearance: 96px;
+}
+
+@media (max-width: 700px) {
+  :root {
+    --sever-mobile-nav-clearance: calc(92px + env(safe-area-inset-bottom));
+  }
+
+  html {
+    scroll-padding-bottom: var(--sever-mobile-nav-clearance);
+  }
+
+  main {
+    /* The active view must be able to scroll fully above the fixed bottom nav. */
+    padding-bottom: calc(126px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .view.active {
+    scroll-margin-bottom: var(--sever-mobile-nav-clearance);
+  }
+
+  .bottom-nav {
+    min-height: calc(66px + env(safe-area-inset-bottom));
+    isolation: isolate;
+    box-shadow: 0 -10px 28px color-mix(in srgb, var(--bg) 78%, transparent);
+  }
+
+  .bottom-nav button {
+    min-width: 44px !important;
+    min-height: 54px !important;
+    touch-action: manipulation;
+  }
+
+  .bottom-nav button .nav-icon {
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  /* Timer layout: no control may collapse or disappear behind navigation. */
+  #timerView {
+    padding-bottom: 12px;
+  }
+
+  #timerView .focus-card {
+    margin-bottom: 18px;
+  }
+
+  #timerView .timer-ring {
+    width: min(200px, 68vw);
+    height: min(200px, 68vw);
+  }
+
+  #timerView .timer-center {
+    inset: clamp(20px, 7vw, 25px);
+  }
+
+  #timerView .timer-panel {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #timerView .timer-presets {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+  }
+
+  #timerView .timer-presets button {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding-inline: 6px;
+  }
+
+  #timerView .custom-timer input,
+  #timerView .custom-timer button,
+  #timerView .timer-reset,
+  #timerView .active-timer-actions button {
+    min-height: 44px;
+  }
+
+  #timerView .timer-reset {
+    max-width: 100%;
+  }
+
+  #timerView .timer-tip {
+    margin-bottom: 0;
+    padding-bottom: 8px;
+  }
+
+  /* The last content block on every major view stays reachable above the nav. */
+  #todayView,
+  #calendarView,
+  #timerView,
+  #notesView,
+  #habitsView,
+  #progressView,
+  #settingsView {
+    scroll-margin-bottom: var(--sever-mobile-nav-clearance);
+  }
+
+  button,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@media (max-width: 360px) {
+  #timerView .timer-ring {
+    width: min(184px, 66vw);
+    height: min(184px, 66vw);
+  }
+
+  #timerView .timer-center h2 {
+    font-size: 1.9rem;
+  }
+
+  #timerView .timer-presets {
+    gap: 6px;
+  }
+}
+
+/* Theme-specific contrast without changing layout between themes. */
+html[data-theme="black"] .bottom-nav {
+  border-top-color: color-mix(in srgb, var(--accent) 18%, var(--border-subtle, var(--line)));
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+}
+
+html[data-theme="motion"] .bottom-nav {
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+}
+
+html[data-theme="light"] .bottom-nav {
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bottom-nav,
+  #timerView .focus-card {
+    transition: none !important;
+  }
+}
