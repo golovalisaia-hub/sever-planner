@@ -106,6 +106,37 @@ test('every primary mobile view can scroll fully above the navigation in every t
   }
 });
 
+test('Notes mobile filters stay fully readable without clipping', async ({ page }, info) => {
+  if (info.project.name === 'desktop') test.skip();
+  await page.evaluate(() => window.SeverApp.switchView('notes'));
+  await expect(page.locator('#notesView .notes-core-filters')).toBeVisible();
+
+  const geometry = await page.evaluate(() => {
+    const filters = document.querySelector('#notesView .notes-core-filters').getBoundingClientRect();
+    const buttons = [...document.querySelectorAll('#notesView .notes-core-filters button')].map(button => {
+      const rect = button.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, height: rect.height, text: button.textContent.trim() };
+    });
+    const sort = document.querySelector('#notesView .notes-core-sort')?.getBoundingClientRect();
+    return {
+      filters: { left: filters.left, right: filters.right, width: filters.width },
+      buttons,
+      sortWidth: sort?.width || 0,
+      overflow: Math.max(0, document.documentElement.scrollWidth - innerWidth),
+      width: innerWidth
+    };
+  });
+
+  expect(geometry.buttons.map(button => button.text)).toEqual(['Все', 'Заметки', 'Чек-листы', 'Защищённые']);
+  for (const button of geometry.buttons) {
+    expect(button.left).toBeGreaterThanOrEqual(geometry.filters.left - 1);
+    expect(button.right).toBeLessThanOrEqual(geometry.filters.right + 1);
+    expect(button.height).toBeGreaterThanOrEqual(38);
+  }
+  expect(geometry.sortWidth).toBeGreaterThan(0);
+  expect(geometry.overflow).toBeLessThanOrEqual(1);
+});
+
 test('mobile navigation keeps comfortable hit areas without visually oversized controls', async ({ page }, info) => {
   if (info.project.name === 'desktop') test.skip();
   const boxes = await page.locator('.bottom-nav button').evaluateAll(buttons => buttons.map(button => {
