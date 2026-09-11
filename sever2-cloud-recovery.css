@@ -1,0 +1,62 @@
+/* SEVER 2 cloud recovery v80 — account health feedback only. */
+#accountDialog .account-health {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 8px;
+  margin: -2px 0 6px;
+  padding: 9px 11px;
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: 12px;
+  background: var(--surface-2, var(--panel2));
+  color: var(--text-secondary, var(--muted));
+  font-size: .72rem;
+  line-height: 1.35;
+}
+
+#accountDialog .account-health::before {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: currentColor;
+  content: '';
+  opacity: .7;
+}
+
+#accountDialog .account-health[data-state="ok"] {
+  border-color: color-mix(in srgb, var(--success, #57c890) 24%, var(--border-subtle, var(--line)));
+  background: color-mix(in srgb, var(--success, #57c890) 7%, var(--surface-1, var(--panel)));
+  color: var(--success, #57c890);
+}
+
+#accountDialog .account-health[data-state="busy"] {
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border-subtle, var(--line)));
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface-1, var(--panel)));
+  color: var(--text-primary, var(--text));
+}
+
+#accountDialog .account-health[data-state="warning"] {
+  border-color: color-mix(in srgb, var(--warning, #d69532) 28%, var(--border-subtle, var(--line)));
+  background: color-mix(in srgb, var(--warning, #d69532) 8%, var(--surface-1, var(--panel)));
+  color: var(--text-primary, var(--text));
+}
+
+#accountDialog #accountRetry:not(.hidden) {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 2px;
+}
+
+@media (max-width: 700px) {
+  #accountDialog .account-health {
+    margin-top: 0;
+    padding: 10px 12px;
+    font-size: .7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #accountDialog .account-health,
+  #accountDialog #accountRetry { transition: none; }
+}
