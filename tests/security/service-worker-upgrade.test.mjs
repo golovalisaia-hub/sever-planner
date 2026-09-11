@@ -6,9 +6,9 @@ import vm from 'node:vm';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-const RELEASE_CACHE = 'sever-v77-pwa-startup-guard-v1';
+const RELEASE_CACHE = 'sever-v82-reminders-desktop-v5';
 
-test('v81 service worker installs the guarded release atomically and removes stale caches', async () => {
+test('current service worker installs the guarded release atomically and removes stale caches', async () => {
   const handlers = new Map();
   const deleted = [];
   let cachedAssets = [];
@@ -22,7 +22,7 @@ test('v81 service worker installs the guarded release atomically and removes sta
   };
   const caches = {
     open: async name => ({ addAll: async assets => { assert.equal(name, RELEASE_CACHE); cachedAssets = assets; } }),
-    keys: async () => ['sever-v75-notes-compact-v1', 'sever-v76-cloud-recovery-v1'],
+    keys: async () => ['sever-v75-notes-compact-v1', 'sever-v82-reminders-desktop-v4'],
     delete: async name => { deleted.push(name); return true; }
   };
   vm.runInNewContext(source, { self, caches, clients: self.clients, fetch: async () => ({}), URL, Promise, Response });
@@ -34,7 +34,7 @@ test('v81 service worker installs the guarded release atomically and removes sta
     './sever2-notes-editor-flow.js?v=73','./sever2-notes-navigation.css?v=74',
     './sever2-notes-navigation.js?v=74','./sever2-notes-polish.css?v=79',
     './sever2-notes-polish.js?v=79','./sever2-mobile-consistency.css?v=76',
-    './sever2-money.css?v=77','./sever2-money.js?v=77',
+    './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./js/theme-init.js?v=81'
   ]) assert.ok(cachedAssets.includes(asset), `missing ${asset}`);
@@ -42,13 +42,13 @@ test('v81 service worker installs the guarded release atomically and removes sta
   handlers.get('activate')({ waitUntil: promise => { activateWork = promise; } });
   await activateWork;
   assert.ok(deleted.includes('sever-v75-notes-compact-v1'));
-  assert.ok(deleted.includes('sever-v76-cloud-recovery-v1'));
+  assert.ok(deleted.includes('sever-v82-reminders-desktop-v4'));
   assert.ok(!deleted.includes(RELEASE_CACHE));
   assert.equal(claimed, true);
   assert.equal(skipped, true);
 });
 
-test('installed v81 release serves recovery and guarded bootstrap from one release cache', async () => {
+test('installed current release serves recovery and guarded bootstrap from one release cache', async () => {
   const handlers = new Map();
   const requests = [];
   let network = 0;
@@ -60,7 +60,7 @@ test('installed v81 release serves recovery and guarded bootstrap from one relea
   const caches = {
     open: async name => {
       assert.equal(name, RELEASE_CACHE);
-      return { match: async key => { requests.push(key); return { release: 77, key }; } };
+      return { match: async key => { requests.push(key); return { release: 82, key }; } };
     }
   };
   vm.runInNewContext(source, { self, caches, URL, Response, fetch: async () => { network++; throw Error('network must not update a release'); } });
@@ -74,8 +74,8 @@ test('installed v81 release serves recovery and guarded bootstrap from one relea
     ['sever2-notes-polish.css?v=old','cors','./sever2-notes-polish.css?v=79'],
     ['sever2-notes-polish.js?v=old','cors','./sever2-notes-polish.js?v=79'],
     ['sever2-mobile-consistency.css?v=old','cors','./sever2-mobile-consistency.css?v=76'],
-    ['sever2-money.css?v=old','cors','./sever2-money.css?v=77'],
-    ['sever2-money.js?v=old','cors','./sever2-money.js?v=77'],
+    ['sever2-money.css?v=old','cors','./sever2-money.css?v=83'],
+    ['sever2-money.js?v=old','cors','./sever2-money.js?v=83'],
     ['sever2-interaction-polish.css?v=old','cors','./sever2-interaction-polish.css?v=78'],
     ['sever2-interaction-polish.js?v=old','cors','./sever2-interaction-polish.js?v=78'],
     ['sever2-cloud-recovery.css?v=old','cors','./sever2-cloud-recovery.css?v=80'],
