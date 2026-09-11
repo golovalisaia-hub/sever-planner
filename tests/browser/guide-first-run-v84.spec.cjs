@@ -13,10 +13,16 @@ async function seedFresh(page) {
   });
 }
 
+async function waitReady(page) {
+  await page.waitForFunction(() => window.SeverApp
+    && document.documentElement.dataset.severUsability === 'v84'
+    && document.documentElement.dataset.severReminders === 'v82');
+}
+
 test('first-run guide shows once, skip persists, and Settings can reopen it manually', async ({ page }) => {
   await seedFresh(page);
   await page.goto('/');
-  await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severUsability === 'v84');
+  await waitReady(page);
 
   await page.evaluate(() => window.dispatchEvent(new Event('sever:cloud-ready')));
   await expect(page.locator('#tourDialog')).toBeVisible();
@@ -26,7 +32,7 @@ test('first-run guide shows once, skip persists, and Settings can reopen it manu
   expect(await page.evaluate(() => window.SeverApp.getState().onboarded)).toBe(true);
 
   await page.reload();
-  await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severUsability === 'v84');
+  await waitReady(page);
   await page.evaluate(() => window.dispatchEvent(new Event('sever:cloud-ready')));
   await expect(page.locator('#tourDialog')).toBeHidden();
 
