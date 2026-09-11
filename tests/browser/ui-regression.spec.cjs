@@ -11,7 +11,7 @@ async function saveNoteThroughNotes(page,text){
   await page.evaluate(()=>window.SeverApp.switchView('notes'));
   await expect(page.locator('#notesQuickCaptureInput')).toBeVisible();
   await page.locator('#notesQuickCaptureInput').fill(text);
-  await page.locator('#notesQuickCapture button[type="submit"]').click();
+  await page.locator('#notesQuickCaptureInput').press('Enter');
   await expect(page.locator('#noteList')).toContainText(text);
 }
 for(const [width,height] of [[320,568],[360,800],[375,812],[390,844],[393,852],[412,915],[430,932],[768,1024],[1280,720],[1440,900],[1920,1080]]){
