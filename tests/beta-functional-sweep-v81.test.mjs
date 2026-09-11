@@ -19,15 +19,18 @@ test('beta functional sweep covers every primary SEVER area', () => {
   assert.match(source, /page\.reload\(\)/);
 });
 
-test('v81 startup guard remains active inside the v86 reminder-style cache refresh', () => {
+test('v81 startup guard remains active inside the v87 Notes cache refresh', () => {
   assert.match(themeInit, /function installServiceWorkerStartupGuard\(\)/);
   assert.match(themeInit, /originalRegister\.apply\(container, args\)/);
   assert.match(themeInit, /return registration \|\| fallbackRegistration/);
   assert.match(themeInit, /continuing without PWA update/);
   assert.match(themeInit, /container\.register !== safeRegister/);
+  assert.match(themeInit, /sever2-notes-compact-v87\.js\?v=87/);
   assert.match(themeInit, /sever2-home-core\.js\?v=85/);
   assert.match(themeInit, /sever2-usability-v84\.js\?v=84/);
-  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v8'/);
+  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v9'/);
+  assert.match(sw, /sever2-notes-compact-v87\.css\?v=87/);
+  assert.match(sw, /sever2-notes-compact-v87\.js\?v=87/);
   assert.match(sw, /sever2-home-core\.js\?v=85/);
   assert.match(sw, /js\/theme-init\.js\?v=85/);
   assert.match(sw, /sever2-usability-v84\.js\?v=84/);
