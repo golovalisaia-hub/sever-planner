@@ -65,7 +65,8 @@ test('folder sheet keeps creation and management on the existing Notes core', as
   await page.locator('[data-notes-scope="folder"]').click();
   await page.locator('#notesNavigatorFooter button', { hasText: 'Новая папка' }).click();
   await expect(page.locator('#folderDialog')).toBeVisible();
-  await page.locator('#folderDialog [value="cancel"]').click();
+  await page.locator('#folderDialog [data-close="folderDialog"]').click();
+  await expect(page.locator('#folderDialog')).toBeHidden();
 
   await page.locator('[data-notes-scope="folder"]').click();
   await page.locator('.notes-navigation-option', { hasText: 'Работа' }).click();
