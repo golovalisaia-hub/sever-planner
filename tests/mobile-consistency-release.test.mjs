@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('mobile consistency v76 remains loaded inside the v79 Notes release and seeds only a truly fresh planner with Calm', async () => {
+test('mobile consistency v76 remains loaded inside the v80 cloud recovery release and seeds only a truly fresh planner with Calm', async () => {
   const source = await read('js/theme-init.js');
   assert.match(source, /sever2-mobile-consistency\.css\?v=76/);
   assert.match(source, /sever2-notes-polish\.css\?v=79/);
@@ -13,7 +13,9 @@ test('mobile consistency v76 remains loaded inside the v79 Notes release and see
   assert.match(source, /sever2-money\.js\?v=77/);
   assert.match(source, /sever2-interaction-polish\.css\?v=78/);
   assert.match(source, /sever2-interaction-polish\.js\?v=78/);
-  assert.match(source, /data-\$\{marker\}.*v79/s);
+  assert.match(source, /sever2-cloud-recovery\.css\?v=80/);
+  assert.match(source, /sever2-cloud-recovery\.js\?v=80/);
+  assert.match(source, /data-\$\{marker\}.*v80/s);
   assert.match(source, /const allowed = new Set\(\['light', 'motion', 'black'\]\)/);
   assert.match(source, /function seedFreshAnonymousState\(\)/);
   assert.match(source, /ANONYMOUS_STATE_KEY = 'sever-anonymous-state-v1'/);
