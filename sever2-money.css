@@ -1,0 +1,565 @@
+/* SEVER 2 Money v77 — calm manual money planning without bank connectivity. */
+#moneyView {
+  --money-radius: 18px;
+  --money-gap: 12px;
+  min-width: 0;
+}
+
+.money-heading {
+  align-items: center;
+}
+
+.money-heading .money-primary {
+  min-height: 42px;
+  padding: 0 15px;
+}
+
+.money-intro {
+  max-width: 720px;
+  margin: -4px 0 16px;
+  color: var(--text-secondary, var(--muted));
+  font-size: .82rem;
+  line-height: 1.55;
+}
+
+.money-quick {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 54px;
+  margin-bottom: 16px;
+  padding: 5px 6px 5px 10px;
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: 16px;
+  background: var(--surface-1, var(--panel));
+  box-shadow: 0 9px 28px rgba(0, 0, 0, .035);
+}
+
+.money-quick:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-subtle, var(--line)));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.money-quick-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  color: var(--accent);
+}
+
+.money-quick-icon svg,
+.money-empty svg,
+.money-icon-action svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.money-quick input {
+  min-width: 0;
+  height: 42px;
+  padding: 0 8px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-primary, var(--text));
+  font: inherit;
+  font-size: .9rem;
+}
+
+.money-quick button,
+.money-primary,
+.money-add-pills button,
+.money-card-actions button {
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: 11px;
+  background: var(--surface-1, var(--panel));
+  color: var(--text-primary, var(--text));
+  font: inherit;
+  font-size: .76rem;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.money-quick button,
+.money-primary {
+  min-height: 40px;
+  padding: 0 13px;
+  border-color: var(--text-primary, var(--text));
+  background: var(--text-primary, var(--text));
+  color: var(--surface-1, var(--panel));
+}
+
+.money-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--money-gap);
+  margin-bottom: 23px;
+}
+
+.money-summary article {
+  display: flex;
+  min-width: 0;
+  min-height: 128px;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px;
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: var(--money-radius);
+  background: var(--surface-1, var(--panel));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .03);
+}
+
+.money-summary small,
+.money-section-head small,
+.money-card-head small,
+.money-pace small {
+  color: var(--text-soft, var(--muted));
+  font-size: .62rem;
+  font-weight: 780;
+  letter-spacing: .06em;
+}
+
+.money-summary b {
+  display: block;
+  margin: 10px 0 4px;
+  overflow: hidden;
+  color: var(--text-primary, var(--text));
+  font-size: clamp(1.2rem, 2.4vw, 1.7rem);
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.money-summary span,
+.money-summary button {
+  color: var(--text-secondary, var(--muted));
+  font-size: .72rem;
+}
+
+.money-summary button {
+  width: max-content;
+  min-height: 32px;
+  margin: 2px 0 -6px -7px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.money-summary button:hover,
+.money-summary button:focus-visible {
+  background: color-mix(in srgb, var(--text-primary, var(--text)) 5%, transparent);
+  color: var(--text-primary, var(--text));
+}
+
+.money-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 10px;
+}
+
+.money-section-head h2 {
+  margin: 3px 0 0;
+  color: var(--text-primary, var(--text));
+  font-size: 1.05rem;
+  letter-spacing: -.025em;
+}
+
+.money-add-pills {
+  display: flex;
+  gap: 7px;
+}
+
+.money-add-pills button {
+  min-height: 38px;
+  padding: 0 11px;
+}
+
+.money-add-pills button:hover,
+.money-card-actions button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--border-subtle, var(--line)));
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface-1, var(--panel)));
+}
+
+.money-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--money-gap);
+}
+
+.money-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: var(--money-radius);
+  background: var(--surface-1, var(--panel));
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .035);
+}
+
+.money-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.money-card-head h3 {
+  margin: 4px 0 0;
+  overflow: hidden;
+  color: var(--text-primary, var(--text));
+  font-size: .98rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.money-card-head > span {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--text-secondary, var(--muted));
+  font-size: .68rem;
+  font-weight: 760;
+}
+
+.money-card-amount {
+  margin-top: 18px;
+}
+
+.money-card-amount b {
+  display: block;
+  color: var(--text-primary, var(--text));
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  letter-spacing: -.045em;
+}
+
+.money-card-amount span,
+.money-card-meta,
+.money-pace span {
+  color: var(--text-secondary, var(--muted));
+  font-size: .71rem;
+}
+
+.money-track {
+  height: 6px;
+  margin: 14px 0 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-primary, var(--text)) 8%, transparent);
+}
+
+.money-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width .25s ease;
+}
+
+.money-pace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 10px;
+  margin-top: 13px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface-2, var(--panel2)));
+}
+
+.money-pace b {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  color: var(--text-primary, var(--text));
+  font-size: .82rem;
+  white-space: nowrap;
+}
+
+.money-card-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 42px;
+  gap: 7px;
+  margin-top: 15px;
+}
+
+.money-card-actions button {
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 9px;
+}
+
+.money-card-actions .money-primary {
+  border-color: var(--text-primary, var(--text));
+  background: var(--text-primary, var(--text));
+  color: var(--surface-1, var(--panel));
+}
+
+.money-card-actions button:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+}
+
+.money-icon-action {
+  display: grid;
+  place-items: center;
+  padding: 0 !important;
+}
+
+.money-empty {
+  grid-column: 1 / -1;
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 30px;
+  border: 1px dashed var(--border-subtle, var(--line));
+  border-radius: var(--money-radius);
+  color: var(--text-secondary, var(--muted));
+  text-align: center;
+}
+
+.money-empty > svg {
+  width: 26px;
+  height: 26px;
+  margin-bottom: 3px;
+  color: var(--accent);
+}
+
+.money-empty b {
+  color: var(--text-primary, var(--text));
+  font-size: .96rem;
+}
+
+.money-empty p {
+  max-width: 460px;
+  margin: 0;
+  font-size: .76rem;
+  line-height: 1.5;
+}
+
+.money-empty button {
+  min-height: 42px;
+  margin-top: 6px;
+  padding: 0 13px;
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: 11px;
+  background: var(--surface-1, var(--panel));
+  color: var(--text-primary, var(--text));
+  font: inherit;
+  font-size: .76rem;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.money-dialog {
+  width: min(620px, calc(100vw - 28px));
+  max-height: min(88vh, 760px);
+  overflow: auto;
+  border-radius: 22px;
+}
+
+.money-dialog form {
+  display: grid;
+  gap: 12px;
+}
+
+.money-dialog .dialog-head button[data-money-close] {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  padding: 0;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.money-type-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: 13px;
+  background: var(--surface-2, var(--panel2));
+}
+
+.money-type-switch button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-secondary, var(--muted));
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.money-type-switch button.active {
+  background: var(--surface-1, var(--panel));
+  color: var(--text-primary, var(--text));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+}
+
+.money-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.money-form-hint,
+.money-schedule-copy {
+  margin: 0;
+  color: var(--text-secondary, var(--muted));
+  font-size: .72rem;
+  line-height: 1.5;
+}
+
+html[data-theme="black"] #moneyView .money-summary article,
+html[data-theme="black"] #moneyView .money-card,
+html[data-theme="black"] #moneyView .money-quick {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+}
+
+@media (max-width: 900px) {
+  #moneyView {
+    padding-bottom: 18px;
+  }
+
+  .money-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .money-summary article:last-child {
+    grid-column: 1 / -1;
+    min-height: 104px;
+  }
+
+  .money-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .money-heading .money-primary {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .money-intro {
+    margin-bottom: 12px;
+    font-size: .76rem;
+  }
+
+  .money-quick {
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 0;
+    padding: 6px 9px;
+  }
+
+  .money-quick > button {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 44px;
+    margin-top: 4px;
+  }
+
+  .money-summary {
+    gap: 8px;
+    margin-bottom: 19px;
+  }
+
+  .money-summary article {
+    min-height: 112px;
+    padding: 13px;
+  }
+
+  .money-summary b {
+    font-size: 1.16rem;
+  }
+
+  .money-section-head {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .money-add-pills {
+    width: 100%;
+  }
+
+  .money-add-pills button {
+    flex: 1;
+    min-height: 44px;
+  }
+
+  .money-card {
+    padding: 14px;
+  }
+
+  .money-card-actions button {
+    min-height: 44px;
+  }
+
+  .money-dialog {
+    width: calc(100vw - 18px);
+    max-height: calc(100dvh - 20px);
+    margin: auto 9px max(9px, env(safe-area-inset-bottom));
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 430px) {
+  .money-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .money-summary article:last-child {
+    grid-column: auto;
+  }
+
+  .money-summary article {
+    min-height: 96px;
+  }
+
+  .money-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .money-card-actions {
+    grid-template-columns: 1fr 1fr 44px;
+  }
+
+  .money-card-actions button {
+    padding-inline: 6px;
+    font-size: .7rem;
+  }
+
+  .money-pace {
+    grid-template-columns: 1fr;
+  }
+
+  .money-pace b {
+    grid-row: auto;
+    grid-column: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .money-track i { transition: none; }
+}
