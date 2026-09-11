@@ -36,6 +36,8 @@ test('installed release reloads offline with one complete active asset set', asy
           && cached.includes('/sever2-notes-polish.js?v=79')
           && cached.includes('/sever2-mobile-consistency.css?v=76')
           && cached.includes('/sever2-money.js?v=83')
+          && cached.includes('/sever2-usability-v84.css?v=84')
+          && cached.includes('/sever2-usability-v84.js?v=84')
           && cached.includes('/sever2-interaction-polish.js?v=78')
           && cached.includes('/sever2-reminders.css?v=82')
           && cached.includes('/sever2-task-reminders.js?v=82')
@@ -44,7 +46,7 @@ test('installed release reloads offline with one complete active asset set', asy
       } catch { return false; }
     }).toBe(true);
 
-    expect(releaseCache.name).toMatch(/^sever-v82-/);
+    expect(releaseCache.name).toBe('sever-v82-reminders-desktop-v6');
     const cached = releaseCache.entries;
     for (const asset of [
       '/mobile-home.css?v=52','/desktop-system.css?v=60','/themes.css?v=60','/sever2-ui.css?v=61','/sever2-qa.css?v=61',
@@ -53,7 +55,7 @@ test('installed release reloads offline with one complete active asset set', asy
       '/sever2-create-flow.js?v=69','/sever2-home-core.css?v=70','/sever2-home-core.js?v=70','/sever2-notes-core.css?v=71','/sever2-notes-core.js?v=71',
       '/sever2-notes-organization.css?v=72','/sever2-notes-organization.js?v=72','/sever2-notes-editor-flow.css?v=73','/sever2-notes-editor-flow.js?v=73',
       '/sever2-notes-navigation.css?v=74','/sever2-notes-navigation.js?v=74','/sever2-notes-polish.css?v=79','/sever2-notes-polish.js?v=79',
-      '/sever2-mobile-consistency.css?v=76','/sever2-money.css?v=83','/sever2-money.js?v=83',
+      '/sever2-mobile-consistency.css?v=76','/sever2-money.css?v=83','/sever2-money.js?v=83','/sever2-usability-v84.css?v=84','/sever2-usability-v84.js?v=84',
       '/sever2-interaction-polish.css?v=78','/sever2-interaction-polish.js?v=78','/sever2-reminders.css?v=82','/sever2-task-reminders.js?v=82',
       '/sever2-cloud-recovery.css?v=80','/sever2-cloud-recovery.js?v=80','/js/theme-init.js?v=81','/app.js?v=51','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55'
     ]) expect(cached).toContain(asset);
@@ -65,9 +67,11 @@ test('installed release reloads offline with one complete active asset set', asy
     for (const key of ['severProductivity','severFocusFlow','severEfficiency','severCalendarClarity','severCreateFlow','severHomeCore','severNotesCore','severNotesOrganization','severNotesEditorFlow','severNotesNavigation','severNotesPolish','severMoney','severInteractionPolish','severCloudRecovery']) {
       await expect.poll(() => page.evaluate(name => document.documentElement.dataset[name], key)).toBe('ready');
     }
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severUsability)).toBe('v84');
     await expect(page.locator('link[data-sever2-notes-polish-pack]')).toHaveAttribute('href', /sever2-notes-polish\.css\?v=79$/);
     await expect(page.locator('link[data-sever2-mobile-consistency-pack]')).toHaveAttribute('href', /sever2-mobile-consistency\.css\?v=76$/);
     await expect(page.locator('link[data-sever2-money-pack]')).toHaveAttribute('href', /sever2-money\.css\?v=77$/);
+    await expect(page.locator('link[data-sever2-usability-v84-pack]')).toHaveAttribute('href', /sever2-usability-v84\.css\?v=84$/);
     await expect(page.locator('link[data-sever2-interaction-polish-pack]')).toHaveAttribute('href', /sever2-interaction-polish\.css\?v=78$/);
     await expect(page.locator('link[data-sever2-cloud-recovery-pack]')).toHaveAttribute('href', /sever2-cloud-recovery\.css\?v=80$/);
     await expect(page.locator('#sever2HomeCore')).toBeVisible();
