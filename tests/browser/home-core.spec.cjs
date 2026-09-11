@@ -54,6 +54,14 @@ test('Home shows the current task once and only follow-up tasks below without mu
   await expect(page.locator('.sever2-home-priority-copy b')).toHaveText(['Важное дело', 'Позднее дело']);
   await expect(page.locator('.sever2-home-priority-number')).toHaveText(['2', '3']);
   await expect(page.locator('.sever2-home-priority')).not.toContainText('Шаг по цели');
+  const hierarchy = await page.evaluate(() => {
+    const hero = document.querySelector('#todayView .today-hero').getBoundingClientRect();
+    const home = document.querySelector('#sever2HomeCore').getBoundingClientRect();
+    return { heroTop: hero.top, heroBottom: hero.bottom, homeTop: home.top, order: getComputedStyle(document.querySelector('#sever2HomeCore')).order };
+  });
+  expect(hierarchy.heroTop).toBeLessThan(hierarchy.homeTop);
+  expect(hierarchy.heroBottom).toBeLessThanOrEqual(hierarchy.homeTop + 2);
+  expect(hierarchy.order).toBe('2');
   await expect(page.locator('#todayDashboard')).toBeHidden();
   await expect(page.locator('.course-card')).toBeHidden();
   expect(await page.evaluate(() => JSON.stringify(window.SeverApp.getState()))).toBe(before);
