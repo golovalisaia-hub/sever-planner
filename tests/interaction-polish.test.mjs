@@ -65,7 +65,7 @@ test('v78 interaction polish remains after the v84 usability layer in the atomic
     './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80',
     './sever2-reminders.css?v=82','./sever2-task-reminders.js?v=82',
-    './js/theme-init.js?v=81'
+    './js/theme-init.js?v=84'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   assert.match(sw, /'\/sever2-usability-v84\.css'/);
   assert.match(sw, /'\/sever2-usability-v84\.js'/);
