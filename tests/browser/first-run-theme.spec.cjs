@@ -1,16 +1,18 @@
 const { test, expect } = require('@playwright/test');
 
-async function bootFresh(page) {
-  await page.route('**/supabase-config.js*', route => route.fulfill({ contentType: 'text/javascript', body: 'window.SEVER_SUPABASE_CONFIG={};' }));
-  await page.addInitScript(() => {
-    localStorage.clear();
-    sessionStorage.clear();
-  });
-  await page.goto('/');
+async function waitForThemeShell(page) {
   await page.waitForFunction(() => window.SeverApp && document.querySelector('.theme-picker')?.dataset.severThemePackReady === 'true');
 }
 
-test('a brand-new profile opens in Calm Balance and keeps only the three product themes', async ({ page }) => {
+async function bootFresh(page) {
+  await page.route('**/supabase-config.js*', route => route.fulfill({ contentType: 'text/javascript', body: 'window.SEVER_SUPABASE_CONFIG={};' }));
+  /* Playwright gives each test an isolated browser context, so this is a true
+     first visit without a reload-time init script that would erase persistence. */
+  await page.goto('/');
+  await waitForThemeShell(page);
+}
+
+test('a brand-new profile opens in Calm Balance and keeps it after reload', async ({ page }) => {
   await bootFresh(page);
 
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.theme)).toBe('light');
@@ -28,6 +30,12 @@ test('a brand-new profile opens in Calm Balance and keeps only the three product
   expect(themes[0].checked).toBe('true');
   expect(themes[1].checked).toBe('false');
   expect(themes[2].checked).toBe('false');
+
+  await page.reload();
+  await waitForThemeShell(page);
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.theme)).toBe('light');
+  await expect.poll(() => page.evaluate(() => window.SeverApp.getState().appearance?.theme)).toBe('light');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('sever-theme'))).toBe('light');
 });
 
 test('an existing user theme is preserved and is not reset by the first-run rule', async ({ page }) => {
@@ -46,7 +54,7 @@ test('an existing user theme is preserved and is not reset by the first-run rule
     }));
   });
   await page.goto('/');
-  await page.waitForFunction(() => window.SeverApp && document.querySelector('.theme-picker')?.dataset.severThemePackReady === 'true');
+  await waitForThemeShell(page);
 
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.theme)).toBe('motion');
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().appearance?.theme)).toBe('motion');
