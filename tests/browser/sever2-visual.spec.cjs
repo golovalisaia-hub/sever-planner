@@ -12,6 +12,7 @@ const VIEWS = ['today', 'calendar', 'timer', 'notes', 'money', 'habits', 'progre
 async function seed(page) {
   await page.addInitScript(() => {
     const today = new Date();
+    const now = Date.now();
     const date = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
     const future = new Date(today.getFullYear(), today.getMonth() + 4, Math.min(today.getDate(), 28));
     const deadline = `${future.getFullYear()}-${String(future.getMonth()+1).padStart(2,'0')}-${String(future.getDate()).padStart(2,'0')}`;
@@ -24,9 +25,16 @@ async function seed(page) {
       tasks: [
         { id:'visual-1', title:'Главное дело', date, time:'10:00', duration:45, category:'Личное', priority:true, completed:false, createdAt:1, updatedAt:1 },
         { id:'visual-2', title:'Небольшая задача', date, time:'15:30', duration:20, category:'Другое', priority:false, completed:false, createdAt:2, updatedAt:2 },
-        { id:'visual-3', title:'Готово', date, time:'', duration:0, category:'Личное', priority:false, completed:true, completedAt:Date.now(), createdAt:3, updatedAt:3 }
+        { id:'visual-3', title:'Готово', date, time:'', duration:0, category:'Личное', priority:false, completed:true, completedAt:now, createdAt:3, updatedAt:3 }
       ],
-      notes: [],
+      notes: [
+        { id:'visual-note-1', folderId:'', title:'Идеи на неделю', body:'Собрать мысли по учёбе, проекту и делам, которые не хочется держать в голове.', kind:'text', items:[], done:false, protected:false, createdAt:now-7200000, updatedAt:now },
+        { id:'visual-note-2', folderId:'', title:'Перед выходом', body:'', kind:'checklist', items:[
+          { id:'visual-check-1', text:'Зарядить телефон', done:true },
+          { id:'visual-check-2', text:'Взять наушники', done:false },
+          { id:'visual-check-3', text:'Проверить ключи', done:false }
+        ], done:false, protected:false, createdAt:now-10800000, updatedAt:now-3600000 }
+      ],
       folders: [],
       habits: [
         { id:'visual-habit-1', title:'Чтение', createdAt:1, updatedAt:1 },
