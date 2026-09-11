@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('presentation layers load deterministically through Notes polish v79', async () => {
+test('presentation layers load deterministically through cloud recovery v80', async () => {
   const source = await read('js/theme-init.js');
   for (const asset of [
     'sever2-notes-core.css?v=71','sever2-notes-core.js?v=71',
@@ -14,9 +14,10 @@ test('presentation layers load deterministically through Notes polish v79', asyn
     'sever2-notes-polish.css?v=79','sever2-notes-polish.js?v=79',
     'sever2-mobile-consistency.css?v=76',
     'sever2-money.css?v=77','sever2-money.js?v=77',
-    'sever2-interaction-polish.css?v=78','sever2-interaction-polish.js?v=78'
+    'sever2-interaction-polish.css?v=78','sever2-interaction-polish.js?v=78',
+    'sever2-cloud-recovery.css?v=80','sever2-cloud-recovery.js?v=80'
   ]) assert.ok(source.includes(asset), `missing ${asset}`);
-  assert.match(source, /data-\$\{marker\}.*v79/s);
+  assert.match(source, /data-\$\{marker\}.*v80/s);
   const core = source.indexOf('sever2-notes-core-script');
   const organization = source.indexOf('sever2-notes-organization-script');
   const editor = source.indexOf('sever2-notes-editor-flow-script');
@@ -24,12 +25,13 @@ test('presentation layers load deterministically through Notes polish v79', asyn
   const polish = source.indexOf('sever2-notes-polish-script');
   const money = source.indexOf('sever2-money-script');
   const interactions = source.indexOf('sever2-interaction-polish-script');
-  assert.ok(core >= 0 && organization > core && editor > organization && navigation > editor && polish > navigation && money > polish && interactions > money);
+  const recovery = source.indexOf('sever2-cloud-recovery-script');
+  assert.ok(core >= 0 && organization > core && editor > organization && navigation > editor && polish > navigation && money > polish && interactions > money && recovery > interactions);
 });
 
-test('Notes polish v79 ships in the atomic PWA release without dropping Money or interaction polish', async () => {
+test('cloud recovery v80 ships atomically without dropping Notes, Money or interaction polish', async () => {
   const source = await read('sw.js');
-  assert.match(source, /const CACHE = 'sever-v75-notes-compact-v1'/);
+  assert.match(source, /const CACHE = 'sever-v76-cloud-recovery-v1'/);
   for (const asset of [
     './sever2-notes-core.css?v=71','./sever2-notes-core.js?v=71',
     './sever2-notes-organization.css?v=72','./sever2-notes-organization.js?v=72',
@@ -37,17 +39,14 @@ test('Notes polish v79 ships in the atomic PWA release without dropping Money or
     './sever2-notes-navigation.css?v=74','./sever2-notes-navigation.js?v=74',
     './sever2-notes-polish.css?v=79','./sever2-notes-polish.js?v=79',
     './sever2-mobile-consistency.css?v=76','./sever2-money.css?v=77','./sever2-money.js?v=77',
-    './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78','./js/theme-init.js?v=79'
+    './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
+    './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./js/theme-init.js?v=80'
   ]) assert.ok(source.includes(`'${asset}'`), `missing ${asset}`);
-  assert.match(source, /'\/sever2-notes-navigation\.css'/);
-  assert.match(source, /'\/sever2-notes-navigation\.js'/);
-  assert.match(source, /'\/sever2-notes-polish\.css'/);
-  assert.match(source, /'\/sever2-notes-polish\.js'/);
-  assert.match(source, /'\/sever2-mobile-consistency\.css'/);
-  assert.match(source, /'\/sever2-money\.css'/);
-  assert.match(source, /'\/sever2-money\.js'/);
-  assert.match(source, /'\/sever2-interaction-polish\.css'/);
-  assert.match(source, /'\/sever2-interaction-polish\.js'/);
+  for (const path of [
+    'sever2-notes-navigation.css','sever2-notes-navigation.js','sever2-notes-polish.css','sever2-notes-polish.js',
+    'sever2-mobile-consistency.css','sever2-money.css','sever2-money.js','sever2-interaction-polish.css','sever2-interaction-polish.js',
+    'sever2-cloud-recovery.css','sever2-cloud-recovery.js'
+  ]) assert.ok(source.includes(`'/${path}'`), `missing core path ${path}`);
 });
 
 test('Notes organization keeps pin and tags outside the notes table contract', async () => {
