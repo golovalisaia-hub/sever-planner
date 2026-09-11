@@ -163,13 +163,40 @@
     syncPresentation(selected);
   }
 
-  function pinFirstThemeForFreshProfile() {
-    const state = window.SeverApp?.getState?.();
+  function storedPlannerTheme() {
+    try {
+      const scope = window.SeverApp?.getStorageScope?.();
+      if (!scope) return '';
+      return JSON.parse(localStorage.getItem(scope) || '{}')?.appearance?.theme || '';
+    } catch { return ''; }
+  }
+
+  function settleFirstThemeForFreshProfile(attempt = 0) {
+    const app = window.SeverApp;
+    const state = app?.getState?.();
     if (!state || state.onboarded !== false) return;
-    state.appearance = { ...(state.appearance || {}), theme: 'light' };
-    try { localStorage.setItem('sever-theme', 'light'); } catch {}
+
     document.documentElement.dataset.theme = 'light';
     document.documentElement.dataset.severMood = themes.light.ui;
+    try { localStorage.setItem('sever-theme', 'light'); } catch {}
+    syncPresentation('light');
+
+    /* initializeApp is async. Wait for its first persistent save before using
+       the app's own theme handler, otherwise recovery can restore legacy Aurora. */
+    if (!Number(state._savedAt)) {
+      if (attempt < 80) setTimeout(() => settleFirstThemeForFreshProfile(attempt + 1), 25);
+      return;
+    }
+
+    if (state.appearance?.theme === 'light' && normalize(storedPlannerTheme()) === 'light') return;
+    const lightButton = document.querySelector('.theme-picker [data-sever-theme="light"]');
+    if (lightButton?.dataset.severThemeWrapped === 'true') {
+      lightButton.click();
+      if (attempt < 80) setTimeout(() => settleFirstThemeForFreshProfile(attempt + 1), 25);
+      return;
+    }
+
+    if (attempt < 80) setTimeout(() => settleFirstThemeForFreshProfile(attempt + 1), 25);
   }
 
   function polishCopy() {
@@ -210,9 +237,9 @@
   }, { once: true });
 
   window.addEventListener('sever:ready', () => {
-    pinFirstThemeForFreshProfile();
     preparePicker();
     polishCopy();
     syncPresentation(document.documentElement.dataset.theme);
+    settleFirstThemeForFreshProfile();
   });
 })();
