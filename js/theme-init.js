@@ -28,7 +28,8 @@
     ['sever2-notes-organization-pack', 'sever2-notes-organization.css?v=72'],
     ['sever2-notes-editor-flow-pack', 'sever2-notes-editor-flow.css?v=73'],
     ['sever2-notes-navigation-pack', 'sever2-notes-navigation.css?v=74'],
-    ['sever2-notes-polish-pack', 'sever2-notes-polish.css?v=75']
+    ['sever2-notes-polish-pack', 'sever2-notes-polish.css?v=75'],
+    ['sever2-mobile-consistency-pack', 'sever2-mobile-consistency.css?v=76']
   ];
   const scripts = [
     ['sever2-productivity-script', 'sever2-productivity.js?v=64'],
@@ -69,7 +70,7 @@
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
-      link.setAttribute(`data-${marker}`, 'v75');
+      link.setAttribute(`data-${marker}`, 'v76');
       document.head.appendChild(link);
     });
   }
@@ -81,7 +82,7 @@
       script.src = src;
       script.async = false;
       script.defer = true;
-      script.setAttribute(`data-${marker}`, 'v75');
+      script.setAttribute(`data-${marker}`, 'v76');
       document.head.appendChild(script);
     });
   }
