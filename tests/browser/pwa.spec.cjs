@@ -29,6 +29,7 @@ test('installed release reloads offline with one complete active asset set', asy
         });
         const cached = releaseCache.entries;
         return releaseCache.releaseNames.length === 1
+          && cached.includes('/sever2-home-core.css?v=85')
           && cached.includes('/sever2-home-core.js?v=85')
           && cached.includes('/sever2-notes-core.js?v=71')
           && cached.includes('/sever2-notes-organization.js?v=72')
@@ -53,7 +54,7 @@ test('installed release reloads offline with one complete active asset set', asy
       '/mobile-home.css?v=52','/desktop-system.css?v=60','/themes.css?v=60','/sever2-ui.css?v=61','/sever2-qa.css?v=61',
       '/sever2-productivity.css?v=64','/sever2-productivity.js?v=64','/sever2-focus-flow.css?v=66','/sever2-focus-flow.js?v=66',
       '/sever2-efficiency.css?v=67','/sever2-efficiency.js?v=67','/sever2-calendar-clarity.css?v=68','/sever2-calendar-clarity.js?v=68',
-      '/sever2-create-flow.js?v=69','/sever2-home-core.css?v=70','/sever2-home-core.js?v=85','/sever2-notes-core.css?v=71','/sever2-notes-core.js?v=71',
+      '/sever2-create-flow.js?v=69','/sever2-home-core.css?v=85','/sever2-home-core.js?v=85','/sever2-notes-core.css?v=71','/sever2-notes-core.js?v=71',
       '/sever2-notes-organization.css?v=72','/sever2-notes-organization.js?v=72','/sever2-notes-editor-flow.css?v=73','/sever2-notes-editor-flow.js?v=73',
       '/sever2-notes-navigation.css?v=74','/sever2-notes-navigation.js?v=74','/sever2-notes-polish.css?v=79','/sever2-notes-polish.js?v=79',
       '/sever2-mobile-consistency.css?v=76','/sever2-money.css?v=83','/sever2-money.js?v=83','/sever2-usability-v84.css?v=84','/sever2-usability-v84.js?v=84',
@@ -69,6 +70,7 @@ test('installed release reloads offline with one complete active asset set', asy
       await expect.poll(() => page.evaluate(name => document.documentElement.dataset[name], key)).toBe('ready');
     }
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severUsability)).toBe('v84');
+    await expect(page.locator('link[data-sever2-home-core-pack]')).toHaveAttribute('href', /sever2-home-core\.css\?v=85$/);
     await expect(page.locator('script[data-sever2-home-core-script]')).toHaveAttribute('src', /sever2-home-core\.js\?v=85$/);
     await expect(page.locator('link[data-sever2-notes-polish-pack]')).toHaveAttribute('href', /sever2-notes-polish\.css\?v=79$/);
     await expect(page.locator('link[data-sever2-mobile-consistency-pack]')).toHaveAttribute('href', /sever2-mobile-consistency\.css\?v=76$/);
