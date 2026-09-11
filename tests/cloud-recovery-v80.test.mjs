@@ -35,6 +35,13 @@ test('successful authentication is not reported as a bad login when only initial
   assert.match(source, /invalid refresh token/);
 });
 
+test('normal account sign-out affects only the current device', () => {
+  assert.match(source, /cloud\.signOut = async function/);
+  assert.match(source, /client\.auth\.signOut\(\{ scope: 'local' \}\)/);
+  assert.match(source, /this\.app\.lockProtectedNotes\('logout'\)/);
+  assert.match(source, /await this\.applySession\(null\)/);
+});
+
 test('account UI exposes sync health and a safe recovery action', () => {
   assert.match(source, /accountHealth/);
   assert.match(source, /Восстановить связь/);
