@@ -38,17 +38,27 @@ jobs:
           retention-days: 3
       - name: Concurrent sync (isolated PostgreSQL and desktop/mobile contexts)
         run: |
+          set -euo pipefail
           # PGlite validates the portable planner/sync schema only. Supabase-only
           # push/Vault/pg_cron migrations are covered by dedicated reminder and
           # production security checks and cannot be loaded by PGlite.
-          mkdir -p /tmp/sever-supabase-only-migrations
+          temp_dir="$(mktemp -d)"
+          restore_migrations() {
+            shopt -s nullglob
+            files=("$temp_dir"/*.sql)
+            if ((${#files[@]})); then mv "${files[@]}" supabase/migrations/; fi
+            rmdir "$temp_dir" 2>/dev/null || true
+          }
+          trap restore_migrations EXIT
           for file in supabase/migrations/*.sql; do
             case "$(basename "$file")" in
               001_*|002_*|003_*|004_*|005_*|006_*) ;;
-              *) mv "$file" /tmp/sever-supabase-only-migrations/ ;;
+              *) mv "$file" "$temp_dir"/ ;;
             esac
           done
           node tests/browser/concurrent-db.cjs
+          restore_migrations
+          trap - EXIT
       - name: Static regression
         run: node tests/qa_static.mjs
       - name: Sync regression
