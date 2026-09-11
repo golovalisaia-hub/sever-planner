@@ -33,15 +33,17 @@ test('guide v84 stays short but explains the rest of SEVER and how to reopen hel
   assert.match(source, /гид всегда можно открыть снова в Настройках/i);
 });
 
-test('phone v84 reduces Money and Settings vertical chrome without changing desktop rules', () => {
+test('phone v84 reduces Money and Settings vertical chrome without shrinking touch targets', () => {
   assert.match(css, /@media \(max-width: 700px\)/);
   assert.match(css, /#settingsView \.settings-appearance \.theme-picker[\s\S]*grid-auto-flow: column/);
   assert.match(css, /overflow-x: auto/);
   assert.match(css, /scroll-snap-type: x proximity/);
   assert.match(css, /@media \(max-width: 430px\)/);
   assert.match(css, /#moneyView \.money-quick[\s\S]*grid-template-columns: 28px minmax\(0, 1fr\) auto/);
+  assert.match(css, /#moneyView \.money-quick > button[\s\S]*min-height: 44px/);
   assert.match(css, /#moneyView \.money-summary[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\)/);
   assert.match(css, /#moneyView \.money-summary article:last-child[\s\S]*grid-column: 1 \/ -1/);
+  assert.match(css, /#moneyView \.money-add-pills button[\s\S]*min-height: 44px/);
   assert.match(css, /@media \(max-width: 350px\)/);
 });
 

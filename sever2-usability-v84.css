@@ -39,7 +39,7 @@
   #moneyView .money-quick > button {
     grid-column: auto;
     width: auto;
-    min-height: 40px;
+    min-height: 44px;
     margin-top: 0;
     padding-inline: 11px;
   }
@@ -98,7 +98,7 @@
   }
 
   #moneyView .money-add-pills button {
-    min-height: 42px;
+    min-height: 44px;
   }
 
   #moneyView .money-card {
@@ -122,7 +122,7 @@
   #moneyView .money-quick > button {
     grid-column: 1 / -1;
     width: 100%;
-    min-height: 42px;
+    min-height: 44px;
     margin-top: 3px;
   }
 

@@ -3,6 +3,7 @@ const { test, expect } = require('@playwright/test');
 async function seedFresh(page) {
   await page.route('**/supabase-config.js*', route => route.fulfill({ contentType: 'text/javascript', body: 'window.SEVER_SUPABASE_CONFIG={};' }));
   await page.addInitScript(() => {
+    if (localStorage.getItem('sever-e2e-guide-first-run-v84-seeded-v1') === '1') return;
     localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({
       version: 11, onboarded: false, tasks: [], notes: [], folders: [], habits: [], checks: {}, taskMemory: [],
       profile: { name: '' }, appearance: { theme: 'light', animations: 'off', reduceEffects: true },
@@ -10,6 +11,7 @@ async function seedFresh(page) {
       security: { protectedNotesAutoLockMinutes: 5, lockInBackground: true }
     }));
     localStorage.setItem('sever-theme', 'light');
+    localStorage.setItem('sever-e2e-guide-first-run-v84-seeded-v1', '1');
   });
 }
 
