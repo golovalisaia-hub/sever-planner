@@ -36,3 +36,13 @@ test('mobile consistency only changes presentation and does not create a second 
   assert.match(source, /\.bottom-nav button/);
   assert.doesNotMatch(source, /localStorage|indexedDB|Supabase|fetch\(/i);
 });
+
+test('phone Notes uses one compact filter rail with a fixed sort control instead of a 2x2 filter wall', async () => {
+  const source = await read('sever2-mobile-consistency.css');
+  assert.match(source, /@media \(max-width: 430px\)/);
+  assert.match(source, /#notesView \.notes-core-controls[\s\S]*grid-template-columns: minmax\(0, 1fr\) 98px/);
+  assert.match(source, /#notesView \.notes-core-filters[\s\S]*display: flex/);
+  assert.match(source, /overflow-x: auto/);
+  assert.match(source, /scrollbar-width: none/);
+  assert.doesNotMatch(source, /#notesView \.notes-core-filters[\s\S]{0,180}grid-template-columns: repeat\(2/);
+});
