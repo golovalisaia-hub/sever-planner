@@ -133,6 +133,11 @@
     if (settings) main.insertBefore(section, settings); else main.appendChild(section);
   }
 
+  function openMoney() {
+    window.SeverApp?.switchView?.('money');
+    requestAnimationFrame(render);
+  }
+
   function createNavigation() {
     const nav = document.querySelector('.desktop-sidebar .app-nav');
     if (nav && !nav.querySelector('[data-view="money"]')) {
@@ -142,7 +147,7 @@
       button.innerHTML = `<span class="side-nav-icon" aria-hidden="true">${makeIcon('<path d="M4 7h16v10H4z"/><path d="M7 10h10M7 14h6"/>')}</span><span>Деньги</span>`;
       const progress = nav.querySelector('[data-view="progress"]');
       progress?.after(button);
-      button.addEventListener('click', () => window.SeverApp?.switchView?.('money'));
+      button.addEventListener('click', openMoney);
     }
 
     const mobileGrid = document.querySelector('#mobileMenuSheet .mobile-menu-grid');
@@ -155,7 +160,7 @@
       mobileGrid.appendChild(button);
       button.addEventListener('click', () => {
         document.querySelector('#mobileMenuSheet[open]')?.close();
-        window.SeverApp?.switchView?.('money');
+        openMoney();
       });
     }
   }
@@ -493,6 +498,12 @@
     window.addEventListener('sever:account-scope', () => requestAnimationFrame(render));
     window.addEventListener('sever:cloud-status', () => { if ($('#moneyView')?.classList.contains('active')) render(); });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && $('#moneyView')?.classList.contains('active')) render(); });
+    const view = $('#moneyView');
+    if (view) {
+      new MutationObserver(() => {
+        if (view.classList.contains('active')) requestAnimationFrame(render);
+      }).observe(view, { attributes: true, attributeFilter: ['class'] });
+    }
   }
 
   function setup() {
@@ -502,7 +513,7 @@
     document.documentElement.dataset.severMoney = 'ready';
   }
 
-  window.SeverMoney = { render, open: () => { window.SeverApp?.switchView?.('money'); render(); }, parseQuick };
+  window.SeverMoney = { render, open: openMoney, parseQuick };
   window.addEventListener('sever:ready', setup, { once: true });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup, { once: true }); else setup();
 })();
