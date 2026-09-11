@@ -24,7 +24,7 @@ test('task reminders request permission only from explicit controls and use Web 
   assert.match(reminders, /isStandalone\(\)/);
 });
 
-test('legacy daily reminder is retired and the v82 layer is loaded by the existing presentation stack', () => {
+test('legacy daily reminder is retired and the task reminder layer is loaded by the existing presentation stack', () => {
   assert.match(reminders, /current\.reminders\.enabled = false/);
   assert.match(interaction, /sever2-task-reminders\.js\?v=82/);
   assert.match(interaction, /sever2-reminders\.css\?v=82/);
@@ -43,6 +43,15 @@ test('reminder settings have dedicated wide desktop and compact mobile layouts',
   assert.match(reminderCss, /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(reminderCss, /@media \(max-width: 900px\)/);
   assert.match(reminderCss, /grid-template-columns: minmax\(0, 1fr\)/);
+});
+
+test('disabled reminder sub-options stay saved but look clearly inactive', () => {
+  assert.match(reminderCss, /\.sever-reminder-option:has\(input:disabled\)/);
+  assert.match(reminderCss, /opacity:\s*\.66/);
+  assert.match(reminderCss, /cursor:\s*not-allowed/);
+  assert.match(reminderCss, /\.sever-reminder-option:has\(input:disabled\) \.switch/);
+  assert.match(reminderCss, /filter:\s*saturate\(\.45\)/);
+  assert.match(sw, /sever2-reminders\.css\?v=86/);
 });
 
 test('service worker immediately displays visible push notifications and opens the routed SEVER view', () => {
