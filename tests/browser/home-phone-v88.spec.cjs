@@ -115,6 +115,30 @@ test('Home focus action opens Timer for the actual primary task', async ({ page 
   })).toBe('home-main');
 });
 
+test('Home Inbox action activates Calendar Inbox exactly once', async ({ page }) => {
+  await page.evaluate(() => {
+    const app = window.SeverApp;
+    const now = Date.now();
+    app.getState().tasks.push({
+      id: 'home-inbox', title: 'Разобрать позже', date: '9999-12-31', time: '', duration: null,
+      category: 'Личное', priority: false, challenge: false, completed: false, createdAt: now, updatedAt: now
+    });
+    app.render();
+  });
+  await expect(page.locator('#sever2HomeCore [data-home-inbox]')).toBeVisible();
+  await page.evaluate(() => {
+    window.__homeInboxModeClicks = 0;
+    const button = document.querySelector('.sever2-calendar-modes [data-mode="inbox"]');
+    button?.addEventListener('click', () => { window.__homeInboxModeClicks += 1; }, { capture: true });
+  });
+
+  await page.locator('#sever2HomeCore [data-home-inbox]').click();
+  await expect(page.locator('#calendarView')).toBeVisible();
+  await expect(page.locator('#sever2InboxPanel')).toBeVisible();
+  await page.waitForTimeout(160);
+  expect(await page.evaluate(() => window.__homeInboxModeClicks)).toBe(1);
+});
+
 test('empty Home offers creation without a pointless jump to an empty task list', async ({ browser }, info) => {
   const context = await browser.newContext({ viewport: info.project.use.viewport, serviceWorkers: 'block' });
   try {
