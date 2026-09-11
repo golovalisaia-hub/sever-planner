@@ -34,6 +34,16 @@ test('Money supports debt, savings, progress and optional calendar reminders wit
   assert.match(source, /накоп\|отлож\|собрат\|цель/);
 });
 
+test('Money treats overdue deadlines as stale plans instead of inventing one month remaining', () => {
+  assert.match(source, /function deadlineStatus\(deadline\)/);
+  assert.match(source, /if \(!status\.valid \|\| status\.overdue\) return null/);
+  assert.match(source, /money-pace money-pace-overdue/);
+  assert.match(source, /СРОК ПРОШЁЛ/);
+  assert.match(source, /Обновите срок плана перед добавлением напоминаний/);
+  assert.match(source, /plan\.remaining <= 0 \|\| plan\.monthly <= 0 \|\| plan\.overdue/);
+  assert.match(css, /\.money-pace-overdue/);
+});
+
 test('Money has responsive touch-safe presentation and Sever AI can navigate to the page', () => {
   assert.match(css, /@media \(max-width: 700px\)/);
   assert.match(css, /min-height:\s*44px/);
