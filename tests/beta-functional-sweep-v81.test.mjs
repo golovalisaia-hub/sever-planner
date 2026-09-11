@@ -19,12 +19,13 @@ test('beta functional sweep covers every primary SEVER area', () => {
   assert.match(source, /page\.reload\(\)/);
 });
 
-test('v81 guards PWA startup without changing normal service-worker registration semantics', () => {
+test('v81 startup guard remains active inside the v82 reminder cache refresh', () => {
   assert.match(themeInit, /function installServiceWorkerStartupGuard\(\)/);
   assert.match(themeInit, /originalRegister\.apply\(container, args\)/);
   assert.match(themeInit, /return registration \|\| fallbackRegistration/);
   assert.match(themeInit, /continuing without PWA update/);
   assert.match(themeInit, /container\.register !== safeRegister/);
-  assert.match(sw, /const CACHE = 'sever-v77-pwa-startup-guard-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v1'/);
   assert.match(sw, /js\/theme-init\.js\?v=81/);
+  assert.match(sw, /sever2-reminders\.css\?v=82/);
 });
