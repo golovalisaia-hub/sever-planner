@@ -35,7 +35,9 @@ test('guide v84 stays short but explains the rest of SEVER and how to reopen hel
 
 test('phone v84 reduces Money and Settings vertical chrome without shrinking touch targets', () => {
   assert.match(css, /@media \(max-width: 700px\)/);
-  assert.match(css, /#settingsView \.settings-appearance \.theme-picker[\s\S]*grid-auto-flow: column/);
+  assert.match(css, /#settingsView \.settings-appearance \.theme-picker[\s\S]*grid-template-columns: none !important/);
+  assert.match(css, /#settingsView \.settings-appearance \.theme-picker[\s\S]*grid-auto-flow: column !important/);
+  assert.match(css, /#settingsView \.settings-appearance \.theme-picker[\s\S]*grid-auto-columns: minmax\(154px, 72%\) !important/);
   assert.match(css, /overflow-x: auto/);
   assert.match(css, /scroll-snap-type: x proximity/);
   assert.match(css, /@media \(max-width: 430px\)/);
@@ -45,6 +47,7 @@ test('phone v84 reduces Money and Settings vertical chrome without shrinking tou
   assert.match(css, /#moneyView \.money-summary article:last-child[\s\S]*grid-column: 1 \/ -1/);
   assert.match(css, /#moneyView \.money-add-pills button[\s\S]*min-height: 44px/);
   assert.match(css, /@media \(max-width: 350px\)/);
+  assert.match(css, /grid-auto-columns: minmax\(146px, 78%\) !important/);
 });
 
 test('v84 remains after Home v85 and is part of the atomic reminder v86 offline release', () => {
