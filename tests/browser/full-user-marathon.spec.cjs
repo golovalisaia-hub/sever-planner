@@ -18,9 +18,11 @@ async function boot(page) {
     body: 'window.SEVER_SUPABASE_CONFIG={};window.SEVER_CLOUD_ENABLED=false;'
   }));
   await page.addInitScript(state => {
+    if (localStorage.getItem('sever-e2e-full-user-marathon-seeded') === '1') return;
     localStorage.clear();
     localStorage.setItem('sever-anonymous-state-v1', JSON.stringify(state));
     localStorage.setItem('sever-theme', 'light');
+    localStorage.setItem('sever-e2e-full-user-marathon-seeded', '1');
   }, emptyState());
   await page.goto('/');
   await page.waitForFunction(() => window.SeverApp && window.SeverNotes && document.documentElement.dataset.severHomeCore === 'ready');
@@ -67,6 +69,19 @@ async function quickNote(page, title) {
   expect(Date.now() - started).toBeLessThan(2000);
 }
 
+async function openHabitCreate(page) {
+  await page.evaluate(() => window.SeverApp.switchView('habits'));
+  const mobile = page.locator('#mobileCreateBtn');
+  if (await mobile.isVisible()) {
+    await mobile.click();
+    await expect(page.locator('#quickAddDialog')).toBeVisible();
+    await page.locator('#quickAddHabit').click();
+  } else {
+    await page.locator('#openHabit').click();
+  }
+  await expect(page.locator('#habitDialog')).toBeVisible();
+}
+
 test.beforeEach(async ({ page }) => { await boot(page); });
 
 test('experienced user can hammer primary flows without stale UI or duplicate writes', async ({ page }, info) => {
@@ -104,7 +119,6 @@ test('experienced user can hammer primary flows without stale UI or duplicate wr
   await page.locator('#taskTitle').fill(editedTitle);
   await page.locator('#taskForm .primary').click();
   await expect(page.locator('#todayTasks')).toContainText(editedTitle);
-  await expect(page.locator('#todayTasks')).not.toContainText(taskTitle + '$');
 
   // Complete and undo: the same entity should return immediately.
   const editedCard = page.locator('#todayTasks .task').filter({ hasText: editedTitle });
@@ -153,9 +167,8 @@ test('experienced user can hammer primary flows without stale UI or duplicate wr
   await page.locator('#toast button').click();
   await expect.poll(() => page.evaluate(id => window.SeverApp.getState().notes.some(note => note.id === id), noteId)).toBe(true);
 
-  // Habit: create, toggle, undo, delete, undo.
-  await page.evaluate(() => window.SeverApp.switchView('habits'));
-  await page.locator('#openHabit').click();
+  // Habit: create through the actual visible entry point, toggle, undo, delete, undo.
+  await openHabitCreate(page);
   const habitTitle = `QA привычка ${info.project.name}`;
   await page.locator('#habitTitle').fill(habitTitle);
   await page.locator('#habitSubmit').click();
