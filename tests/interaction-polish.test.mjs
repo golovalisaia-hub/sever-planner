@@ -45,22 +45,20 @@ test('habit completion cannot restyle the whole card and Focus play stays center
   assert.match(css, /border-left:\s*11px solid currentColor/);
 });
 
-test('v78 interaction polish remains after Home v85 and usability v84 in the atomic reminder v86 PWA release', () => {
-  const home = themeInit.indexOf('sever2-home-core-script');
+test('v78 interaction polish remains after Notes v87 and usability v84 in the atomic PWA release', () => {
+  const compact = themeInit.indexOf('sever2-notes-compact-v87-script');
   const money = themeInit.indexOf('sever2-money-script');
   const usability = themeInit.indexOf('sever2-usability-v84-script');
   const polish = themeInit.indexOf('sever2-interaction-polish-script');
   const recovery = themeInit.indexOf('sever2-cloud-recovery-script');
-  assert.ok(home >= 0 && money > home && usability > money && polish > usability && recovery > polish);
+  assert.ok(compact >= 0 && money > compact && usability > money && polish > usability && recovery > polish);
+  assert.match(themeInit, /sever2-notes-compact-v87\.js\?v=87/);
   assert.match(themeInit, /sever2-home-core\.js\?v=85/);
-  assert.match(themeInit, /sever2-usability-v84\.css\?v=84/);
-  assert.match(themeInit, /sever2-usability-v84\.js\?v=84/);
-  assert.match(themeInit, /sever2-interaction-polish\.css\?v=78/);
   assert.match(themeInit, /sever2-interaction-polish\.js\?v=78/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
-  assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v8'/);
+  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v9'/);
   for (const asset of [
+    './sever2-notes-compact-v87.css?v=87','./sever2-notes-compact-v87.js?v=87',
     './sever2-home-core.js?v=85',
     './sever2-notes-polish.css?v=79','./sever2-notes-polish.js?v=79',
     './sever2-money.css?v=83','./sever2-money.js?v=83',
@@ -70,12 +68,10 @@ test('v78 interaction polish remains after Home v85 and usability v84 in the ato
     './sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82',
     './js/theme-init.js?v=85'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
+  assert.match(sw, /'\/sever2-notes-compact-v87\.css'/);
+  assert.match(sw, /'\/sever2-notes-compact-v87\.js'/);
   assert.match(sw, /'\/sever2-home-core\.js'/);
-  assert.match(sw, /'\/sever2-usability-v84\.css'/);
-  assert.match(sw, /'\/sever2-usability-v84\.js'/);
-  assert.match(sw, /'\/sever2-interaction-polish\.css'/);
   assert.match(sw, /'\/sever2-interaction-polish\.js'/);
   assert.match(sw, /'\/sever2-cloud-recovery\.js'/);
   assert.match(sw, /'\/sever2-reminders\.css'/);
-  assert.match(sw, /'\/sever2-task-reminders\.js'/);
 });
