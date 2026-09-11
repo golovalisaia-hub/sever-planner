@@ -281,6 +281,15 @@
   background: color-mix(in srgb, var(--accent) 5%, var(--surface-2, var(--panel2)));
 }
 
+.money-pace-overdue {
+  border: 1px solid var(--border-subtle, var(--line));
+  background: var(--surface-2, var(--panel2));
+}
+
+.money-pace-overdue small {
+  color: var(--text-secondary, var(--muted));
+}
+
 .money-pace b {
   grid-row: 1 / span 2;
   grid-column: 2;
