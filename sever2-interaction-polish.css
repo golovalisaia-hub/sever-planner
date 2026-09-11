@@ -257,6 +257,14 @@ html[data-theme="black"] #todayView .today-focus-widget .primary::before {
   margin-inline: auto;
 }
 
+/* ---------- Money: primary actions must keep readable contrast on desktop hover ---------- */
+#moneyView .money-card-actions .money-primary:hover:not(:disabled),
+#moneyView .money-card-actions .money-primary:focus-visible:not(:disabled) {
+  border-color: var(--text-primary, var(--text)) !important;
+  background: color-mix(in srgb, var(--text-primary, var(--text)) 92%, var(--accent) 8%) !important;
+  color: var(--surface-1, var(--panel)) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .task.done .check {
     animation: none !important;
