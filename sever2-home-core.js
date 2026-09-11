@@ -93,22 +93,16 @@
     });
   }
 
-  function renderTopTasks(root, tasks) {
+  function renderTopTasks(root, tasks, { startAt = 1 } = {}) {
     root.replaceChildren();
-    if (!tasks.length) {
-      const empty = document.createElement('div');
-      empty.className = 'sever2-home-empty-list';
-      empty.innerHTML = `${svg.check}<span><b>На сегодня всё спокойно</b><small>Новых задач можно не добавлять, если они не нужны.</small></span>`;
-      root.appendChild(empty);
-      return;
-    }
+    if (!tasks.length) return;
 
     tasks.slice(0, 3).forEach((task, index) => {
       const row = document.createElement('article');
       row.className = 'sever2-home-priority-row';
       row.dataset.taskId = task.id;
       row.innerHTML = `
-        <span class="sever2-home-priority-number">${index + 1}</span>
+        <span class="sever2-home-priority-number">${index + startAt}</span>
         <span class="sever2-home-priority-copy"><b></b><small></small></span>
         <button type="button" data-home-focus aria-label="Начать фокус">${svg.play}</button>`;
       row.querySelector('.sever2-home-priority-copy b').textContent = task.title || 'Без названия';
@@ -128,6 +122,7 @@
     const inbox = inboxTasks();
     const minutes = plannedMinutes(pending);
     const next = pending[0] || null;
+    const followUps = pending.slice(1);
     const progress = items.length ? Math.round((completed / items.length) * 100) : 0;
 
     const title = root.querySelector('[data-home-now-title]');
@@ -155,12 +150,14 @@
     root.querySelector('[data-home-inbox-count]').textContent = String(inbox.length);
     root.querySelector('[data-home-inbox]').classList.toggle('hidden', inbox.length === 0);
 
+    const priority = root.querySelector('.sever2-home-priority');
+    priority.classList.toggle('hidden', followUps.length === 0);
     const topLabel = root.querySelector('[data-home-priority-caption]');
-    if (pending.length > 3) topLabel.textContent = `Первые 3 · ещё ${pending.length - 3} в списке`;
-    else if (pending.length) topLabel.textContent = `${pending.length} ${pending.length === 1 ? 'дело' : 'дела'} перед глазами`;
-    else topLabel.textContent = 'Ничего лишнего';
+    if (followUps.length > 3) topLabel.textContent = `Следующие 3 · ещё ${followUps.length - 3} в списке`;
+    else if (followUps.length) topLabel.textContent = `${followUps.length} ${followUps.length === 1 ? 'дело' : 'дела'} после главного`;
+    else topLabel.textContent = '';
 
-    renderTopTasks(root.querySelector('[data-home-priority-list]'), pending);
+    renderTopTasks(root.querySelector('[data-home-priority-list]'), followUps, { startAt: 2 });
     root.dataset.homeState = next ? 'active' : items.length ? 'complete' : 'empty';
   }
 
@@ -190,8 +187,8 @@
           <span><small>ГОТОВО</small><b data-home-stat="progress">—</b></span>
         </div>
       </div>
-      <div class="sever2-home-priority">
-        <header><span><small>ГЛАВНОЕ НА ДЕНЬ</small><b>До трёх следующих дел</b></span><button type="button" data-home-action="tasks">Все задачи ${svg.arrow}</button></header>
+      <div class="sever2-home-priority hidden">
+        <header><span><small>ДАЛЬШЕ</small><b>Что после главного</b></span><button type="button" data-home-action="tasks">Все задачи ${svg.arrow}</button></header>
         <p data-home-priority-caption></p>
         <div class="sever2-home-priority-list" data-home-priority-list></div>
       </div>
