@@ -96,6 +96,27 @@ test('Money can create calendar reminders without treating them as actual paymen
   await expect(page.locator('.money-card-actions button').filter({ hasText: 'Уже в календаре' })).toBeDisabled();
 });
 
+test('Money treats an overdue deadline as a plan to update, not one month left', async ({ page }) => {
+  await page.evaluate(() => window.SeverApp.switchView('money'));
+  await page.locator('[data-money-create="debt"]').click();
+  await page.locator('#moneyItemName').fill('Старый план');
+  await page.locator('#moneyItemTarget').fill('12000');
+  await page.locator('#moneyItemCurrent').fill('2000');
+  await page.locator('#moneyItemDeadline').fill('2000-01-01');
+  await page.locator('#moneyItemForm button.primary').click();
+
+  const card = page.locator('.money-card').filter({ hasText: 'Старый план' });
+  await expect(card).toBeVisible();
+  await expect(card.locator('.money-pace-overdue')).toContainText('СРОК ПРОШЁЛ');
+  await expect(card.locator('.money-pace-overdue')).toContainText('Обновите план');
+  await expect(card).not.toContainText('Чтобы успеть');
+  await expect(card.locator('.money-card-amount')).toContainText(/10.?000/);
+  const schedule = card.locator('.money-card-actions button').filter({ hasText: 'В календарь' });
+  await expect(schedule).toBeDisabled();
+  await expect(schedule).toHaveAttribute('title', 'Обновите срок плана перед добавлением напоминаний');
+  expect(await page.evaluate(() => window.SeverApp.getState().tasks.length)).toBe(0);
+});
+
 test('Money layout has no horizontal overflow on phone widths', async ({ page }, info) => {
   if (info.project.name === 'desktop') test.skip();
   await page.evaluate(() => window.SeverApp.switchView('money'));
