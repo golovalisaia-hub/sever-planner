@@ -29,19 +29,15 @@ async function quickNote(page, text) {
   await expect(page.locator('#noteList')).toContainText(text);
 }
 
-test.beforeEach(async ({ page }) => {
-  await seed(page);
-});
+test.beforeEach(async ({ page }) => { await seed(page); });
 
 test('pinning, tags and tag filters stay synchronized with planner state', async ({ page }) => {
   await quickNote(page, 'Идея для SEVER');
   await quickNote(page, 'Купить продукты');
-
   const firstCard = page.locator('#noteList .note-card').filter({ hasText: 'Идея для SEVER' });
   await firstCard.locator('.notes-org-action').click();
   await expect(page.locator('#notesActionDialog')).toBeVisible();
   await page.locator('[data-notes-action="pin"]').click();
-
   await expect(page.locator('#notesPinnedSection')).toBeVisible();
   await expect(page.locator('#notesPinnedList')).toContainText('Идея для SEVER');
   await expect(page.locator('#noteList .note-card').filter({ hasText: 'Идея для SEVER' })).toBeHidden();
@@ -51,10 +47,11 @@ test('pinning, tags and tag filters stay synchronized with planner state', async
   await expect(page.locator('#notesTagDialog')).toBeVisible();
   await page.locator('#notesTagInput').fill('Проект, Идеи');
   await page.locator('#notesTagSave').click();
-
   await expect(page.locator('#notesPinnedList')).toContainText('#Проект');
   await expect(page.locator('#notesOrganizationTags')).toContainText('#Проект');
-  await page.locator('#notesOrganizationTags button', { hasText: '#Проект' }).click();
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesNavigation)).toBe('ready');
+  await page.locator('[data-notes-scope="tag"]').click();
+  await page.locator('.notes-navigation-option', { hasText: '#Проект' }).click();
   await expect(page.locator('#notesPinnedList')).toContainText('Идея для SEVER');
   await expect(page.locator('#noteList .note-card').filter({ hasText: 'Купить продукты' })).toBeHidden();
 
@@ -68,27 +65,17 @@ test('protected notes remove organization tags before local persistence and clou
   await page.evaluate(async () => {
     const state = window.SeverApp.getState();
     const now = Date.now();
-    const locked = await window.SeverProtectedNotesCrypto.protect({
-      title: 'Секрет', body: '', kind: 'text', items: [], done: false
-    }, 'notes-organization-test-password', 100000);
-    state.notes.push({
-      id: 'protected-note', folderId: '', title: '', body: '', kind: 'protected', items: [], done: false,
-      protected: true, secure: locked.secure, createdAt: now, updatedAt: now
-    });
+    const locked = await window.SeverProtectedNotesCrypto.protect({ title: 'Секрет', body: '', kind: 'text', items: [], done: false }, 'notes-organization-test-password', 100000);
+    state.notes.push({ id: 'protected-note', folderId: '', title: '', body: '', kind: 'protected', items: [], done: false, protected: true, secure: locked.secure, createdAt: now, updatedAt: now });
     state.profile.noteOrganization = { v: 1, notes: { 'protected-note': { pinned: true, tags: ['Секрет'] } } };
     await save();
     window.SeverNotes.render();
   });
-
   await expect(page.locator('#notesPinnedList')).toContainText('Защищённая заметка');
   await expect(page.locator('#notesOrganizationTags')).not.toContainText('Секрет');
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().profile.noteOrganization.notes['protected-note'].tags.length)).toBe(0);
-  const persistedTags = await page.evaluate(() => {
-    const saved = JSON.parse(localStorage.getItem('sever-anonymous-state-v1'));
-    return saved.profile.noteOrganization.notes['protected-note'].tags;
-  });
+  const persistedTags = await page.evaluate(() => JSON.parse(localStorage.getItem('sever-anonymous-state-v1')).profile.noteOrganization.notes['protected-note'].tags);
   expect(persistedTags).toEqual([]);
-
   await page.locator('#notesPinnedList .notes-org-pinned-action').click();
   await expect(page.locator('[data-notes-action="tags"]')).toBeDisabled();
 });
