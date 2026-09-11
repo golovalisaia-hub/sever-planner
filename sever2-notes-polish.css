@@ -3,6 +3,34 @@
 #notesView {
   --notes-polish-card-radius: 18px;
   --notes-polish-card-gap: 10px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* Navigation, filters and cards must never widen the page. */
+#notesView .notes-navigation-sticky,
+#notesView .notes-navigation-scopes,
+#notesView .notes-core-controls,
+#notesView .notes-core-filters,
+#notesView .notes-core-sort,
+#notesView .notes-core-sort select,
+#notesView .note-list,
+#notesView .notes-core-group,
+#notesView .notes-core-group-panel,
+#notesView .note-card.notes-core-card {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+#notesView .notes-navigation-scopes > button,
+#notesView .notes-core-filters button,
+#notesView .note-card-head,
+#notesView .note-card-footer,
+#notesView .note-card-footer > div,
+#notesView .note-card-actions {
+  min-width: 0;
 }
 
 /* Each note is visually independent instead of reading like one long block. */
@@ -156,6 +184,7 @@
 
 #notesView .notes-core-filters,
 #notesView .notes-core-sort select {
+  width: 100%;
   background: var(--surface-1, var(--panel));
 }
 
@@ -202,6 +231,15 @@ html[data-sever-mood="focus"] #notesView .notes-polish-card {
 }
 
 @media (max-width: 700px) {
+  #notesView .notes-navigation-sticky {
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+
+  #notesView .notes-navigation-scopes {
+    width: 100%;
+  }
+
   #notesView .notes-core-group-title {
     padding: 2px 7px 7px;
     font-size: .72rem;
@@ -212,6 +250,7 @@ html[data-sever-mood="focus"] #notesView .notes-polish-card {
   }
 
   #notesView .note-card.notes-core-card.notes-polish-card {
+    width: 100%;
     padding: 14px 14px 12px;
   }
 
@@ -225,21 +264,31 @@ html[data-sever-mood="focus"] #notesView .notes-polish-card {
 
   #notesView .notes-core-controls {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 108px;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) minmax(96px, 108px);
   }
 
   #notesView .notes-core-filters {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 4px;
-    overflow: visible;
+    overflow: hidden;
   }
 
   #notesView .notes-core-filters button {
     width: 100%;
+    min-width: 0;
     min-height: 40px;
-    padding-inline: 8px;
+    padding-inline: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  #notesView .notes-core-sort,
+  #notesView .notes-core-sort select {
+    min-width: 0;
+    max-width: 100%;
   }
 
   .notes-org-sheet {
@@ -261,7 +310,7 @@ html[data-sever-mood="focus"] #notesView .notes-polish-card {
 
 @media (max-width: 390px) {
   #notesView .notes-core-controls {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   #notesView .notes-core-sort {
