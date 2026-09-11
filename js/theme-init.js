@@ -13,6 +13,9 @@
     motion: { name: 'Cozy Mood', description: 'Тёплая, мягкая и уютная', color: '#F3ECE7', preview: 'theme-cozy', ui: 'cozy' },
     black: { name: 'Focus Peak', description: 'Тёмная, тихая и концентрированная', color: '#111618', preview: 'theme-focus', ui: 'focus' }
   };
+  const ANONYMOUS_STATE_KEY = 'sever-anonymous-state-v1';
+  const LEGACY_STATE_KEY = 'sever-data-v2';
+  const LEGACY_MIGRATION_KEY = 'sever-legacy-migration-v1';
 
   const stylesheets = [
     ['sever-desktop-system', 'desktop-system.css?v=60'],
@@ -28,7 +31,8 @@
     ['sever2-notes-organization-pack', 'sever2-notes-organization.css?v=72'],
     ['sever2-notes-editor-flow-pack', 'sever2-notes-editor-flow.css?v=73'],
     ['sever2-notes-navigation-pack', 'sever2-notes-navigation.css?v=74'],
-    ['sever2-notes-polish-pack', 'sever2-notes-polish.css?v=75']
+    ['sever2-notes-polish-pack', 'sever2-notes-polish.css?v=75'],
+    ['sever2-mobile-consistency-pack', 'sever2-mobile-consistency.css?v=76']
   ];
   const scripts = [
     ['sever2-productivity-script', 'sever2-productivity.js?v=64'],
@@ -54,6 +58,27 @@
     catch { return ''; }
   }
 
+  /* theme-init runs in <head>, before app.js. On a truly fresh browser we seed
+     the minimal planner record with Calm so the legacy core never creates an
+     Aurora state behind a Calm-looking UI. Pending legacy data is never touched. */
+  function seedFreshAnonymousState() {
+    try {
+      if (localStorage.getItem(ANONYMOUS_STATE_KEY)) return;
+      const legacyState = localStorage.getItem(LEGACY_STATE_KEY);
+      const legacyMigrated = localStorage.getItem(LEGACY_MIGRATION_KEY);
+      if (legacyState && !legacyMigrated) return;
+      const persisted = readPersistedTheme();
+      const theme = persisted ? normalize(persisted) : 'light';
+      localStorage.setItem(ANONYMOUS_STATE_KEY, JSON.stringify({
+        version: 11,
+        onboarded: false,
+        tasks: [],
+        appearance: { theme, animations: 'auto', reduceEffects: false }
+      }));
+      localStorage.setItem('sever-theme', theme);
+    } catch {}
+  }
+
   function retireLegacyHomeLayer() {
     const oldMobileHome = [...document.querySelectorAll('link[rel="stylesheet"]')]
       .find(link => /(?:^|\/)mobile-home\.css(?:\?|$)/.test(link.getAttribute('href') || ''));
@@ -69,7 +94,7 @@
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
-      link.setAttribute(`data-${marker}`, 'v75');
+      link.setAttribute(`data-${marker}`, 'v76');
       document.head.appendChild(link);
     });
   }
@@ -81,7 +106,7 @@
       script.src = src;
       script.async = false;
       script.defer = true;
-      script.setAttribute(`data-${marker}`, 'v75');
+      script.setAttribute(`data-${marker}`, 'v76');
       document.head.appendChild(script);
     });
   }
@@ -187,6 +212,7 @@
     observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
   }
 
+  seedFreshAnonymousState();
   retireLegacyHomeLayer();
   installStylesheets();
   installScripts();

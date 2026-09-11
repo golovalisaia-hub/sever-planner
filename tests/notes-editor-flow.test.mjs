@@ -34,9 +34,11 @@ test('Notes editor recovery loads after Notes core and organization and ships of
   assert.ok(coreIndex >= 0 && organizationIndex > coreIndex && editorIndex > organizationIndex && navigationIndex > editorIndex && polishIndex > navigationIndex);
   assert.match(themeInit, /sever2-notes-editor-flow\.css\?v=73/);
   assert.match(themeInit, /sever2-notes-editor-flow\.js\?v=73/);
+  assert.match(themeInit, /sever2-mobile-consistency\.css\?v=76/);
   assert.match(sw, /sever2-notes-editor-flow\.css\?v=73/);
   assert.match(sw, /sever2-notes-editor-flow\.js\?v=73/);
   assert.match(sw, /sever2-notes-navigation\.js\?v=74/);
   assert.match(sw, /sever2-notes-polish\.js\?v=75/);
-  assert.match(sw, /js\/theme-init\.js\?v=75/);
+  assert.match(sw, /sever2-mobile-consistency\.css\?v=76/);
+  assert.match(sw, /js\/theme-init\.js\?v=76/);
 });

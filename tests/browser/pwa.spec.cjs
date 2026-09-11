@@ -10,10 +10,10 @@ test('installed release reloads offline with one complete asset set', async ({ b
     await expect.poll(async () => {
       try {
         cached = await page.evaluate(async () => {
-          const cache = await caches.open('sever-v71-notes-polish-v1');
+          const cache = await caches.open('sever-v72-mobile-consistency-v1');
           return (await cache.keys()).map(request => new URL(request.url).pathname + new URL(request.url).search);
         });
-        return cached.includes('/sever2-notes-core.js?v=71') && cached.includes('/sever2-notes-organization.js?v=72') && cached.includes('/sever2-notes-editor-flow.js?v=73') && cached.includes('/sever2-notes-navigation.js?v=74') && cached.includes('/sever2-notes-polish.js?v=75') && cached.includes('/js/theme-init.js?v=75');
+        return cached.includes('/sever2-notes-core.js?v=71') && cached.includes('/sever2-notes-organization.js?v=72') && cached.includes('/sever2-notes-editor-flow.js?v=73') && cached.includes('/sever2-notes-navigation.js?v=74') && cached.includes('/sever2-notes-polish.js?v=75') && cached.includes('/sever2-mobile-consistency.css?v=76') && cached.includes('/js/theme-init.js?v=76');
       } catch { return false; }
     }).toBe(true);
     for (const asset of [
@@ -22,8 +22,8 @@ test('installed release reloads offline with one complete asset set', async ({ b
       '/sever2-efficiency.css?v=67','/sever2-efficiency.js?v=67','/sever2-calendar-clarity.css?v=68','/sever2-calendar-clarity.js?v=68',
       '/sever2-create-flow.js?v=69','/sever2-home-core.css?v=70','/sever2-home-core.js?v=70','/sever2-notes-core.css?v=71','/sever2-notes-core.js?v=71',
       '/sever2-notes-organization.css?v=72','/sever2-notes-organization.js?v=72','/sever2-notes-editor-flow.css?v=73','/sever2-notes-editor-flow.js?v=73',
-      '/sever2-notes-navigation.css?v=74','/sever2-notes-navigation.js?v=74','/sever2-notes-polish.css?v=75','/sever2-notes-polish.js?v=75','/js/theme-init.js?v=75',
-      '/app.js?v=51','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55'
+      '/sever2-notes-navigation.css?v=74','/sever2-notes-navigation.js?v=74','/sever2-notes-polish.css?v=75','/sever2-notes-polish.js?v=75',
+      '/sever2-mobile-consistency.css?v=76','/js/theme-init.js?v=76','/app.js?v=51','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55'
     ]) expect(cached).toContain(asset);
     expect(cached).not.toContain('/desktop-home.css?v=60');
     await context.setOffline(true);
@@ -32,6 +32,7 @@ test('installed release reloads offline with one complete asset set', async ({ b
     for (const key of ['severProductivity','severFocusFlow','severEfficiency','severCalendarClarity','severCreateFlow','severHomeCore','severNotesCore','severNotesOrganization','severNotesEditorFlow','severNotesNavigation','severNotesPolish']) {
       await expect.poll(() => page.evaluate(name => document.documentElement.dataset[name], key)).toBe('ready');
     }
+    await expect(page.locator('link[data-sever2-mobile-consistency-pack]')).toHaveAttribute('href', /sever2-mobile-consistency\.css\?v=76$/);
     await expect(page.locator('#sever2HomeCore')).toBeVisible();
     await page.locator('.bottom-nav [data-view="calendar"]').click();
     await expect(page.locator('#calendarView')).toBeVisible();
