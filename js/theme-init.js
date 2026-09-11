@@ -64,6 +64,70 @@
     catch { return ''; }
   }
 
+  /* app.js registers the service worker from a window load handler. A browser,
+     private-mode environment or test shell can transiently reject registration
+     or return no registration object. That must never crash the planner. Keep
+     the platform method intact for normal browsers and guard only this startup
+     window; the original method is restored immediately after load dispatch. */
+  function installServiceWorkerStartupGuard() {
+    if (!('serviceWorker' in navigator)) return;
+    const container = navigator.serviceWorker;
+    const originalRegister = container && container.register;
+    if (typeof originalRegister !== 'function') return;
+
+    const fallbackRegistration = Object.freeze({
+      waiting: null,
+      installing: null,
+      active: null,
+      scope: location.href,
+      addEventListener() {},
+      removeEventListener() {},
+      async update() {},
+      async unregister() { return false; }
+    });
+
+    const safeRegister = async function (...args) {
+      try {
+        const registration = await originalRegister.apply(container, args);
+        return registration || fallbackRegistration;
+      } catch (error) {
+        console.warn('SEVER: Service Worker registration unavailable; continuing without PWA update.', error);
+        return fallbackRegistration;
+      }
+    };
+
+    let patched = false;
+    try {
+      Object.defineProperty(container, 'register', {
+        configurable: true,
+        writable: true,
+        value: safeRegister
+      });
+      patched = container.register === safeRegister;
+    } catch {
+      try {
+        container.register = safeRegister;
+        patched = container.register === safeRegister;
+      } catch {}
+    }
+    if (!patched) return;
+
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        if (container.register !== safeRegister) return;
+        try {
+          Object.defineProperty(container, 'register', {
+            configurable: true,
+            writable: true,
+            value: originalRegister
+          });
+        } catch {
+          try { container.register = originalRegister; } catch {}
+        }
+      }, 0);
+    }, { once: true });
+  }
+
   /* theme-init runs in <head>, before app.js. On a truly fresh browser we seed
      the minimal planner record with Calm so the legacy core never creates an
      Aurora state behind a Calm-looking UI. Pending legacy data is never touched. */
@@ -218,6 +282,7 @@
     observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
   }
 
+  installServiceWorkerStartupGuard();
   seedFreshAnonymousState();
   retireLegacyHomeLayer();
   installStylesheets();
