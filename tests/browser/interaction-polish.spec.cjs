@@ -84,7 +84,6 @@ test('habit completion keeps edit button and seven-day geometry stable in every 
   for (const theme of ['light', 'motion', 'black']) {
     await setTheme(page, theme);
     const today = habit.locator('.habit-day.today');
-    const edit = habit.locator('.habit-edit');
     await expect(today).toBeVisible();
 
     const before = await habit.evaluate(el => {
@@ -160,36 +159,39 @@ test('calendar separates today from task presence instead of drawing two today b
   }
 });
 
-test('Focus Peak home play control is centered and timer ring stays inside the viewport', async ({ page }, info) => {
+test('Focus Peak uses one centered Home focus action and timer ring stays inside the phone viewport', async ({ page }, info) => {
   if (info.project.name === 'desktop') test.skip();
   await setTheme(page, 'black');
   await page.evaluate(() => window.SeverApp.switchView('today'));
-  const focus = page.locator('#todayFocusToggle');
+  await expect(page.locator('#todayFocusWidget')).toBeHidden();
+  const focus = page.locator('#sever2HomeCore [data-home-action="focus"]');
   await expect(focus).toBeVisible();
 
   const home = await focus.evaluate(el => {
     const rect = el.getBoundingClientRect();
+    const icon = el.querySelector('svg').getBoundingClientRect();
     const style = getComputedStyle(el);
-    const pseudo = getComputedStyle(el, '::before');
     return {
       width: rect.width,
       height: rect.height,
       display: style.display,
-      placeItems: style.placeItems,
-      pseudoContent: pseudo.content,
-      pseudoBorderLeft: parseFloat(pseudo.borderLeftWidth),
+      alignItems: style.alignItems,
+      justifyContent: style.justifyContent,
+      iconCenterX: icon.left + icon.width / 2,
+      buttonCenterX: rect.left + rect.width / 2,
       overflow: Math.max(0, document.documentElement.scrollWidth - innerWidth)
     };
   });
-  expect(home.width).toBeGreaterThanOrEqual(43);
-  expect(home.height).toBeGreaterThanOrEqual(43);
-  expect(home.display).toBe('grid');
-  expect(home.placeItems).toContain('center');
-  expect(home.pseudoContent).not.toBe('none');
-  expect(home.pseudoBorderLeft).toBeGreaterThan(0);
+  expect(home.width).toBeGreaterThanOrEqual(44);
+  expect(home.height).toBeGreaterThanOrEqual(44);
+  expect(home.display).toBe('flex');
+  expect(home.alignItems).toBe('center');
+  expect(home.justifyContent).toBe('center');
+  expect(Math.abs(home.iconCenterX - home.buttonCenterX)).toBeLessThan(home.width / 3);
   expect(home.overflow).toBeLessThanOrEqual(1);
 
-  await page.evaluate(() => window.SeverApp.switchView('timer'));
+  await focus.click();
+  await expect(page.locator('#timerView')).toBeVisible();
   const ring = await page.locator('#timerView .timer-ring').evaluate(el => {
     const rect = el.getBoundingClientRect();
     return { left: rect.left, right: rect.right, width: rect.width, viewport: innerWidth, overflow: Math.max(0, document.documentElement.scrollWidth - innerWidth) };
