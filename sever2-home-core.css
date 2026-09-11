@@ -287,8 +287,9 @@ html[data-theme="black"] .sever2-home-now-actions button.primary{color:#06110d}
   }
   .sever2-home-now-copy h2{font-size:21px}
   .sever2-home-now-copy p{font-size:12px}
-  .sever2-home-now-actions{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);margin-top:13px}
-  .sever2-home-now-actions button{min-height:46px;padding:0 10px;transition:transform .12s ease,background-color .12s ease,border-color .12s ease}
+  .sever2-home-now-actions{display:grid;grid-template-columns:1fr;margin-top:13px}
+  .sever2-home-now-actions [data-home-action="tasks"]{display:none!important}
+  .sever2-home-now-actions button{width:100%;min-height:46px;padding:0 10px;transition:transform .12s ease,background-color .12s ease,border-color .12s ease}
   .sever2-home-now-actions button:active{transform:scale(.985)}
   .sever2-home-now-actions button:focus-visible{outline:2px solid var(--accent,var(--sever-blue));outline-offset:2px}
   .sever2-home-now-actions button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -314,8 +315,6 @@ html[data-theme="black"] .sever2-home-now-actions button.primary{color:#06110d}
 }
 
 @media (max-width:360px){
-  .sever2-home-now-actions{grid-template-columns:1fr}
-  .sever2-home-now-actions button{width:100%}
   .sever2-home-inbox-link>span:last-child{font-size:10px}
 }
 
