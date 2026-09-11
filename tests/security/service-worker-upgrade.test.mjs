@@ -6,9 +6,9 @@ import vm from 'node:vm';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-const RELEASE_CACHE = 'sever-v73-money-v1';
+const RELEASE_CACHE = 'sever-v74-interaction-polish-v1';
 
-test('v73 service worker installs Money atomically and removes stale caches', async () => {
+test('v74 service worker installs interaction polish atomically and removes stale caches', async () => {
   const handlers = new Map();
   const deleted = [];
   let cachedAssets = [];
@@ -22,7 +22,7 @@ test('v73 service worker installs Money atomically and removes stale caches', as
   };
   const caches = {
     open: async name => ({ addAll: async assets => { assert.equal(name, RELEASE_CACHE); cachedAssets = assets; } }),
-    keys: async () => ['sever-v71-notes-polish-v1', 'sever-v72-mobile-consistency-v1'],
+    keys: async () => ['sever-v72-mobile-consistency-v1', 'sever-v73-money-v1'],
     delete: async name => { deleted.push(name); return true; }
   };
   vm.runInNewContext(source, { self, caches, clients: self.clients, fetch: async () => ({}), URL, Promise, Response });
@@ -34,18 +34,19 @@ test('v73 service worker installs Money atomically and removes stale caches', as
     './sever2-notes-editor-flow.js?v=73','./sever2-notes-navigation.css?v=74',
     './sever2-notes-navigation.js?v=74','./sever2-notes-polish.css?v=75',
     './sever2-notes-polish.js?v=75','./sever2-mobile-consistency.css?v=76',
-    './sever2-money.css?v=77','./sever2-money.js?v=77','./js/theme-init.js?v=77'
+    './sever2-money.css?v=77','./sever2-money.js?v=77',
+    './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78','./js/theme-init.js?v=78'
   ]) assert.ok(cachedAssets.includes(asset), `missing ${asset}`);
   let activateWork;
   handlers.get('activate')({ waitUntil: promise => { activateWork = promise; } });
   await activateWork;
-  assert.ok(deleted.includes('sever-v72-mobile-consistency-v1'));
+  assert.ok(deleted.includes('sever-v73-money-v1'));
   assert.ok(!deleted.includes(RELEASE_CACHE));
   assert.equal(claimed, true);
   assert.equal(skipped, true);
 });
 
-test('installed release serves v77 and prior Notes assets from one release cache', async () => {
+test('installed release serves v78 and prior Money/Notes assets from one release cache', async () => {
   const handlers = new Map();
   const requests = [];
   let network = 0;
@@ -57,7 +58,7 @@ test('installed release serves v77 and prior Notes assets from one release cache
   const caches = {
     open: async name => {
       assert.equal(name, RELEASE_CACHE);
-      return { match: async key => { requests.push(key); return { release: 73, key }; } };
+      return { match: async key => { requests.push(key); return { release: 74, key }; } };
     }
   };
   vm.runInNewContext(source, { self, caches, URL, Response, fetch: async () => { network++; throw Error('network must not update a release'); } });
@@ -73,7 +74,9 @@ test('installed release serves v77 and prior Notes assets from one release cache
     ['sever2-mobile-consistency.css?v=old','cors','./sever2-mobile-consistency.css?v=76'],
     ['sever2-money.css?v=old','cors','./sever2-money.css?v=77'],
     ['sever2-money.js?v=old','cors','./sever2-money.js?v=77'],
-    ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=77'],
+    ['sever2-interaction-polish.css?v=old','cors','./sever2-interaction-polish.css?v=78'],
+    ['sever2-interaction-polish.js?v=old','cors','./sever2-interaction-polish.js?v=78'],
+    ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=78'],
     ['app.js?v=new','cors','./app.js?v=51']
   ];
   for (const [pathValue, mode, expected] of cases) {
