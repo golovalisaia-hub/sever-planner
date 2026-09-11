@@ -25,7 +25,7 @@ test('v81 startup guard remains active inside the v82 reminder cache refresh', (
   assert.match(themeInit, /return registration \|\| fallbackRegistration/);
   assert.match(themeInit, /continuing without PWA update/);
   assert.match(themeInit, /container\.register !== safeRegister/);
-  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v2'/);
   assert.match(sw, /js\/theme-init\.js\?v=81/);
   assert.match(sw, /sever2-reminders\.css\?v=82/);
 });
