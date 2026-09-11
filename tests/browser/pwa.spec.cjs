@@ -42,7 +42,7 @@ test('installed release reloads offline with one complete active asset set', asy
           && cached.includes('/sever2-reminders.css?v=82')
           && cached.includes('/sever2-task-reminders.js?v=82')
           && cached.includes('/sever2-cloud-recovery.js?v=80')
-          && cached.includes('/js/theme-init.js?v=81');
+          && cached.includes('/js/theme-init.js?v=84');
       } catch { return false; }
     }).toBe(true);
 
@@ -57,7 +57,7 @@ test('installed release reloads offline with one complete active asset set', asy
       '/sever2-notes-navigation.css?v=74','/sever2-notes-navigation.js?v=74','/sever2-notes-polish.css?v=79','/sever2-notes-polish.js?v=79',
       '/sever2-mobile-consistency.css?v=76','/sever2-money.css?v=83','/sever2-money.js?v=83','/sever2-usability-v84.css?v=84','/sever2-usability-v84.js?v=84',
       '/sever2-interaction-polish.css?v=78','/sever2-interaction-polish.js?v=78','/sever2-reminders.css?v=82','/sever2-task-reminders.js?v=82',
-      '/sever2-cloud-recovery.css?v=80','/sever2-cloud-recovery.js?v=80','/js/theme-init.js?v=81','/app.js?v=51','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55'
+      '/sever2-cloud-recovery.css?v=80','/sever2-cloud-recovery.js?v=80','/js/theme-init.js?v=84','/app.js?v=51','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55'
     ]) expect(cached).toContain(asset);
     expect(cached).not.toContain('/desktop-home.css?v=60');
 
