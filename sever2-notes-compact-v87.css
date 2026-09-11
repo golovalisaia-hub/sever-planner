@@ -1,0 +1,103 @@
+/* SEVER Notes v87 — compact mobile controls without removing organization features. */
+
+.notes-compact-type {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  #notesView > .view-intro {
+    display: none;
+  }
+
+  #notesView .notes-core-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(108px, .58fr);
+    align-items: center;
+    gap: 8px;
+    margin: 2px 0 6px;
+  }
+
+  #notesView .notes-core-filters {
+    display: none !important;
+  }
+
+  #notesView .notes-compact-type,
+  #notesView .notes-core-sort {
+    position: relative;
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  #notesView .notes-compact-type select,
+  #notesView .notes-core-sort select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 34px 0 12px;
+    appearance: none;
+    border: 1px solid var(--border-subtle, var(--line));
+    border-radius: 13px;
+    background: var(--surface-1, var(--panel));
+    color: var(--text-primary, var(--text));
+    font: inherit;
+    font-size: .76rem;
+    font-weight: 720;
+    cursor: pointer;
+  }
+
+  #notesView .notes-compact-type svg,
+  #notesView .notes-core-sort svg {
+    position: absolute;
+    top: 50%;
+    right: 11px;
+    width: 15px;
+    height: 15px;
+    transform: translateY(-50%);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: var(--text-secondary, var(--muted));
+    pointer-events: none;
+  }
+
+  #notesView:has(#noteList > .empty) .notes-core-summary,
+  #notesView:has(#noteList > .notes-core-empty) .notes-core-summary {
+    display: none;
+  }
+
+  #notesView .notes-core-capture {
+    margin-bottom: 10px;
+  }
+
+  #notesView .notes-navigation-sticky {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  #notesView .notes-core-controls {
+    grid-template-columns: minmax(0, 1fr) 104px;
+    gap: 6px;
+  }
+
+  #notesView .notes-compact-type select,
+  #notesView .notes-core-sort select {
+    padding-left: 10px;
+    padding-right: 29px;
+    font-size: .72rem;
+  }
+
+  #notesView .notes-compact-type svg,
+  #notesView .notes-core-sort svg {
+    right: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #notesView .notes-compact-type select,
+  #notesView .notes-core-sort select {
+    transition: none !important;
+  }
+}
