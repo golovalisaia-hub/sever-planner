@@ -25,7 +25,7 @@ async function boot(page) {
     localStorage.setItem('sever-theme', 'light');
   }, today);
   await page.goto('/');
-  await page.waitForFunction(() => window.SeverApp && document.querySelector('link[data-sever2-mobile-consistency-pack]'));
+  await page.waitForFunction(() => window.SeverApp && document.querySelector('link[data-sever2-mobile-consistency-pack]') && document.documentElement.dataset.severMoney === 'ready');
 }
 
 async function setTheme(page, theme) {
@@ -95,7 +95,7 @@ test('every primary mobile view can scroll fully above the navigation in every t
   if (info.project.name === 'desktop') test.skip();
   for (const theme of ['light', 'motion', 'black']) {
     await setTheme(page, theme);
-    for (const view of ['today', 'calendar', 'timer', 'notes', 'habits', 'progress', 'settings']) {
+    for (const view of ['today', 'calendar', 'timer', 'notes', 'habits', 'progress', 'money', 'settings']) {
       await page.evaluate(name => window.SeverApp.switchView(name), view);
       await expect(page.locator(`#${view}View`)).toBeVisible();
       const geometry = await bottomClearance(page, `#${view}View`);
