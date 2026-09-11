@@ -9,9 +9,12 @@ test('mobile consistency v76 is loaded after the existing product layers', async
   assert.match(source, /sever2-mobile-consistency\.css\?v=76/);
   assert.match(source, /data-\$\{marker\}.*v76/s);
   assert.match(source, /const allowed = new Set\(\['light', 'motion', 'black'\]\)/);
-  assert.match(source, /function pinFirstThemeForFreshProfile\(\)/);
+  assert.match(source, /function settleFirstThemeForFreshProfile\(attempt = 0\)/);
   assert.match(source, /state\.onboarded !== false/);
-  assert.match(source, /theme: 'light'/);
+  assert.match(source, /!Number\(state\._savedAt\)/);
+  assert.match(source, /storedPlannerTheme\(\)/);
+  assert.match(source, /data-sever-theme=\\"light\\"/);
+  assert.match(source, /lightButton\.click\(\)/);
 });
 
 test('mobile consistency only changes presentation and does not create a second planner data model', async () => {
