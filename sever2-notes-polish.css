@@ -1,0 +1,279 @@
+/* SEVER 2 Notes polish v75 — clearer card separation, reliable expansion, touch-sized actions. */
+
+#notesView {
+  --notes-polish-card-radius: 18px;
+  --notes-polish-card-gap: 10px;
+}
+
+/* Each note is visually independent instead of reading like one long block. */
+#notesView .notes-core-group-panel {
+  display: grid;
+  gap: var(--notes-polish-card-gap);
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#notesView .note-card.notes-core-card.notes-polish-card {
+  overflow: hidden;
+  border: 1px solid var(--border-subtle, var(--line)) !important;
+  border-radius: var(--notes-polish-card-radius) !important;
+  background: var(--surface-1, var(--panel)) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .035) !important;
+  transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .14s ease !important;
+}
+
+#notesView .notes-core-group-panel .note-card:last-child {
+  border-bottom: 1px solid var(--border-subtle, var(--line)) !important;
+}
+
+#notesView .note-card.notes-core-card.notes-polish-card:active {
+  transform: scale(.995) !important;
+}
+
+#notesView .note-card.notes-core-card.notes-polish-card:hover,
+#notesView .note-card.notes-core-card.notes-polish-card:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border-subtle, var(--line))) !important;
+  background: color-mix(in srgb, var(--accent) 3%, var(--surface-1, var(--panel))) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .055) !important;
+}
+
+/* Hidden checklist rows stay in layout just enough to animate instead of popping. */
+#notesView .notes-polish-card .note-check:nth-child(n+3) {
+  display: flex !important;
+  max-height: 0;
+  min-height: 0;
+  padding-block: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: max-height .2s ease, min-height .2s ease, padding .2s ease, opacity .16s ease, transform .2s ease;
+}
+
+#notesView .notes-polish-card.notes-polish-expanded .note-check:nth-child(n+3) {
+  max-height: 42px;
+  min-height: 32px;
+  padding-block: 3px;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+#notesView .notes-polish-expand {
+  display: inline-flex;
+  width: auto;
+  min-width: 44px;
+  min-height: 40px;
+  align-items: center;
+  gap: 6px;
+  margin: 3px 0 0;
+  padding: 0 8px 0 2px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary, var(--muted));
+  font: inherit;
+  font-size: .68rem;
+  font-weight: 720;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease, transform .15s ease;
+}
+
+#notesView .notes-polish-expand svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#notesView .notes-polish-expand:hover,
+#notesView .notes-polish-expand:focus-visible {
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  color: var(--text-primary, var(--text));
+  outline: none;
+}
+
+#notesView .notes-polish-expand:active {
+  transform: scale(.97);
+}
+
+/* Bulk checklist action belongs to the checklist, not the global card footer. */
+#notesView .notes-polish-checklist-tools {
+  display: none;
+  margin: 3px 0 1px;
+}
+
+#notesView .notes-polish-card.notes-polish-expanded .notes-polish-checklist-tools {
+  display: flex;
+}
+
+#notesView .notes-polish-checklist-tools .note-toggle-all {
+  min-height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 6%, transparent) !important;
+  color: var(--text-primary, var(--text)) !important;
+  font-size: .68rem;
+  font-weight: 720;
+}
+
+/* Card footer is metadata + two obvious actions, with comfortable hit areas. */
+#notesView .note-card-footer {
+  gap: 8px;
+}
+
+#notesView .note-card-actions {
+  margin-left: auto;
+  align-items: center;
+}
+
+#notesView .note-card-actions .notes-org-action,
+#notesView .note-card-actions .note-edit,
+#notesView .note-lock-now,
+#notesView .unlock-note {
+  min-width: 40px !important;
+  min-height: 40px !important;
+  border-radius: 12px !important;
+}
+
+#notesView .note-card-actions .notes-org-action {
+  letter-spacing: .06em;
+}
+
+/* Filters should read as controls, not a single line of text. */
+#notesView .notes-core-controls {
+  align-items: stretch;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+#notesView .notes-core-filters,
+#notesView .notes-core-sort select {
+  background: var(--surface-1, var(--panel));
+}
+
+#notesView .notes-core-filters button {
+  min-height: 40px;
+}
+
+#notesView .notes-core-sort select {
+  min-height: 46px;
+}
+
+/* The contextual action sheet is intentionally compact. */
+.notes-org-sheet-card {
+  gap: 7px;
+}
+
+.notes-org-sheet-copy {
+  gap: 1px;
+}
+
+.notes-org-sheet-copy span {
+  font-size: .62rem;
+  line-height: 1.25;
+}
+
+.notes-org-sheet-actions button,
+.notes-org-sheet-cancel {
+  min-height: 44px;
+}
+
+.notes-org-sheet-actions button {
+  font-size: .76rem;
+}
+
+/* Give all three product moods the same geometry, while preserving their palette. */
+html[data-sever-mood="calm"] #notesView .notes-polish-card,
+html[data-sever-mood="cozy"] #notesView .notes-polish-card,
+html[data-sever-mood="focus"] #notesView .notes-polish-card {
+  border-radius: var(--notes-polish-card-radius) !important;
+}
+
+html[data-sever-mood="focus"] #notesView .notes-polish-card {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .18) !important;
+}
+
+@media (max-width: 700px) {
+  #notesView .notes-core-group-title {
+    padding: 2px 7px 7px;
+    font-size: .72rem;
+  }
+
+  #notesView .notes-core-group-panel {
+    gap: 9px;
+  }
+
+  #notesView .note-card.notes-core-card.notes-polish-card {
+    padding: 14px 14px 12px;
+  }
+
+  #notesView .note-card-actions .notes-org-action,
+  #notesView .note-card-actions .note-edit,
+  #notesView .note-lock-now,
+  #notesView .unlock-note {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
+  #notesView .notes-core-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 108px;
+  }
+
+  #notesView .notes-core-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    overflow: visible;
+  }
+
+  #notesView .notes-core-filters button {
+    width: 100%;
+    min-height: 40px;
+    padding-inline: 8px;
+    white-space: nowrap;
+  }
+
+  .notes-org-sheet {
+    max-height: min(56dvh, 430px);
+  }
+
+  .notes-org-sheet-card {
+    padding-top: 7px;
+  }
+
+  .notes-org-sheet-copy {
+    padding-inline: 8px;
+  }
+
+  .notes-org-sheet-copy span {
+    display: none;
+  }
+}
+
+@media (max-width: 390px) {
+  #notesView .notes-core-controls {
+    grid-template-columns: 1fr;
+  }
+
+  #notesView .notes-core-sort {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #notesView .note-card.notes-polish-card,
+  #notesView .notes-polish-expand,
+  #notesView .notes-polish-card .note-check:nth-child(n+3) {
+    transition: none !important;
+  }
+}
