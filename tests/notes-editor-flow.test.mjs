@@ -25,20 +25,23 @@ test('Notes editor recovery distinguishes accidental reloads from a normal close
   assert.match(source, /if \(!draft\?\.wasOpen/);
 });
 
-test('Notes editor recovery loads after Notes core and organization and ships offline', () => {
+test('Notes editor recovery loads before Money and ships offline in v77', () => {
   const coreIndex = themeInit.indexOf('sever2-notes-core-script');
   const organizationIndex = themeInit.indexOf('sever2-notes-organization-script');
   const editorIndex = themeInit.indexOf('sever2-notes-editor-flow-script');
   const navigationIndex = themeInit.indexOf('sever2-notes-navigation-script');
   const polishIndex = themeInit.indexOf('sever2-notes-polish-script');
-  assert.ok(coreIndex >= 0 && organizationIndex > coreIndex && editorIndex > organizationIndex && navigationIndex > editorIndex && polishIndex > navigationIndex);
+  const moneyIndex = themeInit.indexOf('sever2-money-script');
+  assert.ok(coreIndex >= 0 && organizationIndex > coreIndex && editorIndex > organizationIndex && navigationIndex > editorIndex && polishIndex > navigationIndex && moneyIndex > polishIndex);
   assert.match(themeInit, /sever2-notes-editor-flow\.css\?v=73/);
   assert.match(themeInit, /sever2-notes-editor-flow\.js\?v=73/);
   assert.match(themeInit, /sever2-mobile-consistency\.css\?v=76/);
+  assert.match(themeInit, /sever2-money\.js\?v=77/);
   assert.match(sw, /sever2-notes-editor-flow\.css\?v=73/);
   assert.match(sw, /sever2-notes-editor-flow\.js\?v=73/);
   assert.match(sw, /sever2-notes-navigation\.js\?v=74/);
   assert.match(sw, /sever2-notes-polish\.js\?v=75/);
   assert.match(sw, /sever2-mobile-consistency\.css\?v=76/);
-  assert.match(sw, /js\/theme-init\.js\?v=76/);
+  assert.match(sw, /sever2-money\.js\?v=77/);
+  assert.match(sw, /js\/theme-init\.js\?v=77/);
 });
