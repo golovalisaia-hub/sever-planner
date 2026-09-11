@@ -26,4 +26,5 @@ test('mobile Notes editor bounds long checklists and keeps persistent actions', 
   assert.match(css, /\.notes-polish-items-editor[\s\S]*max-height:\s*40dvh/);
   assert.match(css, /\.notes-polish-items-editor[\s\S]*overflow-y:\s*auto/);
   assert.match(css, /\.notes-polish-editor-actions[\s\S]*position:\s*sticky/);
+  assert.match(css, /\.notes-polish-editor-actions[\s\S]*bottom:\s*0/);
 });
