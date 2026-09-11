@@ -60,7 +60,8 @@
     ['sever2-focus-flow-pack', 'sever2-focus-flow.css?v=66'],
     ['sever2-efficiency-pack', 'sever2-efficiency.css?v=67'],
     ['sever2-calendar-clarity-pack', 'sever2-calendar-clarity.css?v=68'],
-    ['sever2-home-core-pack', 'sever2-home-core.css?v=70']
+    ['sever2-home-core-pack', 'sever2-home-core.css?v=70'],
+    ['sever2-notes-core-pack', 'sever2-notes-core.css?v=71']
   ];
   const scripts = [
     ['sever2-productivity-script', 'sever2-productivity.js?v=64'],
@@ -68,7 +69,8 @@
     ['sever2-efficiency-script', 'sever2-efficiency.js?v=67'],
     ['sever2-calendar-clarity-script', 'sever2-calendar-clarity.js?v=68'],
     ['sever2-create-flow-script', 'sever2-create-flow.js?v=69'],
-    ['sever2-home-core-script', 'sever2-home-core.js?v=70']
+    ['sever2-home-core-script', 'sever2-home-core.js?v=70'],
+    ['sever2-notes-core-script', 'sever2-notes-core.js?v=71']
   ];
 
   function normalize(value) {
@@ -96,7 +98,7 @@
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
-      link.setAttribute(`data-${marker}`, 'v70');
+      link.setAttribute(`data-${marker}`, 'v71');
       document.head.appendChild(link);
     });
   }
@@ -107,7 +109,7 @@
       const script = document.createElement('script');
       script.src = src;
       script.defer = true;
-      script.setAttribute(`data-${marker}`, 'v70');
+      script.setAttribute(`data-${marker}`, 'v71');
       document.head.appendChild(script);
     });
   }
