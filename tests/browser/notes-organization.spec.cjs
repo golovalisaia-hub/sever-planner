@@ -64,13 +64,16 @@ test('pinning, tags and tag filters stay synchronized with planner state', async
   expect(state.profile.noteOrganization.notes[note.id]).toEqual({ pinned: true, tags: ['Проект', 'Идеи'] });
 });
 
-test('protected notes never expose organization tags outside encryption', async ({ page }) => {
+test('protected notes remove organization tags before local persistence and cloud capture', async ({ page }) => {
   await page.evaluate(async () => {
     const state = window.SeverApp.getState();
     const now = Date.now();
+    const locked = await window.SeverProtectedNotesCrypto.protect({
+      title: 'Секрет', body: '', kind: 'text', items: [], done: false
+    }, 'notes-organization-test-password', 100000);
     state.notes.push({
       id: 'protected-note', folderId: '', title: '', body: '', kind: 'protected', items: [], done: false,
-      protected: true, secure: { v: 2, iterations: 600000, salt: 'x', iv: 'y', cipher: 'z' }, createdAt: now, updatedAt: now
+      protected: true, secure: locked.secure, createdAt: now, updatedAt: now
     });
     state.profile.noteOrganization = { v: 1, notes: { 'protected-note': { pinned: true, tags: ['Секрет'] } } };
     await save();
@@ -80,6 +83,11 @@ test('protected notes never expose organization tags outside encryption', async 
   await expect(page.locator('#notesPinnedList')).toContainText('Защищённая заметка');
   await expect(page.locator('#notesOrganizationTags')).not.toContainText('Секрет');
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().profile.noteOrganization.notes['protected-note'].tags.length)).toBe(0);
+  const persistedTags = await page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem('sever-anonymous-state-v1'));
+    return saved.profile.noteOrganization.notes['protected-note'].tags;
+  });
+  expect(persistedTags).toEqual([]);
 
   await page.locator('#notesPinnedList .notes-org-pinned-action').click();
   await expect(page.locator('[data-notes-action="tags"]')).toBeDisabled();
@@ -89,6 +97,7 @@ test('phone swipe left opens note actions without horizontal overflow', async ({
   test.skip(info.project.name === 'desktop', 'Touch interaction check');
   await quickNote(page, 'Свайп заметка');
   const card = page.locator('#noteList .note-card').filter({ hasText: 'Свайп заметка' });
+  await expect(card.locator('.notes-org-action')).toBeVisible();
   await card.evaluate(element => {
     const rect = element.getBoundingClientRect();
     const start = new Event('touchstart', { bubbles: true, cancelable: true });
