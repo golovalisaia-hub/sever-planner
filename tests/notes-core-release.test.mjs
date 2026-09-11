@@ -31,7 +31,7 @@ test('presentation layers load deterministically through cloud recovery v80', as
 
 test('cloud recovery v80 ships atomically inside the v82 reminder PWA release', async () => {
   const source = await read('sw.js');
-  assert.match(source, /const CACHE = 'sever-v82-reminders-desktop-v2'/);
+  assert.match(source, /const CACHE = 'sever-v82-reminders-desktop-v3'/);
   for (const asset of [
     './sever2-notes-core.css?v=71','./sever2-notes-core.js?v=71',
     './sever2-notes-organization.css?v=72','./sever2-notes-organization.js?v=72',
