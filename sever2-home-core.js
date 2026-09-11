@@ -70,7 +70,12 @@
 
   function goInbox() {
     window.SeverApp?.switchView?.('calendar');
-    const open = () => $('.sever2-calendar-modes [data-mode="inbox"]')?.click();
+    const open = () => {
+      const button = $('.sever2-calendar-modes [data-mode="inbox"]');
+      if (!button) return false;
+      button.click();
+      return true;
+    };
     requestAnimationFrame(() => {
       if (!open()) setTimeout(open, 80);
     });
