@@ -10,10 +10,10 @@ test('installed release reloads offline with one complete asset set', async ({ b
     await expect.poll(async () => {
       try {
         cached = await page.evaluate(async () => {
-          const cache = await caches.open('sever-v67-notes-core-v1');
+          const cache = await caches.open('sever-v68-notes-organization-v1');
           return (await cache.keys()).map(request => new URL(request.url).pathname + new URL(request.url).search);
         });
-        return cached.includes('/sever2-home-core.js?v=70') && cached.includes('/sever2-notes-core.js?v=71') && cached.includes('/js/theme-init.js?v=71');
+        return cached.includes('/sever2-home-core.js?v=70') && cached.includes('/sever2-notes-core.js?v=71') && cached.includes('/sever2-notes-organization.js?v=72') && cached.includes('/js/theme-init.js?v=72');
       } catch {
         return false;
       }
@@ -37,7 +37,9 @@ test('installed release reloads offline with one complete asset set', async ({ b
     expect(cached).toContain('/sever2-home-core.js?v=70');
     expect(cached).toContain('/sever2-notes-core.css?v=71');
     expect(cached).toContain('/sever2-notes-core.js?v=71');
-    expect(cached).toContain('/js/theme-init.js?v=71');
+    expect(cached).toContain('/sever2-notes-organization.css?v=72');
+    expect(cached).toContain('/sever2-notes-organization.js?v=72');
+    expect(cached).toContain('/js/theme-init.js?v=72');
     expect(cached).toContain('/app.js?v=51');
     expect(cached).toContain('/notes-pro.js?v=52');
     expect(cached).toContain('/js/sync-core.mjs?v=55');
@@ -52,6 +54,7 @@ test('installed release reloads offline with one complete asset set', async ({ b
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severCreateFlow)).toBe('ready');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severHomeCore)).toBe('ready');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesCore)).toBe('ready');
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesOrganization)).toBe('ready');
     await expect(page.locator('#sever2HomeCore')).toBeVisible();
     await page.locator('.bottom-nav [data-view="calendar"]').click();
     await expect(page.locator('#calendarView')).toBeVisible();
