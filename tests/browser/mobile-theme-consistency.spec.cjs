@@ -106,49 +106,50 @@ test('every primary mobile view can scroll fully above the navigation in every t
   }
 });
 
-test('Notes mobile filters stay reachable in one compact horizontal rail', async ({ page }, info) => {
+test('Notes mobile uses one compact type selector without losing the existing filter behavior', async ({ page }, info) => {
   if (info.project.name === 'desktop') test.skip();
   await page.evaluate(() => window.SeverApp.switchView('notes'));
-  await expect(page.locator('#notesView .notes-core-filters')).toBeVisible();
+  await page.waitForFunction(() => document.documentElement.dataset.severNotesCompact === 'v87');
+
+  const compact = page.locator('#notesCompactType');
+  await expect(compact).toBeVisible();
+  await expect(page.locator('#notesView .notes-core-filters')).toBeHidden();
+  await expect(page.locator('#notesView > .view-intro')).toBeHidden();
+  await expect(compact.locator('option')).toHaveText(['Все типы', 'Заметки', 'Чек-листы', 'Защищённые']);
 
   const geometry = await page.evaluate(() => {
-    const filters = document.querySelector('#notesView .notes-core-filters');
-    const rect = filters.getBoundingClientRect();
-    const buttons = [...filters.querySelectorAll('button')].map(button => {
-      const box = button.getBoundingClientRect();
-      return { left: box.left, right: box.right, height: box.height, text: button.textContent.trim() };
-    });
-    const sort = document.querySelector('#notesView .notes-core-sort')?.getBoundingClientRect();
+    const type = document.querySelector('#notesCompactType').getBoundingClientRect();
+    const sort = document.querySelector('#notesCoreSort').getBoundingClientRect();
+    const controls = document.querySelector('#notesView .notes-core-controls').getBoundingClientRect();
     return {
-      filters: { left: rect.left, right: rect.right, width: rect.width, clientWidth: filters.clientWidth, scrollWidth: filters.scrollWidth },
-      overflowX: getComputedStyle(filters).overflowX,
-      buttons,
-      sortWidth: sort?.width || 0,
+      typeHeight: type.height,
+      sortHeight: sort.height,
+      typeTop: type.top,
+      sortTop: sort.top,
+      controlsWidth: controls.width,
+      right: Math.max(type.right, sort.right),
+      left: Math.min(type.left, sort.left),
       pageOverflow: Math.max(0, document.documentElement.scrollWidth - innerWidth)
     };
   });
-
-  expect(geometry.buttons.map(button => button.text)).toEqual(['Все', 'Заметки', 'Чек-листы', 'Защищённые']);
-  expect(geometry.buttons[0].left).toBeGreaterThanOrEqual(geometry.filters.left - 1);
-  expect(geometry.buttons[0].right).toBeLessThanOrEqual(geometry.filters.right + 1);
-  for (const button of geometry.buttons) expect(button.height).toBeGreaterThanOrEqual(38);
-  expect(['auto', 'scroll']).toContain(geometry.overflowX);
-  expect(geometry.filters.scrollWidth).toBeGreaterThanOrEqual(geometry.filters.clientWidth);
-  expect(geometry.sortWidth).toBeGreaterThan(0);
+  expect(geometry.typeHeight).toBeGreaterThanOrEqual(44);
+  expect(geometry.sortHeight).toBeGreaterThanOrEqual(44);
+  expect(Math.abs(geometry.typeTop - geometry.sortTop)).toBeLessThanOrEqual(2);
+  expect(geometry.right - geometry.left).toBeLessThanOrEqual(geometry.controlsWidth + 1);
   expect(geometry.pageOverflow).toBeLessThanOrEqual(1);
 
-  await page.evaluate(() => {
-    const filters = document.querySelector('#notesView .notes-core-filters');
-    filters.scrollLeft = filters.scrollWidth;
-  });
-  await page.waitForTimeout(40);
-  const last = await page.evaluate(() => {
-    const filters = document.querySelector('#notesView .notes-core-filters').getBoundingClientRect();
-    const button = document.querySelector('#notesView .notes-core-filters button:last-child').getBoundingClientRect();
-    return { filtersLeft: filters.left, filtersRight: filters.right, left: button.left, right: button.right };
-  });
-  expect(last.left).toBeGreaterThanOrEqual(last.filtersLeft - 1);
-  expect(last.right).toBeLessThanOrEqual(last.filtersRight + 1);
+  await compact.selectOption('checklist');
+  await expect(compact).toHaveValue('checklist');
+  await expect(page.locator('[data-notes-core-filter="checklist"]')).toHaveClass(/active/);
+});
+
+test('Notes desktop keeps the expanded type controls', async ({ page }, info) => {
+  if (info.project.name !== 'desktop') test.skip();
+  await page.evaluate(() => window.SeverApp.switchView('notes'));
+  await page.waitForFunction(() => document.documentElement.dataset.severNotesCompact === 'v87');
+  await expect(page.locator('#notesView .notes-core-filters')).toBeVisible();
+  await expect(page.locator('#notesCompactType')).toBeHidden();
+  await expect(page.locator('#notesView > .view-intro')).toBeVisible();
 });
 
 test('mobile navigation keeps comfortable hit areas without visually oversized controls', async ({ page }, info) => {
