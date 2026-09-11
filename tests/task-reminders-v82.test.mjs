@@ -4,6 +4,7 @@ import fs from 'node:fs';
 
 const reminders = fs.readFileSync(new URL('../sever2-task-reminders.js', import.meta.url), 'utf8');
 const interaction = fs.readFileSync(new URL('../sever2-interaction-polish.js', import.meta.url), 'utf8');
+const reminderCss = fs.readFileSync(new URL('../sever2-reminders.css', import.meta.url), 'utf8');
 const sw = fs.readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
 const migration = fs.readFileSync(new URL('../supabase/migrations/007_task_push_reminders.sql', import.meta.url), 'utf8');
 
@@ -27,6 +28,21 @@ test('legacy daily reminder is retired and the v82 layer is loaded by the existi
   assert.match(reminders, /current\.reminders\.enabled = false/);
   assert.match(interaction, /sever2-task-reminders\.js\?v=82/);
   assert.match(interaction, /sever2-reminders\.css\?v=82/);
+});
+
+test('signed-out startup retires a stale device push subscription on both desktop and mobile', () => {
+  assert.match(interaction, /retireStalePushSubscription/);
+  assert.match(interaction, /auth\.getSession\(\)/);
+  assert.match(interaction, /serviceWorker\.getRegistration\(\)/);
+  assert.match(interaction, /pushManager\?\.getSubscription\(\)/);
+  assert.match(interaction, /subscription\?\.unsubscribe\(\)/);
+});
+
+test('reminder settings have dedicated wide desktop and compact mobile layouts', () => {
+  assert.match(reminderCss, /@media \(min-width: 901px\)/);
+  assert.match(reminderCss, /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(reminderCss, /@media \(max-width: 900px\)/);
+  assert.match(reminderCss, /grid-template-columns: minmax\(0, 1fr\)/);
 });
 
 test('service worker immediately displays visible push notifications and opens the routed SEVER view', () => {
