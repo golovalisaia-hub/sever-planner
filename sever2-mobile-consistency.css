@@ -109,37 +109,47 @@
   }
 }
 
-/* Notes filters must remain readable on phones instead of clipping the last chip. */
+/* Notes: keep filters on one compact row instead of a tall 2x2 grid.
+   The filter rail scrolls horizontally when a label does not fit. */
 @media (max-width: 430px) {
   #notesView .notes-core-controls {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr) 98px;
+    align-items: center;
     gap: 8px;
   }
 
   #notesView .notes-core-filters {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: 100%;
-    overflow: visible;
+    display: flex;
+    width: auto;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+
+  #notesView .notes-core-filters::-webkit-scrollbar {
+    display: none;
   }
 
   #notesView .notes-core-filters button {
-    width: 100%;
-    min-width: 0;
-    min-height: 38px;
-    padding-inline: 8px;
+    flex: 0 0 auto;
+    width: auto;
+    min-width: max-content;
+    min-height: 40px;
+    padding-inline: 10px;
     white-space: nowrap;
   }
 
   #notesView .notes-core-sort {
-    width: 100%;
-    min-width: 0;
+    width: 98px;
+    min-width: 98px;
   }
 
   #notesView .notes-core-sort select {
     min-height: 42px;
+    padding-right: 27px;
   }
 }
 
@@ -155,6 +165,16 @@
 
   #timerView .timer-presets {
     gap: 6px;
+  }
+
+  #notesView .notes-core-controls {
+    grid-template-columns: minmax(0, 1fr) 92px;
+    gap: 6px;
+  }
+
+  #notesView .notes-core-sort {
+    width: 92px;
+    min-width: 92px;
   }
 }
 
