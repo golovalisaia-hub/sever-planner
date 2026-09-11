@@ -13,7 +13,7 @@ test('mobile consistency v76 is loaded after the existing product layers', async
   assert.match(source, /state\.onboarded !== false/);
   assert.match(source, /!Number\(state\._savedAt\)/);
   assert.match(source, /storedPlannerTheme\(\)/);
-  assert.match(source, /data-sever-theme=\\"light\\"/);
+  assert.match(source, /data-sever-theme="light"/);
   assert.match(source, /lightButton\.click\(\)/);
 });
 
