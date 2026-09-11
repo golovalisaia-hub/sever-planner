@@ -109,7 +109,7 @@ test('beta journey keeps tasks, focus, calendar, habits, notes, Money and theme 
   await page.locator('#noteForm .primary').click();
   const noteCard = page.locator('#noteList .note-card').filter({ hasText: 'Beta checklist' });
   await expect(noteCard).toBeVisible();
-  await expect(noteCard.locator('.note-check')).toHaveCount(2);
+  await expect(noteCard.locator('.note-check:visible')).toHaveCount(2);
   await expect(noteCard.locator('.notes-core-more-items')).toContainText('Ещё 1');
   await noteCard.locator('.notes-core-more-items').click();
   await expect(page.locator('#noteDialog')).toBeVisible();
@@ -138,10 +138,11 @@ test('beta journey keeps tasks, focus, calendar, habits, notes, Money and theme 
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.theme)).toBe('motion');
   const persisted = await page.evaluate(() => {
     const s = window.SeverApp.getState();
+    const moneyItem = s.profile?.money?.items?.find(item => item.title === 'Beta debt');
     return {
       tasks: s.tasks.map(t => ({ id: t.id, date: t.date, completed: t.completed })),
       noteItems: s.notes.find(n => n.title === 'Beta checklist')?.items?.length,
-      moneyRemaining: s.profile?.money?.items?.find(item => item.name === 'Beta debt')?.targetAmount - s.profile?.money?.items?.find(item => item.name === 'Beta debt')?.currentAmount,
+      moneyRemaining: moneyItem ? moneyItem.targetAmount - moneyItem.currentAmount : null,
       habitDates: s.checks['audit-habit'] || []
     };
   });
