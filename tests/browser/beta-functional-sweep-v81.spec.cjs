@@ -79,14 +79,17 @@ test('beta journey keeps tasks, focus, calendar, habits, notes, Money and theme 
   const today = isoToday();
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.find(t => t.id === 'audit-inbox')?.date)).toBe(today);
 
-  // Habit completion is visible, reversible and persisted through the same state path.
+  // Habit completion is visible, reversible and stored for the same date the UI marks as today.
   await switchView(page, 'habits');
   const habitToday = page.locator('#habitList .habit').first().locator('.habit-day.today');
+  const habitDate = await habitToday.getAttribute('data-date');
+  expect(habitDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   await habitToday.click();
   await expect(habitToday).toHaveAttribute('aria-pressed', 'true');
-  await expect.poll(() => page.evaluate(date => window.SeverApp.getState().checks['audit-habit']?.includes(date)), today).toBe(true);
+  await expect.poll(() => page.evaluate(date => window.SeverApp.getState().checks['audit-habit']?.includes(date), habitDate)).toBe(true);
   await habitToday.click();
   await expect(habitToday).toHaveAttribute('aria-pressed', 'false');
+  await expect.poll(() => page.evaluate(date => window.SeverApp.getState().checks['audit-habit']?.includes(date), habitDate)).toBe(false);
 
   // Create a 3-item checklist through the real Create flow. The list preview must stay compact.
   await switchView(page, 'notes');
