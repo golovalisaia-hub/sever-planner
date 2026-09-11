@@ -1,5 +1,11 @@
 /* SEVER 2 reminder experience v82 — task-based, quiet and explicit. */
 
+/* The old once-a-day reminder time is retired by the v82 task reminder layer.
+   Some legacy Settings rules force rows to display:flex, so hidden must win. */
+.settings-section .settings-row[hidden] {
+  display: none !important;
+}
+
 .sever-reminder-options {
   display: grid;
   gap: 10px;
