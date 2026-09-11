@@ -1,0 +1,282 @@
+/* SEVER 2 Notes polish v75 — clearer hierarchy, reliable expand controls, touch-safe actions. */
+
+#notesView {
+  --notes-polish-card-gap: 9px;
+  --notes-polish-card-radius: 17px;
+  --notes-polish-card-shadow: 0 8px 24px rgba(0, 0, 0, .035);
+  --notes-polish-action-bg: color-mix(in srgb, var(--text-primary, var(--text)) 5%, transparent);
+}
+
+html[data-theme="motion"] #notesView {
+  --notes-polish-card-gap: 10px;
+  --notes-polish-card-radius: 19px;
+  --notes-polish-card-shadow: 0 10px 28px rgba(85, 62, 45, .055);
+}
+
+html[data-theme="black"] #notesView {
+  --notes-polish-card-gap: 8px;
+  --notes-polish-card-radius: 16px;
+  --notes-polish-card-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+  --notes-polish-action-bg: color-mix(in srgb, var(--text-primary, var(--text)) 8%, transparent);
+}
+
+/* Each note is its own readable object instead of one continuous slab. */
+#notesView .notes-core-group-panel {
+  display: grid;
+  gap: var(--notes-polish-card-gap);
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#notesView .note-card.notes-core-card {
+  overflow: hidden;
+  padding: 15px 15px 12px;
+  border: 1px solid var(--border-subtle, var(--line)) !important;
+  border-radius: var(--notes-polish-card-radius) !important;
+  background: var(--surface-1, var(--panel)) !important;
+  box-shadow: var(--notes-polish-card-shadow) !important;
+  transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .16s ease !important;
+}
+
+#notesView .notes-core-group-panel .note-card:last-child {
+  border-bottom: 1px solid var(--border-subtle, var(--line)) !important;
+}
+
+#notesView .note-card.notes-core-card:hover,
+#notesView .note-card.notes-core-card:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border-subtle, var(--line))) !important;
+  background: color-mix(in srgb, var(--accent) 2.5%, var(--surface-1, var(--panel))) !important;
+}
+
+#notesView .note-card.notes-core-card:active {
+  transform: scale(.995) !important;
+}
+
+html[data-theme="black"] #notesView .note-card.notes-core-card {
+  border-color: color-mix(in srgb, var(--text-primary, var(--text)) 12%, transparent) !important;
+  background: color-mix(in srgb, var(--surface-1, var(--panel)) 96%, #fff 1%) !important;
+}
+
+/* Long text and checklist previews can actually be expanded. */
+#notesView .notes-core-more-items,
+#notesView .notes-polish-body-toggle {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 5px;
+  margin: 5px 0 0;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary, var(--muted));
+  font: inherit;
+  font-size: .69rem;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+#notesView .notes-core-more-items:hover,
+#notesView .notes-core-more-items:focus-visible,
+#notesView .notes-polish-body-toggle:hover,
+#notesView .notes-polish-body-toggle:focus-visible {
+  background: var(--notes-polish-action-bg);
+  color: var(--text-primary, var(--text));
+}
+
+#notesView .notes-core-more-items svg,
+#notesView .notes-polish-body-toggle svg,
+#notesView .notes-polish-bulk-action svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#notesView .notes-polish-checklist-expanded .note-check:nth-child(n+3) {
+  display: flex;
+}
+
+#notesView .notes-polish-body-expanded > .note-body {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+}
+
+#notesView .note-checklist {
+  gap: 3px;
+  margin-top: 10px;
+}
+
+#notesView .note-check {
+  min-height: 34px;
+  align-items: center;
+  padding: 4px 2px;
+  border-radius: 9px;
+}
+
+#notesView .note-check:hover {
+  background: color-mix(in srgb, var(--text-primary, var(--text)) 3.5%, transparent);
+}
+
+/* Metadata and controls have distinct roles. */
+#notesView .notes-polish-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle, var(--line)) 78%, transparent);
+}
+
+#notesView .notes-polish-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+#notesView .notes-polish-actions > button,
+#notesView .notes-org-action,
+#notesView .note-card .note-edit {
+  min-width: 40px !important;
+  min-height: 40px !important;
+  border-radius: 11px !important;
+}
+
+#notesView .notes-polish-bulk-action {
+  display: inline-flex !important;
+  width: auto !important;
+  min-width: 40px !important;
+  align-items: center;
+  gap: 5px;
+  padding: 0 9px !important;
+  color: var(--accent) !important;
+}
+
+#notesView .notes-polish-bulk-action span {
+  font-size: .66rem;
+  font-weight: 760;
+  white-space: nowrap;
+}
+
+#notesView .notes-org-action {
+  letter-spacing: .12em;
+}
+
+/* The three-dot menu is a compact decision sheet, not a full-screen panel. */
+.notes-polish-action-dialog.notes-org-sheet {
+  width: min(390px, calc(100vw - 28px));
+  max-height: none;
+  margin: auto auto max(14px, env(safe-area-inset-bottom));
+}
+
+.notes-polish-action-dialog .notes-org-sheet-card {
+  gap: 8px;
+  padding: 8px 10px 10px;
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: 19px;
+}
+
+.notes-polish-action-dialog .notes-org-sheet-copy {
+  gap: 2px;
+  padding: 2px 7px 5px;
+}
+
+.notes-polish-action-dialog .notes-org-sheet-copy b {
+  font-size: .86rem;
+}
+
+.notes-polish-action-dialog .notes-org-sheet-copy span {
+  font-size: .64rem;
+}
+
+.notes-polish-action-dialog .notes-org-sheet-actions {
+  border-radius: 13px;
+}
+
+.notes-polish-action-dialog .notes-org-sheet-actions button,
+.notes-polish-action-dialog .notes-org-sheet-cancel {
+  min-height: 46px;
+  padding: 0 13px;
+  font-size: .76rem;
+}
+
+.notes-polish-action-dialog .notes-org-sheet-cancel {
+  min-height: 42px;
+}
+
+/* Folder/tag chooser remains scrollable when there are many items, but controls stay easy to hit. */
+.notes-navigation-scopes > button,
+.notes-navigation-sheet-head > button,
+.notes-navigation-sheet-footer button {
+  min-height: 44px;
+}
+
+.notes-navigation-sheet-head > button {
+  width: 44px;
+  height: 44px;
+}
+
+@media (max-width: 700px) {
+  #notesView .note-card.notes-core-card {
+    padding: 14px 14px 11px;
+  }
+
+  #notesView .notes-polish-footer {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  #notesView .notes-polish-actions {
+    min-height: 44px;
+    justify-content: flex-start;
+  }
+
+  #notesView .notes-polish-actions > button,
+  #notesView .notes-org-action,
+  #notesView .note-card .note-edit,
+  #notesView .notes-core-more-items,
+  #notesView .notes-polish-body-toggle {
+    min-height: 44px !important;
+  }
+
+  .notes-polish-action-dialog.notes-org-sheet {
+    width: calc(100vw - 20px);
+    margin-inline: 10px;
+  }
+
+  .notes-polish-action-dialog .notes-org-sheet-card {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    border: 1px solid var(--border-subtle, var(--line));
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 390px) {
+  #notesView .notes-polish-bulk-action span {
+    display: none;
+  }
+
+  #notesView .notes-polish-bulk-action {
+    width: 44px !important;
+    justify-content: center;
+    padding: 0 !important;
+  }
+
+  .notes-navigation-scopes > button {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #notesView .note-card.notes-core-card {
+    transition: none !important;
+  }
+}
