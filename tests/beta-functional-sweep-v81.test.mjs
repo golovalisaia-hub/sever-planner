@@ -27,7 +27,7 @@ test('v81 startup guard remains active inside the v84 usability cache refresh', 
   assert.match(themeInit, /container\.register !== safeRegister/);
   assert.match(themeInit, /sever2-usability-v84\.js\?v=84/);
   assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v6'/);
-  assert.match(sw, /js\/theme-init\.js\?v=81/);
+  assert.match(sw, /js\/theme-init\.js\?v=84/);
   assert.match(sw, /sever2-usability-v84\.js\?v=84/);
   assert.match(sw, /sever2-reminders\.css\?v=82/);
 });
