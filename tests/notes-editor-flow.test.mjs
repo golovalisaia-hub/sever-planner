@@ -25,7 +25,8 @@ test('Notes editor recovery distinguishes accidental reloads from a normal close
   assert.match(source, /if \(!draft\?\.wasOpen/);
 });
 
-test('Notes editor recovery loads before compact Notes polish and cloud recovery and ships offline in v84', () => {
+test('Notes editor recovery loads after Home v85 and before compact Notes polish and cloud recovery', () => {
+  const homeIndex = themeInit.indexOf('sever2-home-core-script');
   const coreIndex = themeInit.indexOf('sever2-notes-core-script');
   const organizationIndex = themeInit.indexOf('sever2-notes-organization-script');
   const editorIndex = themeInit.indexOf('sever2-notes-editor-flow-script');
@@ -35,7 +36,8 @@ test('Notes editor recovery loads before compact Notes polish and cloud recovery
   const usabilityIndex = themeInit.indexOf('sever2-usability-v84-script');
   const interactionIndex = themeInit.indexOf('sever2-interaction-polish-script');
   const recoveryIndex = themeInit.indexOf('sever2-cloud-recovery-script');
-  assert.ok(coreIndex >= 0 && organizationIndex > coreIndex && editorIndex > organizationIndex && navigationIndex > editorIndex && polishIndex > navigationIndex && moneyIndex > polishIndex && usabilityIndex > moneyIndex && interactionIndex > usabilityIndex && recoveryIndex > interactionIndex);
+  assert.ok(homeIndex >= 0 && coreIndex > homeIndex && organizationIndex > coreIndex && editorIndex > organizationIndex && navigationIndex > editorIndex && polishIndex > navigationIndex && moneyIndex > polishIndex && usabilityIndex > moneyIndex && interactionIndex > usabilityIndex && recoveryIndex > interactionIndex);
+  assert.match(themeInit, /sever2-home-core\.js\?v=85/);
   assert.match(themeInit, /sever2-notes-editor-flow\.css\?v=73/);
   assert.match(themeInit, /sever2-notes-editor-flow\.js\?v=73/);
   assert.match(themeInit, /sever2-notes-polish\.css\?v=79/);
@@ -45,6 +47,7 @@ test('Notes editor recovery loads before compact Notes polish and cloud recovery
   assert.match(themeInit, /sever2-usability-v84\.js\?v=84/);
   assert.match(themeInit, /sever2-interaction-polish\.js\?v=78/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
+  assert.match(sw, /sever2-home-core\.js\?v=85/);
   assert.match(sw, /sever2-notes-editor-flow\.css\?v=73/);
   assert.match(sw, /sever2-notes-editor-flow\.js\?v=73/);
   assert.match(sw, /sever2-notes-navigation\.js\?v=74/);
@@ -54,5 +57,5 @@ test('Notes editor recovery loads before compact Notes polish and cloud recovery
   assert.match(sw, /sever2-usability-v84\.js\?v=84/);
   assert.match(sw, /sever2-interaction-polish\.js\?v=78/);
   assert.match(sw, /sever2-cloud-recovery\.js\?v=80/);
-  assert.match(sw, /js\/theme-init\.js\?v=84/);
+  assert.match(sw, /js\/theme-init\.js\?v=85/);
 });

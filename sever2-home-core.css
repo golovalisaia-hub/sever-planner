@@ -25,6 +25,7 @@ html[data-theme] #todayView > .sever2-home-inbox{
 #todayView .today-hero-copy p{margin:0;color:var(--text-secondary,var(--muted));font-size:13px}
 
 .sever2-home-core{
+  order:2!important;
   display:grid;
   gap:12px;
   margin:12px 0 14px;
