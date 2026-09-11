@@ -45,28 +45,32 @@ test('habit completion cannot restyle the whole card and Focus play stays center
   assert.match(css, /border-left:\s*11px solid currentColor/);
 });
 
-test('v78 interaction polish remains after the v84 usability layer in the atomic PWA release', () => {
+test('v78 interaction polish remains after Home v85 and usability v84 in the atomic PWA release', () => {
+  const home = themeInit.indexOf('sever2-home-core-script');
   const money = themeInit.indexOf('sever2-money-script');
   const usability = themeInit.indexOf('sever2-usability-v84-script');
   const polish = themeInit.indexOf('sever2-interaction-polish-script');
   const recovery = themeInit.indexOf('sever2-cloud-recovery-script');
-  assert.ok(money >= 0 && usability > money && polish > usability && recovery > polish);
+  assert.ok(home >= 0 && money > home && usability > money && polish > usability && recovery > polish);
+  assert.match(themeInit, /sever2-home-core\.js\?v=85/);
   assert.match(themeInit, /sever2-usability-v84\.css\?v=84/);
   assert.match(themeInit, /sever2-usability-v84\.js\?v=84/);
   assert.match(themeInit, /sever2-interaction-polish\.css\?v=78/);
   assert.match(themeInit, /sever2-interaction-polish\.js\?v=78/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v6'/);
+  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v7'/);
   for (const asset of [
+    './sever2-home-core.js?v=85',
     './sever2-notes-polish.css?v=79','./sever2-notes-polish.js?v=79',
     './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=84','./sever2-usability-v84.js?v=84',
     './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80',
     './sever2-reminders.css?v=82','./sever2-task-reminders.js?v=82',
-    './js/theme-init.js?v=84'
+    './js/theme-init.js?v=85'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
+  assert.match(sw, /'\/sever2-home-core\.js'/);
   assert.match(sw, /'\/sever2-usability-v84\.css'/);
   assert.match(sw, /'\/sever2-usability-v84\.js'/);
   assert.match(sw, /'\/sever2-interaction-polish\.css'/);
