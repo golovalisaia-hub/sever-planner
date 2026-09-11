@@ -5,12 +5,16 @@
     max-width: 34rem;
   }
 
+  /* The base SEVER 2 mobile layer uses grid-template-columns:1fr!important.
+     This later usability layer intentionally turns the theme picker into a
+     horizontal rail, so the explicit track must also win the cascade. Without
+     !important the first theme card collapses to the leftover width (~18px). */
   #settingsView .settings-appearance .theme-picker {
-    display: grid;
-    grid-template-columns: none;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(154px, 72%);
-    gap: 8px;
+    display: grid !important;
+    grid-template-columns: none !important;
+    grid-auto-flow: column !important;
+    grid-auto-columns: minmax(154px, 72%) !important;
+    gap: 8px !important;
     overflow-x: auto;
     overscroll-behavior-inline: contain;
     padding: 2px 1px 7px;
@@ -127,7 +131,7 @@
   }
 
   #settingsView .settings-appearance .theme-picker {
-    grid-auto-columns: minmax(146px, 78%);
+    grid-auto-columns: minmax(146px, 78%) !important;
   }
 }
 
