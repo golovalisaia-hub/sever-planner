@@ -13,6 +13,6 @@ test('beta functional sweep covers every primary SEVER area', () => {
   assert.match(source, /habit-day\.today/);
   assert.match(source, /notes-core-more-items/);
   assert.match(source, /moneyProgressAmount/);
-  assert.match(source, /data-sever-theme=\\"motion\\"/);
+  assert.ok(source.includes('[data-sever-theme="motion"]'));
   assert.match(source, /page\.reload\(\)/);
 });
