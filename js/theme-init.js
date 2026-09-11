@@ -46,7 +46,8 @@
     ['sever2-notes-core-pack', 'sever2-notes-core.css?v=71'],
     ['sever2-notes-organization-pack', 'sever2-notes-organization.css?v=72'],
     ['sever2-notes-editor-flow-pack', 'sever2-notes-editor-flow.css?v=73'],
-    ['sever2-notes-navigation-pack', 'sever2-notes-navigation.css?v=74']
+    ['sever2-notes-navigation-pack', 'sever2-notes-navigation.css?v=74'],
+    ['sever2-notes-polish-pack', 'sever2-notes-polish.css?v=75']
   ];
   const scripts = [
     ['sever2-productivity-script', 'sever2-productivity.js?v=64'],
@@ -58,7 +59,8 @@
     ['sever2-notes-core-script', 'sever2-notes-core.js?v=71'],
     ['sever2-notes-organization-script', 'sever2-notes-organization.js?v=72'],
     ['sever2-notes-editor-flow-script', 'sever2-notes-editor-flow.js?v=73'],
-    ['sever2-notes-navigation-script', 'sever2-notes-navigation.js?v=74']
+    ['sever2-notes-navigation-script', 'sever2-notes-navigation.js?v=74'],
+    ['sever2-notes-polish-script', 'sever2-notes-polish.js?v=75']
   ];
 
   function normalize(value) {
@@ -86,7 +88,7 @@
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
-      link.setAttribute(`data-${marker}`, 'v74');
+      link.setAttribute(`data-${marker}`, 'v75');
       document.head.appendChild(link);
     });
   }
@@ -98,7 +100,7 @@
       script.src = src;
       script.async = false;
       script.defer = true;
-      script.setAttribute(`data-${marker}`, 'v74');
+      script.setAttribute(`data-${marker}`, 'v75');
       document.head.appendChild(script);
     });
   }
