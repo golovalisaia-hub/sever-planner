@@ -29,9 +29,9 @@ test('presentation layers load deterministically through cloud recovery v80', as
   assert.ok(core >= 0 && organization > core && editor > organization && navigation > editor && polish > navigation && money > polish && interactions > money && recovery > interactions);
 });
 
-test('cloud recovery v80 ships atomically without dropping Notes, Money or interaction polish', async () => {
+test('cloud recovery v80 ships atomically inside the v81 PWA startup-guard release', async () => {
   const source = await read('sw.js');
-  assert.match(source, /const CACHE = 'sever-v76-cloud-recovery-v1'/);
+  assert.match(source, /const CACHE = 'sever-v77-pwa-startup-guard-v1'/);
   for (const asset of [
     './sever2-notes-core.css?v=71','./sever2-notes-core.js?v=71',
     './sever2-notes-organization.css?v=72','./sever2-notes-organization.js?v=72',
@@ -40,7 +40,7 @@ test('cloud recovery v80 ships atomically without dropping Notes, Money or inter
     './sever2-notes-polish.css?v=79','./sever2-notes-polish.js?v=79',
     './sever2-mobile-consistency.css?v=76','./sever2-money.css?v=77','./sever2-money.js?v=77',
     './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
-    './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./js/theme-init.js?v=80'
+    './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./js/theme-init.js?v=81'
   ]) assert.ok(source.includes(`'${asset}'`), `missing ${asset}`);
   for (const path of [
     'sever2-notes-navigation.css','sever2-notes-navigation.js','sever2-notes-polish.css','sever2-notes-polish.js',
