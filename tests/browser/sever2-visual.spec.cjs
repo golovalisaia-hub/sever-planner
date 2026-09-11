@@ -13,6 +13,7 @@ async function seed(page) {
   await page.addInitScript(() => {
     const today = new Date();
     const date = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    const now = Date.now();
     localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({
       version: 11,
       onboarded: true,
@@ -22,9 +23,15 @@ async function seed(page) {
       tasks: [
         { id:'visual-1', title:'Главное дело', date, time:'10:00', duration:45, category:'Личное', priority:true, completed:false, createdAt:1, updatedAt:1 },
         { id:'visual-2', title:'Небольшая задача', date, time:'15:30', duration:20, category:'Другое', priority:false, completed:false, createdAt:2, updatedAt:2 },
-        { id:'visual-3', title:'Готово', date, time:'', duration:0, category:'Личное', priority:false, completed:true, completedAt:Date.now(), createdAt:3, updatedAt:3 }
+        { id:'visual-3', title:'Готово', date, time:'', duration:0, category:'Личное', priority:false, completed:true, completedAt:now, createdAt:3, updatedAt:3 }
       ],
-      notes: [], folders: [], habits: [], checks: {}, taskMemory: [], profile:{name:''},
+      notes: [
+        { id:'visual-note-1', folderId:'', title:'Идея на сегодня', body:'Короткая заметка, которую должно быть легко открыть одним нажатием.', kind:'text', items:[], protected:false, done:false, createdAt:now-3000, updatedAt:now-3000 },
+        { id:'visual-note-2', folderId:'', title:'Большой чек-лист', body:'', kind:'checklist', protected:false, done:false, createdAt:now-2000, updatedAt:now-2000,
+          items:Array.from({length:6},(_,index)=>({id:`visual-item-${index+1}`,text:`Пункт ${index+1}`,done:index===0})) },
+        { id:'visual-note-3', folderId:'', title:'Покупки', body:'Список вещей на неделю', kind:'text', items:[], protected:false, done:false, createdAt:now-1000, updatedAt:now-1000 }
+      ],
+      folders: [], habits: [], checks: {}, taskMemory: [], profile:{name:''},
       appearance:{theme:'light',animations:'off',reduceEffects:true},
       focusSessions:[], stats:{focusMs:0,sessions:0},
       reminders:{enabled:false,time:'19:00',lastDate:''},
