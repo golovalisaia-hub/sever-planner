@@ -44,17 +44,17 @@ test('account UI exposes sync health and a safe recovery action', () => {
   assert.match(css, /#accountDialog #accountRetry:not\(\.hidden\)/);
 });
 
-test('cloud recovery v80 loads after interaction polish and ships in one offline release', () => {
+test('cloud recovery v80 remains in the atomic v81 PWA startup-guard release', () => {
   const interaction = themeInit.indexOf('sever2-interaction-polish-script');
   const recovery = themeInit.indexOf('sever2-cloud-recovery-script');
   assert.ok(interaction >= 0 && recovery > interaction);
   assert.match(themeInit, /sever2-cloud-recovery\.css\?v=80/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v76-cloud-recovery-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v77-pwa-startup-guard-v1'/);
   for (const asset of [
     './sever2-cloud-recovery.css?v=80',
     './sever2-cloud-recovery.js?v=80',
-    './js/theme-init.js?v=80'
+    './js/theme-init.js?v=81'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
 });

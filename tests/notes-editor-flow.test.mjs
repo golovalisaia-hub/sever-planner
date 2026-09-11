@@ -25,7 +25,7 @@ test('Notes editor recovery distinguishes accidental reloads from a normal close
   assert.match(source, /if \(!draft\?\.wasOpen/);
 });
 
-test('Notes editor recovery loads before compact Notes polish and cloud recovery and ships offline in v80', () => {
+test('Notes editor recovery loads before compact Notes polish and cloud recovery and ships offline in v81', () => {
   const coreIndex = themeInit.indexOf('sever2-notes-core-script');
   const organizationIndex = themeInit.indexOf('sever2-notes-organization-script');
   const editorIndex = themeInit.indexOf('sever2-notes-editor-flow-script');
@@ -51,5 +51,5 @@ test('Notes editor recovery loads before compact Notes polish and cloud recovery
   assert.match(sw, /sever2-money\.js\?v=77/);
   assert.match(sw, /sever2-interaction-polish\.js\?v=78/);
   assert.match(sw, /sever2-cloud-recovery\.js\?v=80/);
-  assert.match(sw, /js\/theme-init\.js\?v=80/);
+  assert.match(sw, /js\/theme-init\.js\?v=81/);
 });
