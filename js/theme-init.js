@@ -1,31 +1,12 @@
 (function () {
   'use strict';
 
-  /*
-   * SEVER 2 — unified presentation bootstrap.
-   *
-   * This is still the same planner: the existing data, accounts, Supabase,
-   * sync, notes, timer and AI are not replaced. Only the visible product shell
-   * is rebuilt. Legacy internal theme ids remain a compatibility boundary:
-   *   light  -> Calm Balance
-   *   motion -> Cozy Mood
-   *   black  -> Focus Peak
-   * Aurora/North are retired from the visible product and present as Calm.
-   */
+  /* SEVER 2 presentation bootstrap. Legacy ids stay compatible with stored user data. */
   const allowed = new Set(['light', 'motion', 'black']);
   const aliases = {
-    calm: 'light',
-    'calm-balance': 'light',
-    cozy: 'motion',
-    'cozy-mood': 'motion',
-    focus: 'black',
-    'focus-peak': 'black',
-    dark: 'black',
-    minimal: 'black',
-    polar: 'light',
-    dawn: 'light',
-    north: 'light',
-    aurora: 'light'
+    calm: 'light', 'calm-balance': 'light', cozy: 'motion', 'cozy-mood': 'motion',
+    focus: 'black', 'focus-peak': 'black', dark: 'black', minimal: 'black',
+    polar: 'light', dawn: 'light', north: 'light', aurora: 'light'
   };
   const themes = {
     light: { name: 'Calm Balance', description: 'Светлая, спокойная и воздушная', color: '#F1E9E3', preview: 'theme-calm', ui: 'calm' },
@@ -46,7 +27,8 @@
     ['sever2-notes-core-pack', 'sever2-notes-core.css?v=71'],
     ['sever2-notes-organization-pack', 'sever2-notes-organization.css?v=72'],
     ['sever2-notes-editor-flow-pack', 'sever2-notes-editor-flow.css?v=73'],
-    ['sever2-notes-navigation-pack', 'sever2-notes-navigation.css?v=74']
+    ['sever2-notes-navigation-pack', 'sever2-notes-navigation.css?v=74'],
+    ['sever2-notes-polish-pack', 'sever2-notes-polish.css?v=75']
   ];
   const scripts = [
     ['sever2-productivity-script', 'sever2-productivity.js?v=64'],
@@ -58,7 +40,8 @@
     ['sever2-notes-core-script', 'sever2-notes-core.js?v=71'],
     ['sever2-notes-organization-script', 'sever2-notes-organization.js?v=72'],
     ['sever2-notes-editor-flow-script', 'sever2-notes-editor-flow.js?v=73'],
-    ['sever2-notes-navigation-script', 'sever2-notes-navigation.js?v=74']
+    ['sever2-notes-navigation-script', 'sever2-notes-navigation.js?v=74'],
+    ['sever2-notes-polish-script', 'sever2-notes-polish.js?v=75']
   ];
 
   function normalize(value) {
@@ -86,7 +69,7 @@
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
-      link.setAttribute(`data-${marker}`, 'v74');
+      link.setAttribute(`data-${marker}`, 'v75');
       document.head.appendChild(link);
     });
   }
@@ -98,7 +81,7 @@
       script.src = src;
       script.async = false;
       script.defer = true;
-      script.setAttribute(`data-${marker}`, 'v74');
+      script.setAttribute(`data-${marker}`, 'v75');
       document.head.appendChild(script);
     });
   }
