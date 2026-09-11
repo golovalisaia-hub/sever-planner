@@ -238,7 +238,7 @@
     if (recovery) return recovery;
     recovery = document.createElement('div');
     recovery.className = 'notes-editor-recovery hidden';
-    recovery.innerHTML = '<div><b>Есть несохранённый черновик</b><span>Заметка изменилась на другом устройстве. Выбери, какую версию продолжить.</span></div><div class="notes-editor-recovery-actions"><button type="button" data-note-draft-discard>Оставить текущую</button><button type="button" class="primary" data-note-draft-restore>Восстановить черновик</button></div>';
+    recovery.innerHTML = '<div><b>Есть несохранённый черновик</b><span>Заметка изменилась на другом устройстве. Выбери, какую версию продолжить.</span></div><div class="notes-editor-recovery-actions"><button type="button" data-note-draft-discard>Оставить текущую</button><button type="button" class="notes-editor-recovery-confirm" data-note-draft-restore>Восстановить черновик</button></div>';
     dialog?.querySelector('.dialog-head')?.after(recovery);
     recovery.querySelector('[data-note-draft-discard]')?.addEventListener('click', discardDraft);
     recovery.querySelector('[data-note-draft-restore]')?.addEventListener('click', () => applyDraft(readDraft()));
@@ -365,7 +365,9 @@
       scheduleDraft();
     });
     form.addEventListener('click', event => {
-      if (event.target.closest('[data-note-type],#addNoteItem,.note-item-editor button')) setTimeout(scheduleDraft, 0);
+      if (!event.target.closest('[data-note-type],#addNoteItem,.note-item-editor button')) return;
+      const syntheticRestoreAction = restoring;
+      setTimeout(() => { if (!syntheticRestoreAction) scheduleDraft(); }, 0);
     });
   }
 
