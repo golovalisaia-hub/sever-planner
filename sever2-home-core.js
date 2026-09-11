@@ -8,8 +8,6 @@
     plus: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
     list: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>',
     inbox: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-2 13H6L4 5Z"/><path d="M7 13h3l1 2h2l1-2h3"/></svg>',
-    check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12 4 4 8-9"/></svg>',
-    clock: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>',
     arrow: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>'
   };
 
@@ -129,21 +127,25 @@
     const meta = root.querySelector('[data-home-now-meta]');
     const focus = root.querySelector('[data-home-action="focus"]');
     const create = root.querySelector('[data-home-action="create"]');
+    const taskActions = [...root.querySelectorAll('[data-home-action="tasks"]')];
 
     if (next) {
       title.textContent = next.title || 'Следующее дело';
       meta.textContent = taskMeta(next);
       focus.classList.remove('hidden');
       focus.dataset.taskId = next.id;
+      focus.setAttribute('aria-label', `Начать фокус: ${next.title || 'следующая задача'}`);
       create.classList.add('hidden');
     } else {
       title.textContent = items.length ? 'План на сегодня выполнен' : 'План на сегодня свободен';
       meta.textContent = items.length ? 'Можно завершать день без лишней суеты.' : 'Добавь только то, что действительно нужно сделать.';
       focus.classList.add('hidden');
       focus.dataset.taskId = '';
+      focus.removeAttribute('aria-label');
       create.classList.remove('hidden');
     }
 
+    taskActions.forEach(button => button.classList.toggle('hidden', items.length === 0));
     root.querySelector('[data-home-stat="remaining"]').textContent = String(pending.length);
     root.querySelector('[data-home-stat="minutes"]').textContent = minutes ? `${minutes} мин` : '—';
     root.querySelector('[data-home-stat="progress"]').textContent = items.length ? `${progress}%` : '—';
@@ -171,14 +173,14 @@
     section.setAttribute('aria-label', 'План на сегодня');
     section.innerHTML = `
       <div class="sever2-home-now">
-        <div class="sever2-home-now-copy">
+        <div class="sever2-home-now-copy" aria-live="polite">
           <small>ГЛАВНОЕ СЕЙЧАС</small>
           <h2 data-home-now-title></h2>
           <p data-home-now-meta></p>
           <div class="sever2-home-now-actions">
             <button type="button" class="primary" data-home-action="focus">${svg.play}<span>Начать фокус</span></button>
             <button type="button" class="primary hidden" data-home-action="create">${svg.plus}<span>Добавить задачу</span></button>
-            <button type="button" data-home-action="tasks">${svg.list}<span>К задачам</span></button>
+            <button type="button" data-home-action="tasks" aria-label="Перейти к списку задач на сегодня">${svg.list}<span>К списку</span></button>
           </div>
         </div>
         <div class="sever2-home-stats" aria-label="Сводка дня">
