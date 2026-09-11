@@ -1,0 +1,138 @@
+/* SEVER usability v84 — less scrolling, clearer mobile hierarchy, same data model. */
+
+@media (max-width: 700px) {
+  #moneyView .money-intro {
+    max-width: 34rem;
+  }
+
+  #settingsView .settings-appearance .theme-picker {
+    display: grid;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(154px, 72%);
+    gap: 8px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding: 2px 1px 7px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  #settingsView .settings-appearance .theme-picker::-webkit-scrollbar {
+    display: none;
+  }
+
+  #settingsView .settings-appearance .theme-picker > button {
+    min-width: 0;
+    min-height: 94px;
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 430px) {
+  #moneyView .money-quick {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 2px;
+    padding: 6px 7px 6px 9px;
+  }
+
+  #moneyView .money-quick > button {
+    grid-column: auto;
+    width: auto;
+    min-height: 40px;
+    margin-top: 0;
+    padding-inline: 11px;
+  }
+
+  #moneyView .money-summary {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  #moneyView .money-summary article {
+    min-height: 86px;
+    padding: 11px 12px;
+  }
+
+  #moneyView .money-summary article:last-child {
+    grid-column: 1 / -1;
+    display: grid;
+    min-height: 66px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 10px;
+  }
+
+  #moneyView .money-summary article:last-child small {
+    grid-column: 1 / -1;
+  }
+
+  #moneyView .money-summary article:last-child b {
+    grid-column: 1;
+    margin: 3px 0 0;
+  }
+
+  #moneyView .money-summary article:last-child button {
+    grid-row: 2;
+    grid-column: 2;
+    align-self: center;
+    margin: 0;
+    padding-inline: 8px;
+  }
+
+  #moneyView .money-summary b {
+    margin-top: 7px;
+    font-size: 1.08rem;
+  }
+
+  #moneyView .money-summary span,
+  #moneyView .money-summary button {
+    font-size: .68rem;
+  }
+
+  #moneyView .money-section-head {
+    gap: 7px;
+    margin-bottom: 8px;
+  }
+
+  #moneyView .money-add-pills button {
+    min-height: 42px;
+  }
+
+  #moneyView .money-card {
+    padding: 13px;
+  }
+
+  #moneyView .money-card-amount {
+    margin-top: 14px;
+  }
+
+  #moneyView .money-card-actions {
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 350px) {
+  #moneyView .money-quick {
+    grid-template-columns: 28px minmax(0, 1fr);
+  }
+
+  #moneyView .money-quick > button {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 42px;
+    margin-top: 3px;
+  }
+
+  #settingsView .settings-appearance .theme-picker {
+    grid-auto-columns: minmax(146px, 78%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #settingsView .settings-appearance .theme-picker {
+    scroll-behavior: auto;
+  }
+}
