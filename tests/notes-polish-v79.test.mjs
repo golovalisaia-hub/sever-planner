@@ -13,7 +13,7 @@ test('Notes polish v79 is syntax-valid and checklist cards are preview-only', ()
   const checked = spawnSync(process.execPath, ['--check', path.join(root, 'sever2-notes-polish.js')]);
   assert.equal(checked.status, 0, checked.stderr.toString());
   assert.doesNotMatch(js, /expandedChecklists/);
-  assert.match(js, /data-notes-compact-open/);
+  assert.match(js, /dataset\.notesCompactOpen\s*=\s*'true'/);
   assert.match(js, /window\.SeverNotes\?\.openNote\?\.\(note\)/);
   assert.match(js, /classList\.remove\('notes-polish-checklist-expanded'\)/);
   assert.match(css, /data-notes-compact-checklist="true".*note-check:nth-child\(n\+3\)/s);
