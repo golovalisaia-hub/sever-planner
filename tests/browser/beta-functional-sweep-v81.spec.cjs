@@ -12,6 +12,7 @@ async function boot(page) {
     body: 'window.SEVER_SUPABASE_CONFIG={};'
   }));
   await page.addInitScript(seed => {
+    if (localStorage.getItem('sever-e2e-beta-seeded-v1') === '1') return;
     const now = Date.now();
     localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({
       version: 11,
@@ -31,6 +32,7 @@ async function boot(page) {
       security: { protectedNotesAutoLockMinutes: 5, lockInBackground: true }
     }));
     localStorage.setItem('sever-theme', 'light');
+    localStorage.setItem('sever-e2e-beta-seeded-v1', '1');
   }, today);
   await page.goto('/');
   await page.waitForFunction(() => window.SeverApp && window.SeverNotes);
