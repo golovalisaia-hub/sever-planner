@@ -13,6 +13,9 @@
     motion: { name: 'Cozy Mood', description: 'Тёплая, мягкая и уютная', color: '#F3ECE7', preview: 'theme-cozy', ui: 'cozy' },
     black: { name: 'Focus Peak', description: 'Тёмная, тихая и концентрированная', color: '#111618', preview: 'theme-focus', ui: 'focus' }
   };
+  const ANONYMOUS_STATE_KEY = 'sever-anonymous-state-v1';
+  const LEGACY_STATE_KEY = 'sever-data-v2';
+  const LEGACY_MIGRATION_KEY = 'sever-legacy-migration-v1';
 
   const stylesheets = [
     ['sever-desktop-system', 'desktop-system.css?v=60'],
@@ -53,6 +56,27 @@
   function readPersistedTheme() {
     try { return localStorage.getItem('sever-theme') || ''; }
     catch { return ''; }
+  }
+
+  /* theme-init runs in <head>, before app.js. On a truly fresh browser we seed
+     the minimal planner record with Calm so the legacy core never creates an
+     Aurora state behind a Calm-looking UI. Pending legacy data is never touched. */
+  function seedFreshAnonymousState() {
+    try {
+      if (localStorage.getItem(ANONYMOUS_STATE_KEY)) return;
+      const legacyState = localStorage.getItem(LEGACY_STATE_KEY);
+      const legacyMigrated = localStorage.getItem(LEGACY_MIGRATION_KEY);
+      if (legacyState && !legacyMigrated) return;
+      const persisted = readPersistedTheme();
+      const theme = persisted ? normalize(persisted) : 'light';
+      localStorage.setItem(ANONYMOUS_STATE_KEY, JSON.stringify({
+        version: 11,
+        onboarded: false,
+        tasks: [],
+        appearance: { theme, animations: 'auto', reduceEffects: false }
+      }));
+      localStorage.setItem('sever-theme', theme);
+    } catch {}
   }
 
   function retireLegacyHomeLayer() {
@@ -163,42 +187,6 @@
     syncPresentation(selected);
   }
 
-  function storedPlannerTheme() {
-    try {
-      const scope = window.SeverApp?.getStorageScope?.();
-      if (!scope) return '';
-      return JSON.parse(localStorage.getItem(scope) || '{}')?.appearance?.theme || '';
-    } catch { return ''; }
-  }
-
-  function settleFirstThemeForFreshProfile(attempt = 0) {
-    const app = window.SeverApp;
-    const state = app?.getState?.();
-    if (!state || state.onboarded !== false) return;
-
-    document.documentElement.dataset.theme = 'light';
-    document.documentElement.dataset.severMood = themes.light.ui;
-    try { localStorage.setItem('sever-theme', 'light'); } catch {}
-    syncPresentation('light');
-
-    /* initializeApp is async. Wait for its first persistent save before using
-       the app's own theme handler, otherwise recovery can restore legacy Aurora. */
-    if (!Number(state._savedAt)) {
-      if (attempt < 80) setTimeout(() => settleFirstThemeForFreshProfile(attempt + 1), 25);
-      return;
-    }
-
-    if (state.appearance?.theme === 'light' && normalize(storedPlannerTheme()) === 'light') return;
-    const lightButton = document.querySelector('.theme-picker [data-sever-theme="light"]');
-    if (lightButton?.dataset.severThemeWrapped === 'true') {
-      lightButton.click();
-      if (attempt < 80) setTimeout(() => settleFirstThemeForFreshProfile(attempt + 1), 25);
-      return;
-    }
-
-    if (attempt < 80) setTimeout(() => settleFirstThemeForFreshProfile(attempt + 1), 25);
-  }
-
   function polishCopy() {
     const themeSection = document.querySelector('.settings-appearance > small');
     if (themeSection) themeSection.textContent = 'ОФОРМЛЕНИЕ';
@@ -224,6 +212,7 @@
     observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
   }
 
+  seedFreshAnonymousState();
   retireLegacyHomeLayer();
   installStylesheets();
   installScripts();
@@ -240,6 +229,5 @@
     preparePicker();
     polishCopy();
     syncPresentation(document.documentElement.dataset.theme);
-    settleFirstThemeForFreshProfile();
   });
 })();
