@@ -1,0 +1,101 @@
+/* SEVER 2 reminder experience v82 — task-based, quiet and explicit. */
+
+.sever-reminder-options {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.sever-reminder-option {
+  margin: 0 !important;
+}
+
+.sever-reminder-option:has(input:disabled) {
+  opacity: .52;
+}
+
+.sever-reminder-note {
+  display: grid;
+  gap: 4px;
+  padding: 13px 14px;
+  border: 1px solid var(--border, var(--line));
+  border-radius: var(--radius-control, 12px);
+  background: color-mix(in srgb, var(--surface-2, var(--panel)) 72%, transparent);
+}
+
+.sever-reminder-note b {
+  color: var(--text-primary, var(--text));
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.sever-reminder-note span {
+  color: var(--text-secondary, var(--muted));
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.sever-reminder-status {
+  min-height: 18px;
+  margin: 2px 2px 0;
+  color: var(--text-secondary, var(--muted));
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.sever-reminder-status[data-kind="ok"] {
+  color: var(--accent, var(--sever-blue));
+}
+
+.sever-reminder-status[data-kind="warning"] {
+  color: var(--warning, #a56a35);
+}
+
+.sever-task-reminder-hint {
+  display: block;
+  margin-top: 7px;
+  color: var(--text-secondary, var(--muted));
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.notification-settings.sever2-reminder-legacy > .setting-title,
+.notification-settings.sever2-reminder-legacy > label,
+.notification-settings.sever2-reminder-legacy > #testNotification,
+.notification-settings.sever2-reminder-legacy > #notificationHint {
+  display: none !important;
+}
+
+.notification-settings.sever2-reminder-legacy {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.sever-open-reminder-settings {
+  width: 100%;
+  min-height: 46px;
+}
+
+html[data-theme="black"] .sever-reminder-note {
+  background: color-mix(in srgb, var(--surface-1, var(--panel)) 88%, #fff 2%);
+}
+
+@media (max-width: 900px) {
+  .sever-reminder-options {
+    gap: 8px;
+  }
+
+  .sever-reminder-note {
+    padding: 12px 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sever-reminder-option,
+  .sever-reminder-note,
+  .sever-reminder-status {
+    transition: none !important;
+  }
+}
