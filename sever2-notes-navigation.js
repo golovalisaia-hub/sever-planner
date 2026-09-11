@@ -72,6 +72,14 @@
     return sheet;
   }
 
+  function handoff(action) {
+    const dialog = ensureSheet();
+    if (dialog.open) dialog.close();
+    // Keep only one modal dialog active at a time. The next frame also lets the
+    // native close lifecycle finish before the legacy Notes dialog calls showModal().
+    requestAnimationFrame(() => action?.());
+  }
+
   function buildSourceRow(button, index, mode) {
     const row = document.createElement('button');
     row.type = 'button';
@@ -128,8 +136,10 @@
       add.type = 'button';
       add.textContent = 'Новая папка';
       add.addEventListener('click', () => {
-        dialog.close();
-        document.querySelector('#openFolder')?.click();
+        handoff(() => {
+          if (typeof window.SeverNotes?.openFolderDialog === 'function') window.SeverNotes.openFolderDialog();
+          else document.querySelector('#openFolder')?.click();
+        });
       });
       footer.appendChild(add);
       if (!isDefaultFolder() && activeFolderButton() !== sourceButtons(folderSource())[1]) {
@@ -137,8 +147,7 @@
         manage.type = 'button';
         manage.textContent = 'Управлять текущей';
         manage.addEventListener('click', () => {
-          dialog.close();
-          document.querySelector('#manageFolder')?.click();
+          handoff(() => document.querySelector('#manageFolder')?.click());
         });
         footer.appendChild(manage);
       }
