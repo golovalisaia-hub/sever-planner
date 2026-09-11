@@ -50,9 +50,7 @@ html[data-theme="black"] #notesView {
   background: color-mix(in srgb, var(--accent) 2.5%, var(--surface-1, var(--panel))) !important;
 }
 
-#notesView .note-card.notes-core-card:active {
-  transform: scale(.995) !important;
-}
+#notesView .note-card.notes-core-card:active { transform: scale(.995) !important; }
 
 html[data-theme="black"] #notesView .note-card.notes-core-card {
   border-color: color-mix(in srgb, var(--text-primary, var(--text)) 12%, transparent) !important;
@@ -88,9 +86,7 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
   cursor: pointer;
 }
 
-#notesView .notes-core-more-items[data-notes-compact-open="true"] {
-  color: var(--accent);
-}
+#notesView .notes-core-more-items[data-notes-compact-open="true"] { color: var(--accent); }
 
 #notesView .notes-core-more-items:hover,
 #notesView .notes-core-more-items:focus-visible,
@@ -118,10 +114,7 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
   -webkit-line-clamp: unset;
 }
 
-#notesView .note-checklist {
-  gap: 3px;
-  margin-top: 10px;
-}
+#notesView .note-checklist { gap: 3px; margin-top: 10px; }
 
 #notesView .note-check {
   min-height: 34px;
@@ -130,9 +123,7 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
   border-radius: 9px;
 }
 
-#notesView .note-check:hover {
-  background: color-mix(in srgb, var(--text-primary, var(--text)) 3.5%, transparent);
-}
+#notesView .note-check:hover { background: color-mix(in srgb, var(--text-primary, var(--text)) 3.5%, transparent); }
 
 #notesView .notes-polish-footer {
   display: grid;
@@ -174,9 +165,7 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
   white-space: nowrap;
 }
 
-#notesView .notes-org-action {
-  letter-spacing: .12em;
-}
+#notesView .notes-org-action { letter-spacing: .12em; }
 
 .notes-polish-action-dialog.notes-org-sheet {
   width: min(390px, calc(100vw - 28px));
@@ -191,11 +180,7 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
   border-radius: 19px;
 }
 
-.notes-polish-action-dialog .notes-org-sheet-copy {
-  gap: 2px;
-  padding: 2px 7px 5px;
-}
-
+.notes-polish-action-dialog .notes-org-sheet-copy { gap: 2px; padding: 2px 7px 5px; }
 .notes-polish-action-dialog .notes-org-sheet-copy b { font-size: .86rem; }
 .notes-polish-action-dialog .notes-org-sheet-copy span { font-size: .64rem; }
 .notes-polish-action-dialog .notes-org-sheet-actions { border-radius: 13px; }
@@ -238,9 +223,7 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
     background: var(--surface-1, var(--panel));
   }
 
-  #noteDialog.notes-polish-editor::backdrop {
-    background: rgba(0, 0, 0, .34);
-  }
+  #noteDialog.notes-polish-editor::backdrop { background: rgba(0, 0, 0, .34); }
 
   #noteDialog .notes-polish-editor-form {
     box-sizing: border-box;
@@ -248,7 +231,7 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
     height: 100dvh;
     max-height: 100dvh;
     gap: 11px;
-    padding: max(10px, env(safe-area-inset-top)) 14px calc(86px + env(safe-area-inset-bottom));
+    padding: max(10px, env(safe-area-inset-top)) 14px 0;
     overflow-y: auto;
     overscroll-behavior: contain;
     background: var(--surface-1, var(--panel));
@@ -334,17 +317,15 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
   #noteDialog .notes-polish-editor-actions {
     position: sticky;
     z-index: 5;
-    bottom: calc(-86px - env(safe-area-inset-bottom));
-    margin: 4px -14px calc(-86px - env(safe-area-inset-bottom));
+    bottom: 0;
+    margin: 4px -14px 0;
     padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
     border-top: 1px solid var(--border-subtle, var(--line));
     background: color-mix(in srgb, var(--surface-1, var(--panel)) 95%, transparent);
     backdrop-filter: blur(18px);
   }
 
-  #noteDialog .notes-polish-editor-actions .primary {
-    min-height: 48px;
-  }
+  #noteDialog .notes-polish-editor-actions .primary { min-height: 48px; }
 
   .notes-polish-action-dialog.notes-org-sheet {
     width: calc(100vw - 20px);
