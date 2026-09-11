@@ -37,7 +37,7 @@ test('current service worker installs the guarded release atomically and removes
     './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=84','./sever2-usability-v84.js?v=84',
     './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
-    './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./js/theme-init.js?v=81'
+    './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./js/theme-init.js?v=84'
   ]) assert.ok(cachedAssets.includes(asset), `missing ${asset}`);
   let activateWork;
   handlers.get('activate')({ waitUntil: promise => { activateWork = promise; } });
@@ -83,7 +83,7 @@ test('installed current release serves recovery and guarded bootstrap from one r
     ['sever2-interaction-polish.js?v=old','cors','./sever2-interaction-polish.js?v=78'],
     ['sever2-cloud-recovery.css?v=old','cors','./sever2-cloud-recovery.css?v=80'],
     ['sever2-cloud-recovery.js?v=old','cors','./sever2-cloud-recovery.js?v=80'],
-    ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=81'],
+    ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=84'],
     ['app.js?v=new','cors','./app.js?v=51']
   ];
   for (const [pathValue, mode, expected] of cases) {
