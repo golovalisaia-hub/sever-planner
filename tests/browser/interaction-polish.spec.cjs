@@ -70,6 +70,7 @@ test('task completion shows a real checkmark and remains reversible in every the
     expect(completed.bottom).toBeGreaterThan(0);
     expect(completed.overflow).toBeLessThanOrEqual(1);
 
+    await page.waitForTimeout(500);
     await check.click();
     await expect(task).not.toHaveClass(/\bdone\b/);
     await expect(check).toHaveAttribute('aria-pressed', 'false');
@@ -122,6 +123,7 @@ test('habit completion keeps edit button and seven-day geometry stable in every 
     expect(closeEnough(before.today.height, after.today.height, 2)).toBe(true);
     expect(after.overflow).toBeLessThanOrEqual(1);
 
+    await page.waitForTimeout(500);
     await today.click();
     await expect(habit).not.toHaveClass(/\bdone\b/);
   }
