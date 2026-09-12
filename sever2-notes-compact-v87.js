@@ -5,6 +5,7 @@
   let booted = false;
   let bootAttempts = 0;
   let observer = null;
+  let listObserver = null;
 
   const labels = {
     all: 'Все типы',
@@ -21,11 +22,30 @@
     return sourceButtons().find(button => button.classList.contains('active'))?.dataset.notesCoreFilter || 'all';
   }
 
+  function syncLibraryState() {
+    const view = $('#notesView');
+    if (!view) return;
+    const count = Array.isArray(window.SeverApp?.getState?.()?.notes)
+      ? window.SeverApp.getState().notes.length
+      : view.querySelectorAll('#noteList .note-card').length;
+    view.classList.toggle('notes-v94-empty-library', count === 0);
+    view.dataset.notesLibraryState = count === 0 ? 'empty' : 'ready';
+  }
+
   function syncSelect() {
     const select = $('#notesCompactType');
-    if (!select) return;
-    const next = activeValue();
-    if (select.value !== next) select.value = next;
+    if (select) {
+      const next = activeValue();
+      if (select.value !== next) select.value = next;
+    }
+    syncLibraryState();
+  }
+
+  function observeLibrary() {
+    const list = $('#noteList');
+    if (!list || listObserver) return;
+    listObserver = new MutationObserver(() => requestAnimationFrame(syncLibraryState));
+    listObserver.observe(list, { childList: true, subtree: true });
   }
 
   function install() {
@@ -34,6 +54,7 @@
     const buttons = sourceButtons();
     if (!controls || !sort || !buttons.length) return false;
     if ($('#notesCompactType')) {
+      observeLibrary();
       syncSelect();
       return true;
     }
@@ -61,7 +82,9 @@
 
     observer = new MutationObserver(syncSelect);
     buttons.forEach(button => observer.observe(button, { attributes: true, attributeFilter: ['class'] }));
-    document.documentElement.dataset.severNotesCompact = 'v87';
+    observeLibrary();
+    syncLibraryState();
+    document.documentElement.dataset.severNotesCompact = 'v94';
     return true;
   }
 
