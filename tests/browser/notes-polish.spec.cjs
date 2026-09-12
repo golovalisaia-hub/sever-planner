@@ -80,9 +80,9 @@ test('long text preview expands inline with More and never opens the editor', as
   await expect(page.locator('#noteDialog')).toBeHidden();
 });
 
-test('phone Notes restores the compact v87 type selector instead of four permanent filter buttons', async ({ page }, info) => {
+test('phone Notes keeps the compact v94 type selector instead of four permanent filter buttons', async ({ page }, info) => {
   test.skip(info.project.name === 'desktop');
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesCompact)).toBe('v87');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesCompact)).toBe('v94');
   const select = page.locator('#notesCompactType');
   await expect(select).toBeVisible();
   await expect(page.locator('#notesView .notes-core-filters')).toBeHidden();
