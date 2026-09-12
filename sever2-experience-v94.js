@@ -25,10 +25,11 @@
     root.querySelector('.sever-sync-retry').addEventListener('click', async event => {
       event.preventDefault();
       event.stopPropagation();
-      if (retryBusy || !navigator.onLine || !window.SeverCloudRecovery?.recover) return;
+      const cloud = window.SeverCloud;
+      if (retryBusy || !navigator.onLine || typeof cloud?.recoverNow !== 'function') return;
       retryBusy = true;
       render();
-      try { await window.SeverCloudRecovery.recover(); }
+      try { await cloud.recoverNow(); }
       catch {}
       finally {
         retryBusy = false;
