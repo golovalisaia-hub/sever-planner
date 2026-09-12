@@ -35,6 +35,26 @@ async function boot(page) {
 
 test.beforeEach(async ({ page }) => { await boot(page); });
 
+test('identical rapid form actions dedupe but a changed value is accepted immediately', async ({ page }) => {
+  const result = await page.evaluate(() => {
+    const main = document.querySelector('main');
+    const form = document.createElement('form');
+    form.innerHTML = '<input id="rapidSynthetic" value="alpha">';
+    main.appendChild(form);
+    let accepted = 0;
+    form.addEventListener('submit', event => { event.preventDefault(); accepted += 1; });
+    const fire = () => form.dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }));
+    fire();
+    fire();
+    form.querySelector('input').value = 'beta';
+    fire();
+    const blocked = form.dataset.severRapidBlocked === 'true';
+    form.remove();
+    return { accepted, blocked };
+  });
+  expect(result).toEqual({ accepted: 2, blocked: true });
+});
+
 test('rapid double submit creates one task, not a duplicate', async ({ page }) => {
   await page.evaluate(() => {
     const input = document.querySelector('#quickInput');
