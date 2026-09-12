@@ -69,3 +69,38 @@ test('phone Settings section index keeps 44px touch targets', async ({ page }, i
   expect(heights.length).toBeGreaterThanOrEqual(5);
   for (const height of heights) expect(height).toBeGreaterThanOrEqual(44);
 });
+
+test('phone cloud warning exposes a working recovery action without opening a modal', async ({ page }, info) => {
+  test.skip(info.project.name === 'desktop');
+  await page.evaluate(() => {
+    const cloud = window.SeverCloud;
+    Object.defineProperty(cloud, 'configured', { configurable: true, value: true });
+    cloud.lastErrorCode = 'SYNC_TIMEOUT';
+    cloud.status = 'pending';
+    cloud.health = () => ({
+      configured: true,
+      session: 'signed-in',
+      status: 'pending',
+      lastErrorCode: cloud.lastErrorCode
+    });
+    window.__severV94RecoverCount = 0;
+    cloud.recoverNow = async () => {
+      window.__severV94RecoverCount += 1;
+      cloud.lastErrorCode = null;
+      cloud.status = 'synced';
+      cloud.health = () => ({ configured: true, session: 'signed-in', status: 'synced', lastErrorCode: null });
+      window.dispatchEvent(new CustomEvent('sever:cloud-status', { detail: cloud.health() }));
+      return { signedIn: true, syncPending: false };
+    };
+    window.dispatchEvent(new CustomEvent('sever:cloud-status', { detail: cloud.health() }));
+  });
+
+  const indicator = page.locator('#severMobileSyncIndicator');
+  await expect(indicator).toBeVisible();
+  await expect(indicator.locator('.sever-sync-copy')).toHaveText('Связь с облаком');
+  await expect(indicator.locator('.sever-sync-retry')).toBeVisible();
+  await indicator.locator('.sever-sync-retry').click();
+  await expect.poll(() => page.evaluate(() => window.__severV94RecoverCount)).toBe(1);
+  await expect(indicator).toBeHidden();
+  await expect(page.locator('#accountDialog')).not.toHaveAttribute('open', '');
+});
