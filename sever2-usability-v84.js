@@ -11,7 +11,7 @@
   let settingsDetails = null;
   let settingsRecords = [];
   const rapidSubmitAt = new WeakMap();
-  const rapidClickAt = new WeakMap();
+  const rapidClickAt = new Map();
   const mobileSettings = window.matchMedia('(max-width: 700px)');
   const RAPID_GUARD_MS = 450;
 
@@ -147,13 +147,35 @@
     rapidSubmitAt.set(form, { at: current, signature });
   }
 
+  function rapidActionKey(target) {
+    if (target.matches('#timerToggle, #todayFocusToggle')) return 'focus-toggle';
+    if (target.id === 'moneyScheduleConfirm') return `money-schedule:${$('#moneyScheduleId')?.value || 'current'}`;
+    if (target.matches('.habit-day')) {
+      const card = target.closest('.habit, .habit-week-row');
+      const parent = card?.parentElement;
+      const siblings = parent ? [...parent.children].filter(node => node.matches?.('.habit, .habit-week-row')) : [];
+      return `habit:${siblings.indexOf(card)}:${target.dataset.date || target.dataset.day || ''}`;
+    }
+    if (target.matches('.task .check')) {
+      const card = target.closest('.task');
+      const parent = card?.parentElement;
+      const siblings = parent ? [...parent.children].filter(node => node.matches?.('.task')) : [];
+      const name = card?.querySelector('.task-name')?.textContent?.trim() || '';
+      const meta = card?.querySelector('.task-meta')?.textContent?.trim() || '';
+      return `task:${parent?.id || ''}:${siblings.indexOf(card)}:${name}:${meta}`;
+    }
+    return '';
+  }
+
   function rapidClickGuard(event) {
     const target = event.target instanceof Element
-      ? event.target.closest('.task .check, #timerToggle, #todayFocusToggle, #moneyScheduleConfirm')
+      ? event.target.closest('.task .check, .habit-day, #timerToggle, #todayFocusToggle, #moneyScheduleConfirm')
       : null;
     if (!(target instanceof HTMLElement)) return;
+    const key = rapidActionKey(target);
+    if (!key) return;
     const current = performance.now();
-    const previous = rapidClickAt.get(target) || -Infinity;
+    const previous = rapidClickAt.get(key) || -Infinity;
     if (current - previous < RAPID_GUARD_MS) {
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -161,7 +183,10 @@
       window.setTimeout(() => delete target.dataset.severRapidBlocked, RAPID_GUARD_MS);
       return;
     }
-    rapidClickAt.set(target, current);
+    rapidClickAt.set(key, current);
+    window.setTimeout(() => {
+      if (rapidClickAt.get(key) === current) rapidClickAt.delete(key);
+    }, RAPID_GUARD_MS + 50);
   }
 
   function settingsTitle(section) {
