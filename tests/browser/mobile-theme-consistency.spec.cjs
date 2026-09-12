@@ -106,49 +106,34 @@ test('every primary mobile view can scroll fully above the navigation in every t
   }
 });
 
-test('Notes mobile filters stay reachable in one compact horizontal rail', async ({ page }, info) => {
+test('Notes mobile type filtering stays reachable through one compact v87 selector', async ({ page }, info) => {
   if (info.project.name === 'desktop') test.skip();
   await page.evaluate(() => window.SeverApp.switchView('notes'));
-  await expect(page.locator('#notesView .notes-core-filters')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesCompact)).toBe('v87');
+  await expect(page.locator('#notesView .notes-core-filters')).toBeHidden();
+  const type = page.locator('#notesCompactType');
+  const sort = page.locator('#notesCoreSort');
+  await expect(type).toBeVisible();
+  await expect(sort).toBeVisible();
 
   const geometry = await page.evaluate(() => {
-    const filters = document.querySelector('#notesView .notes-core-filters');
-    const rect = filters.getBoundingClientRect();
-    const buttons = [...filters.querySelectorAll('button')].map(button => {
-      const box = button.getBoundingClientRect();
-      return { left: box.left, right: box.right, height: box.height, text: button.textContent.trim() };
-    });
-    const sort = document.querySelector('#notesView .notes-core-sort')?.getBoundingClientRect();
+    const type = document.querySelector('#notesCompactType').getBoundingClientRect();
+    const sort = document.querySelector('#notesCoreSort').getBoundingClientRect();
     return {
-      filters: { left: rect.left, right: rect.right, width: rect.width, clientWidth: filters.clientWidth, scrollWidth: filters.scrollWidth },
-      overflowX: getComputedStyle(filters).overflowX,
-      buttons,
-      sortWidth: sort?.width || 0,
+      type: { left: type.left, right: type.right, width: type.width, height: type.height, top: type.top },
+      sort: { left: sort.left, right: sort.right, width: sort.width, height: sort.height, top: sort.top },
       pageOverflow: Math.max(0, document.documentElement.scrollWidth - innerWidth)
     };
   });
 
-  expect(geometry.buttons.map(button => button.text)).toEqual(['Все', 'Заметки', 'Чек-листы', 'Защищённые']);
-  expect(geometry.buttons[0].left).toBeGreaterThanOrEqual(geometry.filters.left - 1);
-  expect(geometry.buttons[0].right).toBeLessThanOrEqual(geometry.filters.right + 1);
-  for (const button of geometry.buttons) expect(button.height).toBeGreaterThanOrEqual(38);
-  expect(['auto', 'scroll']).toContain(geometry.overflowX);
-  expect(geometry.filters.scrollWidth).toBeGreaterThanOrEqual(geometry.filters.clientWidth);
-  expect(geometry.sortWidth).toBeGreaterThan(0);
+  expect(geometry.type.height).toBeGreaterThanOrEqual(44);
+  expect(geometry.sort.height).toBeGreaterThanOrEqual(44);
+  expect(Math.abs(geometry.type.top - geometry.sort.top)).toBeLessThanOrEqual(2);
+  expect(geometry.type.left).toBeGreaterThanOrEqual(0);
+  expect(geometry.sort.right).toBeLessThanOrEqual(page.viewportSize().width + 1);
   expect(geometry.pageOverflow).toBeLessThanOrEqual(1);
-
-  await page.evaluate(() => {
-    const filters = document.querySelector('#notesView .notes-core-filters');
-    filters.scrollLeft = filters.scrollWidth;
-  });
-  await page.waitForTimeout(40);
-  const last = await page.evaluate(() => {
-    const filters = document.querySelector('#notesView .notes-core-filters').getBoundingClientRect();
-    const button = document.querySelector('#notesView .notes-core-filters button:last-child').getBoundingClientRect();
-    return { filtersLeft: filters.left, filtersRight: filters.right, left: button.left, right: button.right };
-  });
-  expect(last.left).toBeGreaterThanOrEqual(last.filtersLeft - 1);
-  expect(last.right).toBeLessThanOrEqual(last.filtersRight + 1);
+  await expect(type.locator('option')).toHaveCount(4);
+  await expect(type).toHaveValue('all');
 });
 
 test('mobile navigation keeps comfortable hit areas without visually oversized controls', async ({ page }, info) => {
