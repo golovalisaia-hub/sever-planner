@@ -71,7 +71,7 @@ test('v84 and v91 hardening remain after Home v85 in the atomic offline release'
   assert.match(loader, /sever2-home-core\.js\?v=85/);
   assert.match(loader, /sever2-usability-v84\.css\?v=84/);
   assert.match(loader, /sever2-usability-v84\.js\?v=84/);
-  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v9'/);
+  assert.match(sw, /const CACHE = 'sever-v90-video-audit-v2'/);
   for (const asset of ['./sever2-home-core.js?v=85', './sever2-usability-v84.css?v=84', './sever2-usability-v84.js?v=84', './sever2-reminders.css?v=86', './js/theme-init.js?v=85']) {
     assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   }
