@@ -51,7 +51,7 @@ test('account UI exposes sync health and a safe recovery action', () => {
   assert.match(css, /#accountDialog #accountRetry:not\(\.hidden\)/);
 });
 
-test('cloud recovery v80 remains in the atomic power-user PWA release', () => {
+test('cloud recovery v80 remains in the atomic v94 experience PWA release', () => {
   const home = themeInit.indexOf('sever2-home-core-script');
   const usability = themeInit.indexOf('sever2-usability-v84-script');
   const interaction = themeInit.indexOf('sever2-interaction-polish-script');
@@ -63,13 +63,15 @@ test('cloud recovery v80 remains in the atomic power-user PWA release', () => {
   assert.match(themeInit, /sever2-cloud-recovery\.css\?v=80/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v93-complete-release-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v94-experience-release-v1'/);
   for (const asset of [
     './sever2-home-core.js?v=85',
     './sever2-usability-v84.css?v=93',
     './sever2-usability-v84.js?v=84',
     './sever2-notes-compact-v87.css?v=87',
     './sever2-notes-compact-v87.js?v=87',
+    './sever2-experience-v94.css?v=94',
+    './sever2-experience-v94.js?v=94',
     './sever2-cloud-recovery.css?v=80',
     './sever2-cloud-recovery.js?v=80',
     './js/theme-init.js?v=92',
