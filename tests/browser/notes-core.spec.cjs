@@ -45,14 +45,25 @@ test.beforeEach(async ({ page }) => {
   await seed(page);
 });
 
-test('Notes core quick capture, filters, sorting and card opening stay functional', async ({ page }) => {
+test('Notes core quick capture, filters, sorting and card opening stay functional', async ({ page }, info) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
 
   await expect(page.locator('#notesQuickCaptureInput')).toBeVisible();
-  await expect(page.locator('#notesCoreSort')).toBeVisible();
+  if (info.project.name === 'desktop') {
+    await expect(page.locator('#notesCoreSort')).toBeVisible();
+  } else {
+    await expect(page.locator('#notesView')).toHaveAttribute('data-notes-library-state', 'empty');
+    await expect(page.locator('#notesCoreSort')).toBeHidden();
+  }
+
   await quickNote(page, 'Первая мысль');
   expect(await page.evaluate(() => window.SeverApp.getState().notes.length)).toBe(1);
+  await expect(page.locator('#notesCoreSort')).toBeVisible();
+  if (info.project.name !== 'desktop') {
+    await expect(page.locator('#notesView')).toHaveAttribute('data-notes-library-state', 'ready');
+    await expect(page.locator('#notesCompactType')).toBeVisible();
+  }
 
   await page.evaluate(() => window.SeverNotes.openNote());
   await expect(page.locator('#noteDialog')).toBeVisible();
