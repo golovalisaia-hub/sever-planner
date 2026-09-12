@@ -33,18 +33,19 @@ test('presentation layers load deterministically through cloud recovery v80', as
   assert.ok(home >= 0 && core > home && organization > core && editor > organization && navigation > editor && polish > navigation && money > polish && usability > money && interactions > usability && recovery > interactions);
 });
 
-test('cloud recovery v80 ships atomically inside the unified v92 PWA release', async () => {
+test('cloud recovery v80 ships atomically inside the complete v93 PWA release', async () => {
   const source = await read('sw.js');
-  assert.match(source, /const CACHE = 'sever-v92-unified-release-v1'/);
+  assert.match(source, /const CACHE = 'sever-v93-complete-release-v1'/);
   for (const asset of [
     './sever2-home-core.css?v=85','./sever2-home-core.js?v=85',
     './sever2-notes-core.css?v=71','./sever2-notes-core.js?v=71',
     './sever2-notes-organization.css?v=72','./sever2-notes-organization.js?v=72',
     './sever2-notes-editor-flow.css?v=90','./sever2-notes-editor-flow.js?v=73',
     './sever2-notes-navigation.css?v=74','./sever2-notes-navigation.js?v=74',
-    './sever2-notes-polish.css?v=92','./sever2-notes-polish.js?v=90',
-    './sever2-mobile-consistency.css?v=76','./sever2-money.css?v=83','./sever2-money.js?v=83',
-    './sever2-usability-v84.css?v=84','./sever2-usability-v84.js?v=84',
+    './sever2-notes-polish.css?v=92','./sever2-notes-polish.js?v=93',
+    './sever2-mobile-consistency.css?v=76','./sever2-notes-compact-v87.css?v=87','./sever2-notes-compact-v87.js?v=87',
+    './sever2-money.css?v=83','./sever2-money.js?v=83',
+    './sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84',
     './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80',
     './sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82','./mobile-ui.js?v=92','./js/theme-init.js?v=92'
@@ -52,7 +53,8 @@ test('cloud recovery v80 ships atomically inside the unified v92 PWA release', a
   for (const path of [
     'sever2-home-core.css','sever2-home-core.js',
     'sever2-notes-navigation.css','sever2-notes-navigation.js','sever2-notes-polish.css','sever2-notes-polish.js',
-    'sever2-mobile-consistency.css','sever2-money.css','sever2-money.js','sever2-usability-v84.css','sever2-usability-v84.js',
+    'sever2-notes-compact-v87.css','sever2-notes-compact-v87.js','sever2-mobile-consistency.css',
+    'sever2-money.css','sever2-money.js','sever2-usability-v84.css','sever2-usability-v84.js',
     'sever2-interaction-polish.css','sever2-interaction-polish.js','sever2-cloud-recovery.css','sever2-cloud-recovery.js',
     'sever2-reminders.css','sever2-task-reminders.js'
   ]) assert.ok(source.includes(`'/${path}'`), `missing core path ${path}`);
