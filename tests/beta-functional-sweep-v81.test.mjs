@@ -19,7 +19,7 @@ test('beta functional sweep covers every primary SEVER area', () => {
   assert.match(source, /page\.reload\(\)/);
 });
 
-test('v81 startup guard remains active inside the v90 video-audit cache refresh', () => {
+test('v81 startup guard remains active inside the unified v92 release cache', () => {
   assert.match(themeInit, /function installServiceWorkerStartupGuard\(\)/);
   assert.match(themeInit, /originalRegister\.apply\(container, args\)/);
   assert.match(themeInit, /return registration \|\| fallbackRegistration/);
@@ -27,9 +27,9 @@ test('v81 startup guard remains active inside the v90 video-audit cache refresh'
   assert.match(themeInit, /container\.register !== safeRegister/);
   assert.match(themeInit, /sever2-home-core\.js\?v=85/);
   assert.match(themeInit, /sever2-usability-v84\.js\?v=84/);
-  assert.match(sw, /const CACHE = 'sever-v90-video-audit-v2'/);
+  assert.match(sw, /const CACHE = 'sever-v92-unified-release-v1'/);
   assert.match(sw, /sever2-home-core\.js\?v=85/);
-  assert.match(sw, /js\/theme-init\.js\?v=85/);
+  assert.match(sw, /js\/theme-init\.js\?v=92/);
   assert.match(sw, /sever2-usability-v84\.js\?v=84/);
   assert.match(sw, /sever2-reminders\.css\?v=86/);
 });
