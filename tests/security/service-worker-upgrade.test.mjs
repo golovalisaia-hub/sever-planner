@@ -6,7 +6,7 @@ import vm from 'node:vm';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-const RELEASE_CACHE = 'sever-v82-reminders-desktop-v8';
+const RELEASE_CACHE = 'sever-v82-reminders-desktop-v9';
 
 test('current service worker installs the guarded release atomically and removes stale caches', async () => {
   const handlers = new Map();
@@ -22,7 +22,7 @@ test('current service worker installs the guarded release atomically and removes
   };
   const caches = {
     open: async name => ({ addAll: async assets => { assert.equal(name, RELEASE_CACHE); cachedAssets = assets; } }),
-    keys: async () => ['sever-v75-notes-compact-v1', 'sever-v82-reminders-desktop-v7'],
+    keys: async () => ['sever-v75-notes-compact-v1', 'sever-v82-reminders-desktop-v7', 'sever-v82-reminders-desktop-v8'],
     delete: async name => { deleted.push(name); return true; }
   };
   vm.runInNewContext(source, { self, caches, clients: self.clients, fetch: async () => ({}), URL, Promise, Response });
@@ -45,6 +45,7 @@ test('current service worker installs the guarded release atomically and removes
   await activateWork;
   assert.ok(deleted.includes('sever-v75-notes-compact-v1'));
   assert.ok(deleted.includes('sever-v82-reminders-desktop-v7'));
+  assert.ok(deleted.includes('sever-v82-reminders-desktop-v8'));
   assert.ok(!deleted.includes(RELEASE_CACHE));
   assert.equal(claimed, true);
   assert.equal(skipped, true);
@@ -62,7 +63,7 @@ test('installed current release serves Home v85, reminder v86 styles and recover
   const caches = {
     open: async name => {
       assert.equal(name, RELEASE_CACHE);
-      return { match: async key => { requests.push(key); return { release: 86, key }; } };
+      return { match: async key => { requests.push(key); return { release: 91, key }; } };
     }
   };
   vm.runInNewContext(source, { self, caches, URL, Response, fetch: async () => { network++; throw Error('network must not update a release'); } });

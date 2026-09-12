@@ -160,8 +160,50 @@
     font-size: 1.12rem;
   }
 
+  /* The phone editor should feel like a note, not a long settings form. */
   #noteDialog #noteBody {
-    min-height: 260px;
+    min-height: 138px;
+    resize: vertical;
+  }
+
+  #noteDialog:has([data-note-type="checklist"].active) #noteBody {
+    min-height: 88px;
+    max-height: 132px;
+  }
+
+  #noteDialog .checklist-editor-head {
+    align-items: center;
+  }
+
+  #noteDialog .checklist-editor-head > div {
+    min-width: 0;
+  }
+
+  #noteDialog .checklist-editor-head > div > span {
+    display: none;
+  }
+
+  /* Saving belongs at the end of the note. Never cover checklist rows. */
+  #noteDialog .notes-polish-editor-form {
+    padding-bottom: max(22px, env(safe-area-inset-bottom)) !important;
+    scroll-padding-bottom: max(24px, env(safe-area-inset-bottom)) !important;
+  }
+
+  #noteDialog .dialog-actions,
+  #noteDialog .notes-polish-editor-actions {
+    position: static !important;
+    z-index: auto !important;
+    bottom: auto !important;
+    margin: 10px 0 0 !important;
+    padding: 12px 0 max(8px, env(safe-area-inset-bottom)) !important;
+    border-top: 1px solid color-mix(in srgb, var(--border-subtle, var(--line)) 78%, transparent);
+    background: transparent !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  #noteDialog .dialog-actions .primary {
+    min-height: 48px;
   }
 }
 

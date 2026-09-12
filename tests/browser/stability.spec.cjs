@@ -42,7 +42,7 @@ test('running timer cannot write a session into another storage scope', async ({
   expect(await page.evaluate(() => window.SeverApp.getState().stats.sessions)).toBe(0);
   expect(await page.evaluate(() => window.SeverApp.getContext().activeTimerId)).toBe('');
 });
-test('navigation, SVG metrics, AI geometry, creation and quick note', async ({ page }, info) => {
+test('navigation, SVG metrics, AI geometry, creation and note capture', async ({ page }, info) => {
   const phone = info.project.name !== 'desktop';
   await only(page, 'today');
   if (phone) {
@@ -53,17 +53,18 @@ test('navigation, SVG metrics, AI geometry, creation and quick note', async ({ p
     expect(metrics).toHaveLength(4);
     for (const metric of metrics) { expect(metric.svg).toBe(1); expect(metric.vectorParts).toBeGreaterThan(0); }
 
-    /* Focus Peak intentionally replaces the phone dashboard wall with the
-       large focus card from the new reference. This is the expected layout,
-       not a missing-icon regression. */
-    const focusMode = await page.evaluate(() => ({
+    const homeMode = await page.evaluate(() => ({
       theme: document.documentElement.dataset.theme,
       dashboardDisplay: getComputedStyle(document.querySelector('#todayDashboard')).display,
-      focusHeight: document.querySelector('#todayFocusWidget').getBoundingClientRect().height
+      utilitiesDisplay: getComputedStyle(document.querySelector('#todayView .today-utilities')).display,
+      homeHeight: document.querySelector('#sever2HomeCore').getBoundingClientRect().height,
+      createHeight: document.querySelector('#sever2HomeCore [data-home-action="create"]').getBoundingClientRect().height
     }));
-    expect(focusMode.theme).toBe('black');
-    expect(focusMode.dashboardDisplay).toBe('none');
-    expect(focusMode.focusHeight).toBeGreaterThan(220);
+    expect(homeMode.theme).toBe('black');
+    expect(homeMode.dashboardDisplay).toBe('none');
+    expect(homeMode.utilitiesDisplay).toBe('none');
+    expect(homeMode.homeHeight).toBeGreaterThan(150);
+    expect(homeMode.createHeight).toBeGreaterThanOrEqual(44);
 
     const geometry = await page.evaluate(() => {
       const ai = document.querySelector('#severAiOpen').getBoundingClientRect(), nav = document.querySelector('.bottom-nav').getBoundingClientRect(), create = document.querySelector('.mobile-create .nav-icon').getBoundingClientRect();
@@ -76,13 +77,18 @@ test('navigation, SVG metrics, AI geometry, creation and quick note', async ({ p
     await page.locator('#mobileCreateBtn').click(); await expect(page.locator('#quickAddDialog')).toBeVisible();
     await page.locator('#quickCaptureInput').fill('Проверка создания'); await page.locator('#quickCaptureForm button[type=submit]').click();
     await expect(page.locator('#todayTasks')).toContainText('Проверка создания');
-    await page.locator('#mobileQuickNote').click(); await page.locator('#quickNoteText').fill('Проверка заметки');
-    await page.locator('#quickNoteForm .primary').click();
+
+    await page.locator('.bottom-nav [data-view="notes"]').click(); await only(page, 'notes');
+    await page.locator('#notesQuickCaptureInput').fill('Проверка заметки');
+    await page.locator('#notesQuickCaptureInput').press('Enter');
+    await expect(page.locator('#noteList')).toContainText('Проверка заметки');
+    await page.locator('.bottom-nav [data-view="today"]').click(); await only(page, 'today');
   }
   const nav = phone ? '.bottom-nav' : '.side-nav';
   for (const view of ['calendar', 'notes', 'today']) { await page.locator(`${nav} [data-view="${view}"]`).click(); await only(page, view); }
   if (phone) {
-    await page.locator('#todayFocusWidget').click(); await only(page, 'timer');
+    await expect(page.locator('#todayFocusWidget')).toBeHidden();
+    await page.locator('#sever2HomeCore [data-home-action="focus"]').click(); await only(page, 'timer');
     for (const view of ['habits', 'progress', 'settings']) {
       await page.locator('#mobileNavMore').click();
       await page.locator(view === 'settings' ? '#openSettingsMenu' : `[data-menu-view="${view}"]`).click(); await only(page, view);

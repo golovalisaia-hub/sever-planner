@@ -41,61 +41,78 @@ async function seed(page) {
 
 test.beforeEach(async ({ page }) => { await seed(page); });
 
-test('checklist preview stays compact and opens the full editor instead of expanding inline', async ({ page }) => {
+test('checklist preview shows three rows and More expands inline without opening the editor', async ({ page }) => {
   const card = page.locator('#noteList .note-card').filter({ hasText: 'Большой чек-лист' });
-  const open = card.locator('.notes-core-more-items');
-  await expect(open).toContainText('Ещё 3');
-  await expect(open).toHaveAttribute('aria-expanded', 'false');
-  await expect(open).toHaveAttribute('data-notes-compact-open', 'true');
-  await expect(card.locator('.note-check:visible')).toHaveCount(2);
+  const more = card.locator('.notes-core-more-items');
+  await expect(more).toContainText('Ещё 2');
+  await expect(more).toHaveAttribute('aria-expanded', 'false');
+  await expect(card.locator('.note-check:visible')).toHaveCount(3);
 
-  await open.click();
-  await expect(page.locator('#noteDialog')).toBeVisible();
-  await expect(page.locator('#noteItemsEditor .note-item-editor')).toHaveCount(5);
-  await expect(card.locator('.note-check:visible')).toHaveCount(2);
+  await more.click();
+  await expect(page.locator('#noteDialog')).toBeHidden();
+  await expect(more).toHaveAttribute('aria-expanded', 'true');
+  await expect(more).toContainText('Свернуть');
+  await expect(card).toHaveClass(/notes-polish-checklist-expanded/);
+  await expect(card.locator('.note-check:visible')).toHaveCount(5);
+
+  await more.click();
+  await expect(more).toHaveAttribute('aria-expanded', 'false');
+  await expect(card.locator('.note-check:visible')).toHaveCount(3);
 });
 
-test('bulk completion is still explicit without expanding the card', async ({ page }) => {
+test('bulk completion remains explicit while the preview stays compact', async ({ page }) => {
   const card = page.locator('#noteList .note-card').filter({ hasText: 'Большой чек-лист' });
   const bulk = card.locator('.notes-polish-bulk-action');
   await expect(bulk).toContainText('Выполнить все');
   await bulk.click();
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().notes.find(note => note.id === 'checklist-polish').items.every(item => item.done))).toBe(true);
-  await expect(card.locator('.note-check:visible')).toHaveCount(2);
+  await expect(card.locator('.note-check:visible')).toHaveCount(3);
 });
 
-test('long text preview can expand without opening the editor', async ({ page }) => {
+test('long text preview expands inline with More and never opens the editor', async ({ page }) => {
   const card = page.locator('#noteList .note-card').filter({ hasText: 'Длинная заметка' });
   const toggle = card.locator('.notes-polish-body-toggle');
-  await expect(toggle).toContainText('Показать полностью');
+  await expect(toggle).toContainText('Ещё');
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(toggle).toContainText('Свернуть');
   await expect(card).toHaveClass(/notes-polish-body-expanded/);
-  await expect(page.locator('#noteDialog')).not.toBeVisible();
+  await expect(page.locator('#noteDialog')).toBeHidden();
 });
 
-test('mobile checklist editor is contained, scrollable and keeps save reachable', async ({ page }, info) => {
+test('mobile checklist editor uses one scroll flow and actions never cover checklist rows', async ({ page }, info) => {
   test.skip(info.project.name === 'desktop');
   const card = page.locator('#noteList .note-card').filter({ hasText: 'Большой чек-лист' });
-  await card.locator('.notes-core-more-items').click();
+  await card.locator('.note-edit').click();
   const dialog = page.locator('#noteDialog');
   await expect(dialog).toBeVisible();
+  const last = page.locator('#noteItemsEditor .note-item-editor').last();
+  await last.scrollIntoViewIfNeeded();
+  await expect(last).toBeVisible();
+
   const geometry = await page.evaluate(() => {
     const dialog = document.querySelector('#noteDialog').getBoundingClientRect();
-    const editor = document.querySelector('#noteItemsEditor').getBoundingClientRect();
+    const editor = document.querySelector('#noteItemsEditor');
+    const last = editor.querySelector('.note-item-editor:last-child').getBoundingClientRect();
+    const actions = document.querySelector('#noteForm .dialog-actions').getBoundingClientRect();
     const save = document.querySelector('#noteForm .dialog-actions .primary').getBoundingClientRect();
+    const overlap = Math.max(0, Math.min(last.bottom, actions.bottom) - Math.max(last.top, actions.top));
     return {
       dialogHeight: dialog.height,
       viewportHeight: innerHeight,
-      editorMax: getComputedStyle(document.querySelector('#noteItemsEditor')).maxHeight,
-      editorOverflow: getComputedStyle(document.querySelector('#noteItemsEditor')).overflowY,
+      editorMax: getComputedStyle(editor).maxHeight,
+      editorOverflow: getComputedStyle(editor).overflowY,
+      actionPosition: getComputedStyle(document.querySelector('#noteForm .dialog-actions')).position,
+      overlap,
       saveHeight: save.height,
       horizontalOverflow: document.documentElement.scrollWidth - innerWidth
     };
   });
   expect(geometry.dialogHeight).toBeLessThanOrEqual(geometry.viewportHeight + 1);
-  expect(geometry.editorMax).not.toBe('none');
-  expect(geometry.editorOverflow).toBe('auto');
+  expect(geometry.editorMax).toBe('none');
+  expect(geometry.editorOverflow).toBe('visible');
+  expect(geometry.actionPosition).toBe('static');
+  expect(geometry.overlap).toBeLessThanOrEqual(1);
   expect(geometry.saveHeight).toBeGreaterThanOrEqual(44);
   expect(geometry.horizontalOverflow).toBeLessThanOrEqual(1);
 });
@@ -112,7 +129,7 @@ test('card opens editor while three-dot action remains compact', async ({ page }
   expect(box.height).toBeLessThan(360);
   await dialog.locator('.notes-org-sheet-cancel').click();
 
-  await card.click({ position: { x: 24, y: 24 } });
+  await card.locator('.note-edit').click();
   await expect(page.locator('#noteDialog')).toBeVisible();
   if (info.project.name !== 'desktop') {
     const actionSize = await card.locator('.notes-org-action').evaluate(el => ({ w: el.getBoundingClientRect().width, h: el.getBoundingClientRect().height }));
@@ -132,7 +149,7 @@ test('notes stay readable and overflow-free in all three themes', async ({ page 
     expect(overflow).toBeLessThanOrEqual(1);
     const cards = page.locator('#noteList .note-card');
     await expect(cards).toHaveCount(2);
-    await expect(cards.filter({ hasText: 'Большой чек-лист' }).locator('.note-check:visible')).toHaveCount(2);
+    await expect(cards.filter({ hasText: 'Большой чек-лист' }).locator('.note-check:visible')).toHaveCount(3);
     const radius = await cards.first().evaluate(el => getComputedStyle(el).borderRadius);
     expect(parseFloat(radius)).toBeGreaterThanOrEqual(14);
   }

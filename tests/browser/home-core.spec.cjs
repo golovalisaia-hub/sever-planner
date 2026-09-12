@@ -31,8 +31,9 @@ function createButton(page, projectName) {
   return page.locator(projectName === 'desktop' ? '#globalAddBtn' : '#mobileCreateBtn');
 }
 
-test('Home shows the current task once and only follow-up tasks below without mutating planner data', async ({ page }) => {
+test('Home keeps one primary task without mutating planner data', async ({ page }, info) => {
   const today = isoToday();
+  const phone = info.project.name !== 'desktop';
   const tasks = [
     { id: 'later', title: 'Позднее дело', date: today, time: '18:00', duration: 20, completed: false, category: 'Личное', priority: false, createdAt: 3 },
     { id: 'priority', title: 'Важное дело', date: today, time: '', duration: 30, completed: false, category: 'Личное', priority: true, createdAt: 2 },
@@ -49,11 +50,21 @@ test('Home shows the current task once and only follow-up tasks below without mu
   await expect(page.locator('[data-home-stat="minutes"]')).toHaveText('65 мин');
   await expect(page.locator('[data-home-stat="progress"]')).toHaveText('25%');
   await expect(page.locator('[data-home-inbox-count]')).toHaveText('1');
-  await expect(page.locator('.sever2-home-priority')).toBeVisible();
-  await expect(page.locator('.sever2-home-priority header')).toContainText('ДАЛЬШЕ');
-  await expect(page.locator('.sever2-home-priority-copy b')).toHaveText(['Важное дело', 'Позднее дело']);
-  await expect(page.locator('.sever2-home-priority-number')).toHaveText(['2', '3']);
-  await expect(page.locator('.sever2-home-priority')).not.toContainText('Шаг по цели');
+
+  const followUp = page.locator('.sever2-home-priority');
+  if (phone) {
+    await expect(followUp).toBeHidden();
+    await expect(page.locator('#todayTasks')).toContainText('Шаг по цели');
+    await expect(page.locator('#todayTasks')).toContainText('Важное дело');
+    await expect(page.locator('#todayTasks')).toContainText('Позднее дело');
+  } else {
+    await expect(followUp).toBeVisible();
+    await expect(followUp.locator('header')).toContainText('ДАЛЬШЕ');
+    await expect(page.locator('.sever2-home-priority-copy b')).toHaveText(['Важное дело', 'Позднее дело']);
+    await expect(page.locator('.sever2-home-priority-number')).toHaveText(['2', '3']);
+    await expect(followUp).not.toContainText('Шаг по цели');
+  }
+
   const hierarchy = await page.evaluate(() => {
     const hero = document.querySelector('#todayView .today-hero').getBoundingClientRect();
     const home = document.querySelector('#sever2HomeCore').getBoundingClientRect();

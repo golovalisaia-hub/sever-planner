@@ -5,12 +5,16 @@
     max-width: 34rem;
   }
 
+  /* The base SEVER 2 mobile layer uses grid-template-columns:1fr!important.
+     This later usability layer intentionally turns the theme picker into a
+     horizontal rail, so the explicit track must also win the cascade. Without
+     !important the first theme card collapses to the leftover width (~18px). */
   #settingsView .settings-appearance .theme-picker {
-    display: grid;
-    grid-template-columns: none;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(154px, 72%);
-    gap: 8px;
+    display: grid !important;
+    grid-template-columns: none !important;
+    grid-auto-flow: column !important;
+    grid-auto-columns: minmax(154px, 72%) !important;
+    gap: 8px !important;
     overflow-x: auto;
     overscroll-behavior-inline: contain;
     padding: 2px 1px 7px;
@@ -26,6 +30,23 @@
     min-width: 0;
     min-height: 94px;
     scroll-snap-align: start;
+  }
+
+  /* Notes v92: legacy compact CSS must never keep rows hidden after the user
+     explicitly expands a checklist. */
+  #notesView .note-card[data-notes-compact-checklist="true"].notes-polish-checklist-expanded .note-check {
+    display: flex !important;
+  }
+
+  /* Keep the final checklist row visually separate from Delete/Save. */
+  #noteDialog .notes-polish-items-editor {
+    margin-bottom: 6px !important;
+  }
+
+  #noteDialog .notes-polish-editor-actions {
+    position: static !important;
+    margin-top: 18px !important;
+    transform: none !important;
   }
 }
 
@@ -127,7 +148,7 @@
   }
 
   #settingsView .settings-appearance .theme-picker {
-    grid-auto-columns: minmax(146px, 78%);
+    grid-auto-columns: minmax(146px, 78%) !important;
   }
 }
 

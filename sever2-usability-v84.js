@@ -7,6 +7,13 @@
   let moneyObserver = null;
   let guideObserver = null;
   let reconcileRunning = false;
+  let powerUserInstalled = false;
+  let settingsDetails = null;
+  let settingsRecords = [];
+  const rapidSubmitAt = new WeakMap();
+  const rapidClickAt = new Map();
+  const mobileSettings = window.matchMedia('(max-width: 700px)');
+  const RAPID_GUARD_MS = 450;
 
   const state = () => window.SeverApp?.getState?.() || null;
   const todayISO = () => {
@@ -110,6 +117,162 @@
     }
   }
 
+  function formActionSignature(form) {
+    const controls = [...form.elements].filter(control => {
+      if (!(control instanceof HTMLElement)) return false;
+      if (control instanceof HTMLButtonElement) return false;
+      if (control instanceof HTMLInputElement && ['button', 'submit', 'reset'].includes(control.type)) return false;
+      return !control.disabled;
+    });
+    return JSON.stringify(controls.map((control, index) => {
+      const key = control.id || control.getAttribute('name') || `${control.tagName}:${index}`;
+      if (control instanceof HTMLInputElement && ['checkbox', 'radio'].includes(control.type)) return [key, control.type, control.checked, control.value];
+      return [key, control.tagName, 'value' in control ? String(control.value) : ''];
+    }));
+  }
+
+  function rapidSubmitGuard(event) {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || !form.closest('main, dialog')) return;
+    const current = performance.now();
+    const signature = formActionSignature(form);
+    const previous = rapidSubmitAt.get(form);
+    if (previous && current - previous.at < RAPID_GUARD_MS && previous.signature === signature) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      form.dataset.severRapidBlocked = 'true';
+      window.setTimeout(() => delete form.dataset.severRapidBlocked, RAPID_GUARD_MS);
+      return;
+    }
+    rapidSubmitAt.set(form, { at: current, signature });
+  }
+
+  function rapidActionKey(target) {
+    if (target.matches('#timerToggle, #todayFocusToggle')) return 'focus-toggle';
+    if (target.id === 'moneyScheduleConfirm') return `money-schedule:${$('#moneyScheduleId')?.value || 'current'}`;
+    if (target.matches('.habit-day')) {
+      const card = target.closest('.habit, .habit-week-row');
+      const parent = card?.parentElement;
+      const siblings = parent ? [...parent.children].filter(node => node.matches?.('.habit, .habit-week-row')) : [];
+      return `habit:${siblings.indexOf(card)}:${target.dataset.date || target.dataset.day || ''}`;
+    }
+    if (target.matches('.task .check')) {
+      const card = target.closest('.task');
+      const parent = card?.parentElement;
+      const siblings = parent ? [...parent.children].filter(node => node.matches?.('.task')) : [];
+      const name = card?.querySelector('.task-name')?.textContent?.trim() || '';
+      const meta = card?.querySelector('.task-meta')?.textContent?.trim() || '';
+      return `task:${parent?.id || ''}:${siblings.indexOf(card)}:${name}:${meta}`;
+    }
+    return '';
+  }
+
+  function rapidClickGuard(event) {
+    const target = event.target instanceof Element
+      ? event.target.closest('.task .check, .habit-day, #timerToggle, #todayFocusToggle, #moneyScheduleConfirm')
+      : null;
+    if (!(target instanceof HTMLElement)) return;
+    const key = rapidActionKey(target);
+    if (!key) return;
+    const current = performance.now();
+    const previous = rapidClickAt.get(key) || -Infinity;
+    if (current - previous < RAPID_GUARD_MS) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      target.dataset.severRapidBlocked = 'true';
+      window.setTimeout(() => delete target.dataset.severRapidBlocked, RAPID_GUARD_MS);
+      return;
+    }
+    rapidClickAt.set(key, current);
+    window.setTimeout(() => {
+      if (rapidClickAt.get(key) === current) rapidClickAt.delete(key);
+    }, RAPID_GUARD_MS + 50);
+  }
+
+  function settingsTitle(section) {
+    return section.querySelector(':scope > small')?.textContent?.trim().toUpperCase() || '';
+  }
+
+  function mountAdvancedSettings() {
+    if (!mobileSettings.matches || settingsDetails) return;
+    const list = $('#settingsView .settings-list');
+    if (!list) return;
+    const advanced = [...list.querySelectorAll(':scope > .settings-section')].filter(section =>
+      ['БЕЗОПАСНОСТЬ', 'ДАННЫЕ', 'SEVER AI', 'ОПАСНАЯ ЗОНА'].includes(settingsTitle(section))
+    );
+    if (!advanced.length) return;
+
+    const details = document.createElement('details');
+    details.id = 'severSettingsAdvanced';
+    details.className = 'sever-settings-advanced';
+    const summary = document.createElement('summary');
+    summary.innerHTML = '<span><b>Дополнительно</b><em>Безопасность, данные, SEVER AI и сброс</em></span><i aria-hidden="true">›</i>';
+    details.appendChild(summary);
+    list.insertBefore(details, advanced[0]);
+
+    settingsRecords = advanced.map((section, index) => {
+      const marker = document.createComment(`sever-settings-${index}`);
+      list.insertBefore(marker, section);
+      details.appendChild(section);
+      return { section, marker };
+    });
+    settingsDetails = details;
+    try { details.open = sessionStorage.getItem('sever-settings-advanced-open') === '1'; } catch {}
+    details.addEventListener('toggle', () => {
+      try { sessionStorage.setItem('sever-settings-advanced-open', details.open ? '1' : '0'); } catch {}
+    });
+  }
+
+  function unmountAdvancedSettings() {
+    if (!settingsDetails) return;
+    for (const { section, marker } of settingsRecords) {
+      marker.parentNode?.insertBefore(section, marker.nextSibling);
+      marker.remove();
+    }
+    settingsRecords = [];
+    settingsDetails.remove();
+    settingsDetails = null;
+  }
+
+  function syncAdvancedSettings() {
+    if (mobileSettings.matches) mountAdvancedSettings();
+    else unmountAdvancedSettings();
+  }
+
+  function installPowerUserStyles() {
+    if ($('#severPowerUserStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'severPowerUserStyles';
+    style.textContent = `
+      [data-sever-rapid-blocked="true"]{animation:none!important;transform:none!important}
+      .sever-settings-advanced{border:0;padding:0;margin:0}
+      .sever-settings-advanced>summary{list-style:none}
+      .sever-settings-advanced>summary::-webkit-details-marker{display:none}
+      @media(max-width:700px){
+        #settingsView .sever-settings-advanced{border:1px solid var(--line,rgba(127,127,127,.2));border-radius:16px;overflow:clip;background:var(--surface,transparent)}
+        #settingsView .sever-settings-advanced>summary{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;min-height:58px;padding:10px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+        #settingsView .sever-settings-advanced>summary span{display:grid;gap:2px;min-width:0}
+        #settingsView .sever-settings-advanced>summary b{font-size:.92rem;line-height:1.2}
+        #settingsView .sever-settings-advanced>summary em{overflow:hidden;color:var(--muted,#777);font-size:.72rem;font-style:normal;line-height:1.25;text-overflow:ellipsis;white-space:nowrap}
+        #settingsView .sever-settings-advanced>summary i{font-size:1.35rem;font-style:normal;transition:transform .18s ease}
+        #settingsView .sever-settings-advanced[open]>summary i{transform:rotate(90deg)}
+        #settingsView .sever-settings-advanced>.settings-section{margin:0;border-top:1px solid var(--line,rgba(127,127,127,.16));border-radius:0}
+      }
+      @media(prefers-reduced-motion:reduce){#settingsView .sever-settings-advanced>summary i{transition:none}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function installPowerUserHardening() {
+    if (!powerUserInstalled) {
+      powerUserInstalled = true;
+      mobileSettings.addEventListener?.('change', syncAdvancedSettings);
+    }
+    installPowerUserStyles();
+    syncAdvancedSettings();
+    document.documentElement.dataset.severPowerUser = 'v91';
+  }
+
   function handleCaptureSubmit(event) {
     if (event.target?.id === 'moneyItemForm') {
       const existing = itemById($('#moneyItemId')?.value);
@@ -165,6 +328,7 @@
   function boot() {
     if (!window.SeverApp?.getState || !window.SeverMoney || !$('#moneyView') || !$('#tourDialog')) return false;
     installObservers();
+    installPowerUserHardening();
     document.documentElement.dataset.severUsability = 'v84';
     void reconcileSchedules();
     return true;
@@ -180,6 +344,8 @@
     bootTimer = setTimeout(scheduleBoot, 50);
   }
 
+  document.addEventListener('submit', rapidSubmitGuard, true);
+  document.addEventListener('click', rapidClickGuard, true);
   document.addEventListener('submit', handleCaptureSubmit, true);
   document.addEventListener('click', handleCaptureClick, true);
   document.addEventListener('visibilitychange', () => {

@@ -35,6 +35,13 @@ test('successful authentication is not reported as a bad login when only initial
   assert.match(source, /invalid refresh token/);
 });
 
+test('normal account sign-out affects only the current device', () => {
+  assert.match(source, /cloud\.signOut = async function/);
+  assert.match(source, /client\.auth\.signOut\(\{ scope: 'local' \}\)/);
+  assert.match(source, /this\.app\.lockProtectedNotes\('logout'\)/);
+  assert.match(source, /await this\.applySession\(null\)/);
+});
+
 test('account UI exposes sync health and a safe recovery action', () => {
   assert.match(source, /accountHealth/);
   assert.match(source, /Восстановить связь/);
@@ -44,7 +51,7 @@ test('account UI exposes sync health and a safe recovery action', () => {
   assert.match(css, /#accountDialog #accountRetry:not\(\.hidden\)/);
 });
 
-test('cloud recovery v80 remains in the atomic reminder v86 PWA release', () => {
+test('cloud recovery v80 remains in the atomic power-user PWA release', () => {
   const home = themeInit.indexOf('sever2-home-core-script');
   const usability = themeInit.indexOf('sever2-usability-v84-script');
   const interaction = themeInit.indexOf('sever2-interaction-polish-script');
@@ -56,14 +63,14 @@ test('cloud recovery v80 remains in the atomic reminder v86 PWA release', () => 
   assert.match(themeInit, /sever2-cloud-recovery\.css\?v=80/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v8'/);
+  assert.match(sw, /const CACHE = 'sever-v92-unified-release-v1'/);
   for (const asset of [
     './sever2-home-core.js?v=85',
     './sever2-usability-v84.css?v=84',
     './sever2-usability-v84.js?v=84',
     './sever2-cloud-recovery.css?v=80',
     './sever2-cloud-recovery.js?v=80',
-    './js/theme-init.js?v=85',
+    './js/theme-init.js?v=92',
     './sever2-reminders.css?v=86',
     './sever2-task-reminders.js?v=82'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);

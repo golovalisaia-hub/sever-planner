@@ -1,4 +1,4 @@
-/* SEVER 2 Notes polish v79 — compact checklist previews and a calmer mobile editor. */
+/* SEVER 2 Notes polish v92 — compact previews, inline expansion and a calm mobile editor. */
 
 #notesView {
   --notes-polish-card-gap: 9px;
@@ -57,15 +57,30 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
   background: color-mix(in srgb, var(--surface-1, var(--panel)) 96%, #fff 1%) !important;
 }
 
-/* Checklist cards are previews only. Never let the list grow into a full editor. */
-#notesView .note-card[data-notes-compact-checklist="true"] .note-check:nth-child(n+3),
-#notesView .notes-polish-checklist-expanded .note-check:nth-child(n+3) {
+/* The core layer used to hard-hide row 3+. This later release owns the preview contract: three rows collapsed, all rows when expanded. */
+#notesView .note-card[data-notes-compact-checklist="true"] .note-check:nth-child(n+3) {
+  display: flex !important;
+}
+
+#notesView .note-card[data-notes-compact-checklist="true"]:not(.notes-polish-checklist-expanded) .note-check:nth-child(n+4) {
   display: none !important;
 }
 
-#notesView .note-card[data-notes-compact-checklist="true"] .note-checklist {
-  max-height: 76px;
+#notesView .note-card[data-notes-compact-checklist="true"]:not(.notes-polish-checklist-expanded) .note-checklist {
+  max-height: 116px;
   overflow: hidden;
+}
+
+#notesView .notes-polish-checklist-expanded .note-checklist {
+  max-height: min(46dvh, 420px);
+  padding-right: 3px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+#notesView .notes-polish-checklist-expanded {
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border-subtle, var(--line))) !important;
 }
 
 #notesView .notes-core-more-items,
@@ -73,20 +88,18 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
   display: inline-flex;
   min-height: 36px;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   margin: 5px 0 0;
   padding: 0 8px;
   border: 0;
   border-radius: 10px;
   background: transparent;
-  color: var(--text-secondary, var(--muted));
+  color: var(--accent);
   font: inherit;
   font-size: .69rem;
-  font-weight: 720;
+  font-weight: 760;
   cursor: pointer;
 }
-
-#notesView .notes-core-more-items[data-notes-compact-open="true"] { color: var(--accent); }
 
 #notesView .notes-core-more-items:hover,
 #notesView .notes-core-more-items:focus-visible,
@@ -108,9 +121,19 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
   stroke-linejoin: round;
 }
 
+#notesView .text-note .note-body {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
 #notesView .notes-polish-body-expanded > .note-body {
   display: block;
-  overflow: visible;
+  max-height: min(42dvh, 380px);
+  padding-right: 3px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   -webkit-line-clamp: unset;
 }
 
@@ -199,16 +222,21 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
 .notes-navigation-sheet-footer button { min-height: 44px; }
 .notes-navigation-sheet-head > button { width: 44px; height: 44px; }
 
-/* Mobile editor: one contained surface, sticky header/footer, checklist scrolls inside itself. */
+/* Mobile editor: one scroll flow. Nothing sits on top of checklist rows. */
 @media (max-width: 700px) {
-  #notesView .note-card.notes-core-card { padding: 14px 14px 11px; }
-  #notesView .notes-polish-footer { grid-template-columns: 1fr; gap: 6px; }
-  #notesView .notes-polish-actions { min-height: 44px; justify-content: flex-start; }
+  #notesView .note-card.notes-core-card { padding: 13px 13px 10px; }
+  #notesView .notes-polish-footer { grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+  #notesView .notes-polish-actions { min-height: 42px; justify-content: flex-end; }
   #notesView .notes-polish-actions > button,
   #notesView .notes-org-action,
   #notesView .note-card .note-edit,
   #notesView .notes-core-more-items,
-  #notesView .notes-polish-body-toggle { min-height: 44px !important; }
+  #notesView .notes-polish-body-toggle { min-height: 42px !important; }
+
+  #notesView .notes-polish-checklist-expanded .note-checklist,
+  #notesView .notes-polish-body-expanded > .note-body {
+    max-height: 43dvh;
+  }
 
   #noteDialog.notes-polish-editor {
     width: 100vw !important;
@@ -223,62 +251,188 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
     background: var(--surface-1, var(--panel));
   }
 
-  #noteDialog.notes-polish-editor::backdrop { background: rgba(0, 0, 0, .34); }
+  #noteDialog.notes-polish-editor::backdrop { background: rgba(0, 0, 0, .28); }
 
   #noteDialog .notes-polish-editor-form {
     box-sizing: border-box;
     width: 100%;
     height: 100dvh;
     max-height: 100dvh;
-    gap: 11px;
-    padding: max(10px, env(safe-area-inset-top)) 14px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: max(10px, env(safe-area-inset-top)) 16px max(22px, env(safe-area-inset-bottom));
     overflow-y: auto;
     overscroll-behavior: contain;
+    scroll-padding-bottom: max(32px, env(safe-area-inset-bottom));
     background: var(--surface-1, var(--panel));
   }
 
   #noteDialog .notes-polish-editor-form > .dialog-head {
     position: sticky;
-    z-index: 5;
-    top: 0;
-    margin: calc(-1 * max(10px, env(safe-area-inset-top))) -14px 2px;
-    padding: max(10px, env(safe-area-inset-top)) 14px 10px;
-    border-bottom: 1px solid var(--border-subtle, var(--line));
-    background: color-mix(in srgb, var(--surface-1, var(--panel)) 94%, transparent);
-    backdrop-filter: blur(18px);
+    z-index: 7;
+    top: calc(-1 * max(10px, env(safe-area-inset-top)));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 10px;
+    margin: calc(-1 * max(10px, env(safe-area-inset-top))) -16px 2px;
+    padding: max(12px, env(safe-area-inset-top)) 16px 11px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border-subtle, var(--line)) 72%, transparent);
+    background: color-mix(in srgb, var(--surface-1, var(--panel)) 96%, transparent);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
   }
 
-  #noteDialog #noteTitle { min-height: 48px; }
+  #noteDialog .dialog-head h2 {
+    margin: 0;
+    font-size: clamp(1.28rem, 6vw, 1.55rem);
+    line-height: 1.1;
+    letter-spacing: -.035em;
+  }
+
+  #noteDialog .dialog-head > button {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 13px;
+  }
+
+  #noteDialog .note-type-field {
+    margin: 0;
+    padding: 4px;
+    border: 1px solid var(--border-subtle, var(--line));
+    border-radius: 13px;
+    background: var(--surface-2, var(--panel2));
+  }
+
+  #noteDialog .note-type-field legend { display: none; }
+  #noteDialog .note-type-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+  #noteDialog .note-type-options button {
+    min-height: 40px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    font-size: .76rem;
+    font-weight: 720;
+  }
+  #noteDialog .note-type-options button.active {
+    background: var(--surface-1, var(--panel));
+    box-shadow: 0 1px 5px rgba(0, 0, 0, .08);
+  }
+
+  #noteDialog .notes-polish-editor-form > label {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    color: var(--text-secondary, var(--muted));
+    font-size: .72rem;
+    font-weight: 680;
+  }
+
+  #noteDialog #noteTitle,
+  #noteDialog #noteFolder,
   #noteDialog #noteBody {
-    min-height: 132px !important;
-    max-height: 34dvh;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--border-subtle, var(--line));
+    border-radius: 14px;
+    background: var(--surface-1, var(--panel));
+    color: var(--text-primary, var(--text));
+    box-shadow: none;
+  }
+
+  #noteDialog #noteTitle {
+    min-height: 50px;
+    padding-inline: 14px;
+    font-size: 1.02rem;
+    font-weight: 720;
+  }
+
+  #noteDialog #noteFolder {
+    min-height: 48px;
+    padding-inline: 13px 38px;
+    font-size: .9rem;
+  }
+
+  #noteDialog #noteBody {
+    min-height: 104px !important;
+    max-height: 30dvh;
+    padding: 12px 14px;
     resize: vertical;
+    font-size: .95rem;
+    line-height: 1.48;
+  }
+
+  #noteDialog:has([data-note-type="checklist"].active) #noteBody {
+    min-height: 76px !important;
+    max-height: 112px;
   }
 
   #noteDialog .notes-polish-checklist-editor {
     min-height: 0;
-    padding: 12px;
-    border: 1px solid var(--border-subtle, var(--line));
-    border-radius: 15px;
-    background: var(--surface-2, var(--panel2));
+    display: grid;
+    gap: 9px;
+    margin: 2px 0 0;
+    padding: 10px 0 0;
+    border: 0;
+    border-top: 1px solid color-mix(in srgb, var(--border-subtle, var(--line)) 80%, transparent);
+    border-radius: 0;
+    background: transparent;
   }
 
   #noteDialog .notes-polish-checklist-editor .checklist-editor-head {
-    position: sticky;
-    z-index: 2;
-    top: 0;
-    margin: -4px -4px 7px;
-    padding: 4px;
-    background: var(--surface-2, var(--panel2));
+    position: static;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    background: transparent;
   }
+
+  #noteDialog .notes-polish-checklist-editor .checklist-editor-head > div {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  #noteDialog .notes-polish-checklist-editor .checklist-editor-head b {
+    font-size: .98rem;
+    line-height: 1.2;
+  }
+
+  #noteDialog .notes-polish-checklist-editor .checklist-editor-head > div > span { display: none; }
+
+  #noteDialog #addNoteItem {
+    position: relative;
+    z-index: 2;
+    width: auto;
+    min-width: 44px;
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 11px;
+    border-radius: 12px;
+    font-size: .72rem;
+    font-weight: 740;
+    touch-action: manipulation;
+  }
+
+  #noteDialog #addNoteItem svg { width: 17px; height: 17px; }
 
   #noteDialog .notes-polish-items-editor {
     display: grid;
-    max-height: 40dvh;
+    max-height: none;
     gap: 7px;
-    padding-right: 2px;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    padding: 0;
+    overflow: visible;
   }
 
   #noteDialog .notes-polish-items-editor .note-item-editor {
@@ -286,24 +440,26 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
     grid-template-columns: 28px minmax(0, 1fr) 42px;
     gap: 7px;
     align-items: center;
-    min-height: 46px;
-    padding: 5px 5px 5px 7px;
+    min-height: 50px;
+    padding: 4px 4px 4px 8px;
     border: 1px solid var(--border-subtle, var(--line));
-    border-radius: 12px;
+    border-radius: 13px;
     background: var(--surface-1, var(--panel));
   }
 
   #noteDialog .notes-polish-items-editor .note-item-editor input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
+    width: 21px;
+    height: 21px;
     margin: 0;
   }
 
   #noteDialog .notes-polish-items-editor .note-item-editor input[type="text"] {
     min-width: 0;
-    min-height: 38px;
+    min-height: 40px;
+    padding: 0;
     border: 0;
     background: transparent;
+    font-size: .94rem;
   }
 
   #noteDialog .notes-polish-items-editor .note-item-editor button {
@@ -312,20 +468,54 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
     height: 40px;
     min-height: 40px;
     padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text-secondary, var(--muted));
   }
 
+  #noteDialog .note-security {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+    margin: 2px 0 0;
+    padding: 10px 12px;
+    border: 1px solid var(--border-subtle, var(--line));
+    border-radius: 14px;
+    background: var(--surface-2, var(--panel2));
+  }
+
+  #noteDialog .security-toggle {
+    min-height: 42px;
+    margin: 0;
+  }
+
+  /* Save/delete live at the natural end of the form. They never cover checklist content. */
   #noteDialog .notes-polish-editor-actions {
-    position: sticky;
-    z-index: 5;
-    bottom: 0;
-    margin: 4px -14px 0;
-    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
-    border-top: 1px solid var(--border-subtle, var(--line));
-    background: color-mix(in srgb, var(--surface-1, var(--panel)) 95%, transparent);
-    backdrop-filter: blur(18px);
+    position: static !important;
+    inset: auto !important;
+    z-index: auto;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px;
+    margin: 10px 0 0 !important;
+    padding: 12px 0 max(12px, env(safe-area-inset-bottom)) !important;
+    border-top: 1px solid color-mix(in srgb, var(--border-subtle, var(--line)) 78%, transparent);
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
-  #noteDialog .notes-polish-editor-actions .primary { min-height: 48px; }
+  #noteDialog .notes-polish-editor-actions .danger {
+    min-width: 92px;
+    min-height: 48px;
+    padding-inline: 13px;
+  }
+
+  #noteDialog .notes-polish-editor-actions .primary {
+    width: 100%;
+    min-height: 48px;
+    margin: 0;
+  }
 
   .notes-polish-action-dialog.notes-org-sheet {
     width: calc(100vw - 20px);
@@ -337,18 +527,4 @@ html[data-theme="black"] #notesView .note-card.notes-core-card {
     border: 1px solid var(--border-subtle, var(--line));
     border-radius: 20px;
   }
-}
-
-@media (max-width: 390px) {
-  #notesView .notes-polish-bulk-action span { display: none; }
-  #notesView .notes-polish-bulk-action {
-    width: 44px !important;
-    justify-content: center;
-    padding: 0 !important;
-  }
-  .notes-navigation-scopes > button { min-height: 44px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #notesView .note-card.notes-core-card { transition: none !important; }
 }

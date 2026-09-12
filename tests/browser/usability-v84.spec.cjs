@@ -1,5 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
+test.use({ serviceWorkers: 'block' });
+
 async function boot(page) {
   await page.route('**/supabase-config.js*', route => route.fulfill({ contentType: 'text/javascript', body: 'window.SEVER_SUPABASE_CONFIG={};' }));
   await page.addInitScript(() => {
@@ -15,6 +17,7 @@ async function boot(page) {
   });
   await page.goto('/');
   await page.waitForFunction(() => window.SeverApp
+    && window.SeverCloudReady
     && document.documentElement.dataset.severMoney === 'ready'
     && document.documentElement.dataset.severUsability === 'v84'
     && document.documentElement.dataset.severReminders === 'v82');
@@ -27,6 +30,7 @@ async function createPlan(page, { type = 'goal', name = 'План', target = '30
   await page.locator('#moneyItemTarget').fill(target);
   await page.locator('#moneyItemBudget').fill(budget);
   await page.locator('#moneyItemForm button.primary').click();
+  await expect(page.locator('#moneyItemDialog')).toBeHidden();
   await expect(page.locator('.money-card').filter({ hasText: name })).toBeVisible();
 }
 
@@ -35,6 +39,7 @@ async function addSchedule(page, name) {
   await card.locator('.money-card-actions button').filter({ hasText: 'В календарь' }).click();
   await expect(page.locator('#moneyScheduleDialog')).toBeVisible();
   await page.locator('#moneyScheduleConfirm').click();
+  await expect(page.locator('#moneyScheduleDialog')).toBeHidden();
   await expect(card.locator('.money-card-actions button').filter({ hasText: 'Уже в календаре' })).toBeDisabled();
 }
 
@@ -58,8 +63,14 @@ test('editing a Money plan keeps completed payment history and removes stale pen
 
   const card = page.locator('.money-card').filter({ hasText: 'Ноутбук' });
   await card.locator('.money-icon-action').click();
+  await expect(page.locator('#moneyItemDialog')).toBeVisible();
   await page.locator('#moneyItemBudget').fill('7500');
   await page.locator('#moneyItemForm button.primary').click();
+  await expect(page.locator('#moneyItemDialog')).toBeHidden();
+  await expect.poll(() => page.evaluate(() => {
+    const item = window.SeverApp.getState().profile.money.items.find(row => row.title === 'Ноутбук');
+    return item ? { budget: item.monthlyBudget, refs: item.calendarTaskIds.length } : null;
+  })).toEqual({ budget: 7500, refs: 0 });
 
   const after = await page.evaluate(() => {
     const state = window.SeverApp.getState();
@@ -95,6 +106,7 @@ test('finishing a Money plan clears its remaining generated calendar reminders',
   await card.locator('.money-primary').click();
   await page.locator('#moneyProgressAmount').fill('10000');
   await page.locator('#moneyProgressForm button.primary').click();
+  await expect(page.locator('#moneyProgressDialog')).toBeHidden();
 
   const after = await page.evaluate(() => {
     const state = window.SeverApp.getState();

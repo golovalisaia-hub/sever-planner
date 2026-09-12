@@ -60,7 +60,6 @@ test('beta journey keeps tasks, focus, calendar, habits, notes, Money and theme 
   const pageErrors = [];
   page.on('pageerror', error => pageErrors.push(error.message));
 
-  // Focus -> explicit completion -> automatic return to Today -> Undo.
   await switchView(page, 'timer');
   await page.locator('#sever2FocusQueue [data-task-id="audit-focus"] [data-start-focus]').click();
   await expect(page.locator('#activeTimerTask')).toBeVisible();
@@ -73,7 +72,6 @@ test('beta journey keeps tasks, focus, calendar, habits, notes, Money and theme 
   await page.locator('#toast button').click();
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.find(t => t.id === 'audit-focus')?.completed)).toBe(false);
 
-  // Inbox -> Calendar -> plan for today through the visible control.
   await switchView(page, 'calendar');
   await page.locator('.sever2-calendar-modes [data-mode="inbox"]').click();
   await expect(page.locator('#sever2InboxPanel')).toContainText('Разобрать входящую');
@@ -81,7 +79,6 @@ test('beta journey keeps tasks, focus, calendar, habits, notes, Money and theme 
   const today = isoToday();
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.find(t => t.id === 'audit-inbox')?.date)).toBe(today);
 
-  // Habit completion is visible, reversible and stored for the same date the UI marks as today.
   await switchView(page, 'habits');
   const habitToday = page.locator('#habitList .habit').first().locator('.habit-day.today');
   const habitDate = await habitToday.getAttribute('data-date');
@@ -89,11 +86,12 @@ test('beta journey keeps tasks, focus, calendar, habits, notes, Money and theme 
   await habitToday.click();
   await expect(habitToday).toHaveAttribute('aria-pressed', 'true');
   await expect.poll(() => page.evaluate(date => window.SeverApp.getState().checks['audit-habit']?.includes(date), habitDate)).toBe(true);
+  await page.waitForTimeout(500);
   await habitToday.click();
   await expect(habitToday).toHaveAttribute('aria-pressed', 'false');
   await expect.poll(() => page.evaluate(date => window.SeverApp.getState().checks['audit-habit']?.includes(date), habitDate)).toBe(false);
 
-  // Create a 3-item checklist through the real Create flow. The list preview must stay compact.
+  // Create a 4-item checklist through the real Create flow. Three rows stay visible; More expands inline.
   await switchView(page, 'notes');
   await openCreate(page, info.project.name);
   await page.locator('#quickAddNote').click();
@@ -102,23 +100,21 @@ test('beta journey keeps tasks, focus, calendar, habits, notes, Money and theme 
   await page.locator('[data-note-type="checklist"]').click();
   let items = page.locator('#noteItemsEditor input[type="text"]');
   await items.first().fill('Первый');
-  await page.locator('#addNoteItem').click();
-  items = page.locator('#noteItemsEditor input[type="text"]');
-  await items.nth(1).fill('Второй');
-  await page.locator('#addNoteItem').click();
-  items = page.locator('#noteItemsEditor input[type="text"]');
-  await items.nth(2).fill('Третий');
+  for (const value of ['Второй', 'Третий', 'Четвёртый']) {
+    await page.locator('#addNoteItem').click();
+    items = page.locator('#noteItemsEditor input[type="text"]');
+    await items.last().fill(value);
+  }
   await page.locator('#noteForm .primary').click();
   const noteCard = page.locator('#noteList .note-card').filter({ hasText: 'Beta checklist' });
   await expect(noteCard).toBeVisible();
-  await expect(noteCard.locator('.note-check:visible')).toHaveCount(2);
+  await expect(noteCard.locator('.note-check:visible')).toHaveCount(3);
   await expect(noteCard.locator('.notes-core-more-items')).toContainText('Ещё 1');
   await noteCard.locator('.notes-core-more-items').click();
-  await expect(page.locator('#noteDialog')).toBeVisible();
-  await expect(page.locator('#noteItemsEditor input[type="text"]')).toHaveCount(3);
-  await page.locator('[data-close="noteDialog"]').click();
+  await expect(page.locator('#noteDialog')).toBeHidden();
+  await expect(noteCard.locator('.note-check:visible')).toHaveCount(4);
+  await expect(noteCard.locator('.notes-core-more-items')).toContainText('Свернуть');
 
-  // Money: create debt, add a payment, verify arithmetic.
   await switchView(page, 'money');
   await page.locator('#moneyQuickInput').fill('долг 10000 до декабря');
   await page.locator('#moneyQuickForm button[type="submit"]').click();
@@ -131,7 +127,6 @@ test('beta journey keeps tasks, focus, calendar, habits, notes, Money and theme 
   await page.locator('#moneyProgressForm button.primary').click();
   await expect(page.locator('.money-card').filter({ hasText: 'Beta debt' }).locator('.money-card-amount')).toContainText(/9.?000/);
 
-  // Theme chosen through Settings must survive a reload together with cross-feature state.
   await switchView(page, 'settings');
   await page.locator('[data-sever-theme="motion"]').click();
   await expect.poll(() => page.evaluate(() => localStorage.getItem('sever-theme'))).toBe('motion');
@@ -150,7 +145,7 @@ test('beta journey keeps tasks, focus, calendar, habits, notes, Money and theme 
   });
   expect(persisted.tasks.find(t => t.id === 'audit-focus')?.completed).toBe(false);
   expect(persisted.tasks.find(t => t.id === 'audit-inbox')?.date).toBe(today);
-  expect(persisted.noteItems).toBe(3);
+  expect(persisted.noteItems).toBe(4);
   expect(persisted.moneyRemaining).toBe(9000);
   expect(persisted.habitDates).toEqual([]);
   expect(pageErrors).toEqual([]);

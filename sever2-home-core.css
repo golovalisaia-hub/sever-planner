@@ -261,39 +261,63 @@ html[data-theme="black"] .sever2-home-now-actions button.primary{color:#06110d}
 }
 
 @media (max-width:900px){
-  #todayView .today-hero{margin-bottom:6px;padding:2px 1px}
+  /* One mobile Home owner: the order never changes between themes. */
+  #todayView>.today-hero{order:1!important}
+  #todayView>.sever2-home-core{order:2!important}
+  #todayView>.today-list-head{order:3!important}
+  #todayView>#todayFilters{order:4!important}
+  #todayView>#todayTasks{order:5!important}
+  #todayView>#challengeBlock{order:6!important}
+
+  /* Legacy utility/dashboard blocks duplicated actions from the new Home card. */
+  #todayView>.today-dashboard,
+  #todayView>.today-utilities{display:none!important}
+  .sever2-home-priority{display:none!important}
+
+  #todayView .today-hero{margin-bottom:2px;padding:2px 1px}
   #todayView .today-hero-copy h1{font-size:24px}
   #todayView .today-hero-copy p{font-size:12px}
-  .sever2-home-core{gap:9px;margin:8px 0 10px}
-  .sever2-home-now{gap:13px;padding:15px;border-radius:18px}
+  .sever2-home-core{gap:8px;margin:4px 0 6px}
+  .sever2-home-now{
+    gap:12px;
+    padding:16px;
+    border-radius:18px;
+    background:var(--surface-1,var(--panel));
+    box-shadow:none;
+  }
   .sever2-home-now-copy h2{font-size:21px}
   .sever2-home-now-copy p{font-size:12px}
-  .sever2-home-now-actions{display:grid;grid-template-columns:1fr 1fr;margin-top:13px}
-  .sever2-home-now-actions button{min-height:46px;padding:0 10px}
+  .sever2-home-now-actions{display:grid;grid-template-columns:1fr;margin-top:13px}
+  .sever2-home-now-actions [data-home-action="tasks"]{display:none!important}
+  .sever2-home-now-actions button{width:100%;min-height:46px;padding:0 10px;transition:transform .12s ease,background-color .12s ease,border-color .12s ease}
+  .sever2-home-now-actions button:active{transform:scale(.985)}
+  .sever2-home-now-actions button:focus-visible{outline:2px solid var(--accent,var(--sever-blue));outline-offset:2px}
   .sever2-home-now-actions button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .sever2-home-stats{grid-template-columns:repeat(3,minmax(0,1fr));border-radius:14px}
+  .sever2-home-stats{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    border:0;
+    border-radius:14px;
+    background:color-mix(in srgb,var(--surface-2,var(--panel2)) 72%,transparent);
+  }
   .sever2-home-stats>span{min-width:0;padding:11px 8px}
   .sever2-home-stats b{font-size:15px}
   .sever2-home-stats small{font-size:8px}
-  .sever2-home-priority{padding:12px;border-radius:16px}
-  .sever2-home-priority header b{font-size:13px}
-  .sever2-home-priority header button{min-height:44px;padding:0 6px}
-  .sever2-home-priority-row{grid-template-columns:32px minmax(0,1fr) 44px;min-height:60px;padding-left:6px}
-  .sever2-home-priority-number{width:28px;height:28px}
-  .sever2-home-priority-copy b{font-size:12px}
-  .sever2-home-inbox-link{min-height:60px;border-radius:14px}
+  .sever2-home-inbox-link{min-height:56px;border-radius:14px;box-shadow:none}
   #todayView #challengeBlock:not(.hidden){margin:10px 0}
   #todayView .quick{margin-top:9px}
+  #todayView .today-list-head{margin-top:12px}
+
+  /* Calm cards: no dark floating shadows on a light phone surface. */
+  #todayView .task{
+    background:var(--surface-1,var(--panel))!important;
+    box-shadow:none!important;
+  }
 }
 
 @media (max-width:360px){
-  .sever2-home-now-actions{grid-template-columns:1fr}
-  .sever2-home-now-actions button{width:100%}
-  .sever2-home-priority header>span b{font-size:12px}
-  .sever2-home-priority header button{font-size:10px}
   .sever2-home-inbox-link>span:last-child{font-size:10px}
 }
 
 @media (prefers-reduced-motion:reduce){
-  .sever2-home-core *{scroll-behavior:auto!important}
+  .sever2-home-core *{scroll-behavior:auto!important;transition:none!important}
 }

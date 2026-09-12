@@ -26,8 +26,24 @@ jobs:
         run: node --test tests/*.test.mjs
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
+      - name: Money lifecycle probe (phone 360)
+        run: pnpm exec playwright test tests/browser/usability-v84.spec.cjs --project=phone-360 --workers=1 -g "editing a Money plan keeps completed payment history"
       - name: Browser E2E (phones and desktop)
         run: pnpm exec playwright test
+      - name: Real user cloud marathon (phone)
+        env:
+          SEVER_AUTH_TEST_URL: ${{ secrets.SEVER_AUTH_TEST_URL }}
+          SEVER_AUTH_TEST_ANON_KEY: ${{ secrets.SEVER_AUTH_TEST_ANON_KEY }}
+          SEVER_AUTH_TEST_EMAIL: ${{ secrets.SEVER_AUTH_TEST_EMAIL }}
+          SEVER_AUTH_TEST_PASSWORD: ${{ secrets.SEVER_AUTH_TEST_PASSWORD }}
+        run: pnpm exec playwright test tests/browser/real-user-cloud-marathon.spec.cjs --project=phone-390 --workers=1
+      - name: Real user cloud marathon (desktop)
+        env:
+          SEVER_AUTH_TEST_URL: ${{ secrets.SEVER_AUTH_TEST_URL }}
+          SEVER_AUTH_TEST_ANON_KEY: ${{ secrets.SEVER_AUTH_TEST_ANON_KEY }}
+          SEVER_AUTH_TEST_EMAIL: ${{ secrets.SEVER_AUTH_TEST_EMAIL }}
+          SEVER_AUTH_TEST_PASSWORD: ${{ secrets.SEVER_AUTH_TEST_PASSWORD }}
+        run: pnpm exec playwright test tests/browser/real-user-cloud-marathon.spec.cjs --project=desktop --workers=1
       - name: Upload SEVER 2 visual review
         if: always()
         uses: actions/upload-artifact@v4

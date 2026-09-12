@@ -2,6 +2,7 @@
   'use strict';
 
   const expandedBodies = new Set();
+  const expandedChecklists = new Set();
   let observer = null;
   let scheduled = false;
   let booted = false;
@@ -31,12 +32,15 @@
 
   function ensureChecklistPreview(card, note, data) {
     const items = Array.isArray(data?.items) ? data.items : [];
-    card.classList.remove('notes-polish-checklist-expanded');
+    const expanded = expandedChecklists.has(note.id);
     card.dataset.notesCompactChecklist = String(items.length > 0);
+    card.classList.toggle('notes-polish-checklist-expanded', expanded);
 
     let control = card.querySelector('.notes-core-more-items');
-    if (items.length <= 2) {
+    if (items.length <= 3) {
       control?.remove();
+      expandedChecklists.delete(note.id);
+      card.classList.remove('notes-polish-checklist-expanded');
       return;
     }
 
@@ -54,16 +58,19 @@
       card.querySelector('.note-checklist')?.after(control);
     }
 
-    const remaining = items.length - 2;
+    const remaining = Math.max(0, items.length - 3);
     control.dataset.noteId = note.id;
     control.dataset.notesCompactOpen = 'true';
-    control.setAttribute('aria-expanded', 'false');
-    control.setAttribute('aria-label', `Открыть чек-лист, ещё ${remaining} пунктов`);
-    control.innerHTML = `<span>Ещё ${remaining}</span>${icon('more')}`;
+    control.setAttribute('aria-expanded', String(expanded));
+    control.setAttribute('aria-label', expanded ? 'Свернуть чек-лист' : `Показать ещё ${remaining} пунктов`);
+    control.innerHTML = `<span>${expanded ? 'Свернуть' : `Ещё ${remaining}`}</span>${icon(expanded ? 'less' : 'more')}`;
     control.onclick = event => {
       event.preventDefault();
       event.stopPropagation();
-      window.SeverNotes?.openNote?.(note);
+      if (expandedChecklists.has(note.id)) expandedChecklists.delete(note.id);
+      else expandedChecklists.add(note.id);
+      decorateCard(card, note);
+      if (!expandedChecklists.has(note.id)) card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     };
   }
 
@@ -71,7 +78,7 @@
     const body = card.querySelector('.note-body');
     const text = String(data?.body || '');
     let toggle = card.querySelector('.notes-polish-body-toggle');
-    const shouldOffer = data?.kind !== 'checklist' && text.length > 150;
+    const shouldOffer = data?.kind !== 'checklist' && (text.length > 150 || text.split(/\n/).length > 4);
     if (!shouldOffer) {
       toggle?.remove();
       expandedBodies.delete(note.id);
@@ -87,13 +94,15 @@
     const expanded = expandedBodies.has(note.id);
     card.classList.toggle('notes-polish-body-expanded', expanded);
     toggle.setAttribute('aria-expanded', String(expanded));
-    toggle.innerHTML = `${expanded ? icon('less') : icon('more')}<span>${expanded ? 'Свернуть' : 'Показать полностью'}</span>`;
+    toggle.setAttribute('aria-label', expanded ? 'Свернуть текст заметки' : 'Показать больше текста заметки');
+    toggle.innerHTML = `<span>${expanded ? 'Свернуть' : 'Ещё'}</span>${icon(expanded ? 'less' : 'more')}`;
     toggle.onclick = event => {
       event.preventDefault();
       event.stopPropagation();
       if (expandedBodies.has(note.id)) expandedBodies.delete(note.id);
       else expandedBodies.add(note.id);
       decorateCard(card, note);
+      if (!expandedBodies.has(note.id)) card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     };
   }
 
@@ -144,7 +153,7 @@
       const hint = actionDialog.querySelector('#notesActionHint');
       if (hint) hint.textContent = 'Что сделать с этой заметкой?';
       const edit = actionDialog.querySelector('[data-notes-action="edit"]');
-      if (edit) edit.textContent = 'Открыть заметку';
+      if (edit) edit.textContent = 'Изменить заметку';
     }
   }
 
