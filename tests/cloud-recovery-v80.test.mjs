@@ -51,7 +51,7 @@ test('account UI exposes sync health and a safe recovery action', () => {
   assert.match(css, /#accountDialog #accountRetry:not\(\.hidden\)/);
 });
 
-test('cloud recovery v80 remains in the atomic reminder v86 PWA release', () => {
+test('cloud recovery v80 remains in the atomic power-user PWA release', () => {
   const home = themeInit.indexOf('sever2-home-core-script');
   const usability = themeInit.indexOf('sever2-usability-v84-script');
   const interaction = themeInit.indexOf('sever2-interaction-polish-script');
@@ -63,7 +63,7 @@ test('cloud recovery v80 remains in the atomic reminder v86 PWA release', () => 
   assert.match(themeInit, /sever2-cloud-recovery\.css\?v=80/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v8'/);
+  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v9'/);
   for (const asset of [
     './sever2-home-core.js?v=85',
     './sever2-usability-v84.css?v=84',
