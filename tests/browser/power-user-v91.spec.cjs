@@ -5,11 +5,15 @@ test.setTimeout(90000);
 function seed() {
   const d = new Date();
   const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const now = Date.now();
   return {
     version: 11,
     onboarded: true,
-    tasks: [{ id: 'rapid-task', title: 'RAPID toggle', date: today, time: '', duration: 15, category: 'Личное', completed: false, createdAt: Date.now(), updatedAt: Date.now() }],
-    notes: [], folders: [], habits: [], checks: {}, taskMemory: [],
+    tasks: [{ id: 'rapid-task', title: 'RAPID toggle', date: today, time: '', duration: 15, category: 'Личное', completed: false, createdAt: now, updatedAt: now }],
+    notes: [], folders: [],
+    habits: [{ id: 'rapid-habit', title: 'RAPID habit', createdAt: now, updatedAt: now }],
+    checks: { 'rapid-habit': [] },
+    taskMemory: [],
     profile: { name: 'POWER-QA' },
     appearance: { theme: 'light', animations: 'off', reduceEffects: true },
     focusSessions: [], stats: { focusMs: 0, sessions: 0 },
@@ -66,11 +70,29 @@ test('rapid double submit creates one task, not a duplicate', async ({ page }) =
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.filter(task => task.title === 'RAPID double submit').length)).toBe(1);
 });
 
-test('rapid double completion tap cannot immediately undo the first tap', async ({ page }) => {
-  const task = page.locator('#todayTasks .task').filter({ hasText: 'RAPID toggle' });
-  await expect(task).toBeVisible();
-  await task.locator('.check').evaluate(button => { button.click(); button.click(); });
+test('rapid task completion stays completed even when the first tap rerenders the button', async ({ page }) => {
+  await page.evaluate(() => {
+    const findCheck = () => [...document.querySelectorAll('#todayTasks .task')]
+      .find(card => card.textContent.includes('RAPID toggle'))?.querySelector('.check');
+    findCheck()?.click();
+    findCheck()?.click();
+  });
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.find(task => task.id === 'rapid-task')?.completed)).toBe(true);
+});
+
+test('rapid habit tap stays checked even though the habit card rerenders after the first tap', async ({ page }) => {
+  await page.evaluate(() => window.SeverApp.switchView('habits'));
+  await page.evaluate(() => {
+    const findToday = () => [...document.querySelectorAll('#habitList .habit')]
+      .find(card => card.textContent.includes('RAPID habit'))?.querySelector('.habit-day.today');
+    findToday()?.click();
+    findToday()?.click();
+  });
+  await expect.poll(() => page.evaluate(() => {
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return window.SeverApp.getState().checks['rapid-habit']?.includes(today) || false;
+  })).toBe(true);
 });
 
 test('rapid double timer tap starts Focus instead of immediately pausing it', async ({ page }) => {
