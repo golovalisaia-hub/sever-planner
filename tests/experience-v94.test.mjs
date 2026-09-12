@@ -20,8 +20,9 @@ test('v94 experience script is syntax-valid and reports cloud problems without m
   assert.match(source, /aria-live', 'polite'/);
   assert.match(source, /const cloud = window\.SeverCloud/);
   assert.match(source, /cloud\?\.health\?\.\(\)/);
+  assert.match(source, /typeof cloud\?\.recoverNow !== 'function'/);
+  assert.match(source, /await cloud\.recoverNow\(\)/);
   assert.match(source, /sever:cloud-status/);
-  assert.match(source, /window\.SeverCloudRecovery\?\.recover/);
   assert.match(source, /Офлайн/);
   assert.match(source, /Изменения сохраняются на устройстве/);
   assert.doesNotMatch(source, /alert\(|confirm\(/);
