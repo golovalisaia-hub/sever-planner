@@ -38,14 +38,15 @@
     display: flex !important;
   }
 
-  /* Keep the final checklist row visually separate from Delete/Save. */
+  /* Keep the final checklist row visibly separate from Delete/Save at every
+     iPhone width, including fractional-pixel layouts around 390px. */
   #noteDialog .notes-polish-items-editor {
-    margin-bottom: 6px !important;
+    margin-bottom: 14px !important;
   }
 
   #noteDialog .notes-polish-editor-actions {
     position: static !important;
-    margin-top: 18px !important;
+    margin-top: 24px !important;
     transform: none !important;
   }
 }
