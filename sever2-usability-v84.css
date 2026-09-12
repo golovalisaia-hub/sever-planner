@@ -38,10 +38,19 @@
     display: flex !important;
   }
 
-  /* Keep the final checklist row visibly separate from Delete/Save at every
-     iPhone width, including fractional-pixel layouts around 390px. */
+  /* Keep the final checklist row physically separate from Delete/Save. A real
+     spacer inside the grid is more reliable than relying on fractional margins
+     alone on 390px iPhone layouts. */
   #noteDialog .notes-polish-items-editor {
     margin-bottom: 14px !important;
+  }
+
+  #noteDialog .notes-polish-items-editor::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 18px;
+    pointer-events: none;
   }
 
   #noteDialog .notes-polish-editor-actions {
