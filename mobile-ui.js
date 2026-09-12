@@ -167,7 +167,11 @@
       button.type = 'button';
       button.textContent = label.replace('SEVER AI', 'AI').replace('ОПАСНАЯ ЗОНА', 'Сброс');
       button.setAttribute('aria-controls', section.id);
-      button.addEventListener('click', () => section.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      button.addEventListener('click', () => {
+        const details = section.closest('details');
+        if (details && !details.open) details.open = true;
+        requestAnimationFrame(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      });
       nav.appendChild(button);
     });
     list.prepend(nav);
