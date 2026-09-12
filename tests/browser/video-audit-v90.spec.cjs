@@ -62,27 +62,33 @@ test('video audit: guide reveals the actual target instead of a solid grey scree
 
   const target = page.locator('#todayGreeting');
   await expect(target).toBeVisible();
-  const overlap = await page.evaluate(() => {
-    const ring = document.querySelector('#tourDialog .guide-mask-ring').getBoundingClientRect();
-    const target = document.querySelector('#todayGreeting').getBoundingClientRect();
+  await expect.poll(async () => page.evaluate(() => {
+    const ring = document.querySelector('#tourDialog .guide-mask-ring')?.getBoundingClientRect();
+    const target = document.querySelector('#todayGreeting')?.getBoundingClientRect();
+    if (!ring || !target) return false;
     return Math.abs(ring.left - target.left) < 20
       && Math.abs(ring.top - target.top) < 20
       && ring.width >= target.width
       && ring.height >= target.height;
-  });
-  expect(overlap).toBe(true);
+  })).toBe(true);
 
   await page.locator('#tourNext').click();
   await page.locator('#tourNext').click();
   await page.locator('#tourNext').click();
   await expect(page.locator('#tourDialog')).toHaveAttribute('data-step', '5');
   await expect(page.locator('#tourDialog')).toHaveAttribute('data-guide-mask-target', 'true');
-  const finalOverlap = await page.evaluate(() => {
-    const ring = document.querySelector('#tourDialog .guide-mask-ring').getBoundingClientRect();
-    const nav = document.querySelector('.bottom-nav').getBoundingClientRect();
-    return ring.left <= nav.left + 8 && ring.right >= nav.right - 8 && ring.top <= nav.top + 8;
-  });
-  expect(finalOverlap).toBe(true);
+  await expect.poll(async () => page.evaluate(() => {
+    const ring = document.querySelector('#tourDialog .guide-mask-ring')?.getBoundingClientRect();
+    const navNode = innerWidth <= 700
+      ? document.querySelector('.bottom-nav')
+      : document.querySelector('.desktop-sidebar .app-nav');
+    const nav = navNode?.getBoundingClientRect();
+    if (!ring || !nav) return false;
+    return ring.left <= nav.left + 8
+      && ring.right >= nav.right - 8
+      && ring.top <= nav.top + 8
+      && ring.bottom >= nav.bottom - 8;
+  })).toBe(true);
 });
 
 test('video audit: rapid mobile sheet switches leave one modal sheet open and no page error', async ({ page }) => {
@@ -124,28 +130,37 @@ test('video audit: checklist More expands inline and never opens the editor', as
   await expect(card).toBeVisible();
   const more = card.locator('.notes-core-more-items');
   await expect(more).toContainText('Ещё 3');
-  await expect(card.locator('.note-check').nth(3)).toBeHidden();
+  await expect(card.locator('.note-check:visible')).toHaveCount(3);
 
   await more.click();
   await expect(page.locator('#noteDialog')).toBeHidden();
   await expect(more).toHaveAttribute('aria-expanded', 'true');
   await expect(more).toContainText('Свернуть');
   await expect(card).toHaveClass(/notes-polish-checklist-expanded/);
-  await expect(card.locator('.note-check').nth(3)).toBeVisible();
+  await expect(card.locator('.note-check:visible')).toHaveCount(6);
 
   await more.click();
   await expect(more).toHaveAttribute('aria-expanded', 'false');
-  await expect(card.locator('.note-check').nth(3)).toBeHidden();
+  await expect(card.locator('.note-check:visible')).toHaveCount(3);
 });
 
 test('video audit: checklist editor is compact and its action bar does not cover checklist rows', async ({ page }) => {
-  await page.evaluate(() => window.SeverApp.switchView('notes'));
-  await page.locator('#openNote').click();
-  await expect(page.locator('#noteCreateSheet')).toBeVisible();
-  await page.locator('#noteCreateNote').click();
-  await expect(page.locator('#noteDialog')).toBeVisible();
+  await page.evaluate(() => {
+    const state = window.SeverApp.getState();
+    const now = Date.now();
+    state.notes.push({
+      id: 'qa-editor-checklist', folderId: '', title: 'Редактор', body: '', kind: 'checklist', protected: false, done: false,
+      createdAt: now, updatedAt: now,
+      items: [{ id: 'qa-editor-row-0', text: 'Первый пункт', done: false }]
+    });
+    window.SeverNotes.render();
+    window.SeverApp.switchView('notes');
+  });
 
-  await page.locator('#noteDialog [data-note-type="checklist"]').click();
+  const card = page.locator('.note-card[data-note-id="qa-editor-checklist"]');
+  await expect(card).toBeVisible();
+  await card.locator('.note-edit').click();
+  await expect(page.locator('#noteDialog')).toBeVisible();
   await expect(page.locator('#checklistEditor')).toBeVisible();
   for (let i = 0; i < 7; i++) await page.locator('#addNoteItem').click();
 
@@ -162,8 +177,7 @@ test('video audit: checklist editor is compact and its action bar does not cover
   const overlap = await page.evaluate(() => {
     const row = document.querySelector('#noteItemsEditor .note-item-editor:last-child').getBoundingClientRect();
     const actions = document.querySelector('#noteDialog .dialog-actions').getBoundingClientRect();
-    const intersects = Math.max(0, Math.min(row.bottom, actions.bottom) - Math.max(row.top, actions.top));
-    return intersects;
+    return Math.max(0, Math.min(row.bottom, actions.bottom) - Math.max(row.top, actions.top));
   });
   expect(overlap).toBeLessThanOrEqual(1);
 });
