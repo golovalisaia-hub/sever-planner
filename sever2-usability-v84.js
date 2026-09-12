@@ -117,26 +117,34 @@
     }
   }
 
+  function formActionSignature(form) {
+    const controls = [...form.elements].filter(control => {
+      if (!(control instanceof HTMLElement)) return false;
+      if (control instanceof HTMLButtonElement) return false;
+      if (control instanceof HTMLInputElement && ['button', 'submit', 'reset'].includes(control.type)) return false;
+      return !control.disabled;
+    });
+    return JSON.stringify(controls.map((control, index) => {
+      const key = control.id || control.getAttribute('name') || `${control.tagName}:${index}`;
+      if (control instanceof HTMLInputElement && ['checkbox', 'radio'].includes(control.type)) return [key, control.type, control.checked, control.value];
+      return [key, control.tagName, 'value' in control ? String(control.value) : ''];
+    }));
+  }
+
   function rapidSubmitGuard(event) {
     const form = event.target;
     if (!(form instanceof HTMLFormElement) || !form.closest('main, dialog')) return;
     const current = performance.now();
-    const previous = rapidSubmitAt.get(form) || -Infinity;
-    if (current - previous < RAPID_GUARD_MS) {
+    const signature = formActionSignature(form);
+    const previous = rapidSubmitAt.get(form);
+    if (previous && current - previous.at < RAPID_GUARD_MS && previous.signature === signature) {
       event.preventDefault();
       event.stopImmediatePropagation();
       form.dataset.severRapidBlocked = 'true';
       window.setTimeout(() => delete form.dataset.severRapidBlocked, RAPID_GUARD_MS);
       return;
     }
-    rapidSubmitAt.set(form, current);
-    form.dataset.severSubmitting = 'true';
-    form.setAttribute('aria-busy', 'true');
-    window.setTimeout(() => {
-      if ((performance.now() - (rapidSubmitAt.get(form) || 0)) < RAPID_GUARD_MS - 40) return;
-      delete form.dataset.severSubmitting;
-      form.removeAttribute('aria-busy');
-    }, RAPID_GUARD_MS + 25);
+    rapidSubmitAt.set(form, { at: current, signature });
   }
 
   function rapidClickGuard(event) {
@@ -211,7 +219,6 @@
     const style = document.createElement('style');
     style.id = 'severPowerUserStyles';
     style.textContent = `
-      form[data-sever-submitting="true"] button[type="submit"]{pointer-events:none;opacity:.68}
       [data-sever-rapid-blocked="true"]{animation:none!important;transform:none!important}
       .sever-settings-advanced{border:0;padding:0;margin:0}
       .sever-settings-advanced>summary{list-style:none}
