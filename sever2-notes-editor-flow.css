@@ -183,14 +183,23 @@
     display: none;
   }
 
-  #noteDialog .dialog-actions {
-    position: sticky;
-    z-index: 4;
-    bottom: 0;
-    margin-top: 12px;
-    padding-top: 12px;
-    padding-bottom: max(8px, env(safe-area-inset-bottom));
-    background: linear-gradient(180deg, transparent 0, var(--surface-1, var(--panel)) 22px);
+  /* Saving belongs at the end of the note. Never cover checklist rows. */
+  #noteDialog .notes-polish-editor-form {
+    padding-bottom: max(22px, env(safe-area-inset-bottom)) !important;
+    scroll-padding-bottom: max(24px, env(safe-area-inset-bottom)) !important;
+  }
+
+  #noteDialog .dialog-actions,
+  #noteDialog .notes-polish-editor-actions {
+    position: static !important;
+    z-index: auto !important;
+    bottom: auto !important;
+    margin: 10px 0 0 !important;
+    padding: 12px 0 max(8px, env(safe-area-inset-bottom)) !important;
+    border-top: 1px solid color-mix(in srgb, var(--border-subtle, var(--line)) 78%, transparent);
+    background: transparent !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
 
   #noteDialog .dialog-actions .primary {
