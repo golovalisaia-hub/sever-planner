@@ -106,11 +106,21 @@ test('every primary mobile view can scroll fully above the navigation in every t
   }
 });
 
-test('Notes mobile type filtering stays reachable through one compact v87 selector', async ({ page }, info) => {
+test('Notes mobile type filtering appears after first content through the compact v94 selector', async ({ page }, info) => {
   if (info.project.name === 'desktop') test.skip();
   await page.evaluate(() => window.SeverApp.switchView('notes'));
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesCompact)).toBe('v87');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesCompact)).toBe('v94');
+  await expect(page.locator('#notesView')).toHaveAttribute('data-notes-library-state', 'empty');
   await expect(page.locator('#notesView .notes-core-filters')).toBeHidden();
+  await expect(page.locator('#notesCompactType')).toBeHidden();
+  await expect(page.locator('#notesCoreSort')).toBeHidden();
+
+  const capture = page.locator('#notesQuickCaptureInput');
+  await capture.fill('Первая заметка');
+  await capture.press('Enter');
+  await expect.poll(() => page.evaluate(() => window.SeverApp.getState().notes.length)).toBe(1);
+  await expect(page.locator('#notesView')).toHaveAttribute('data-notes-library-state', 'ready');
+
   const type = page.locator('#notesCompactType');
   const sort = page.locator('#notesCoreSort');
   await expect(type).toBeVisible();
