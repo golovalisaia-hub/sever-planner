@@ -18,7 +18,8 @@ test('v94 experience script is syntax-valid and reports cloud problems without m
   assert.match(source, /id = 'severMobileSyncIndicator'/);
   assert.match(source, /role', 'status'/);
   assert.match(source, /aria-live', 'polite'/);
-  assert.match(source, /window\.SeverCloud\?\.health/);
+  assert.match(source, /const cloud = window\.SeverCloud/);
+  assert.match(source, /cloud\?\.health\?\.\(\)/);
   assert.match(source, /sever:cloud-status/);
   assert.match(source, /window\.SeverCloudRecovery\?\.recover/);
   assert.match(source, /Офлайн/);
