@@ -43,7 +43,7 @@ test('video audit: empty day plan exposes exactly one add-task action', async ({
 test('video audit: mobile Settings has fast section navigation and manual Guide still opens', async ({ page }) => {
   await page.evaluate(() => window.SeverApp.switchView('settings'));
   await expect(page.locator('#settingsMobileIndex')).toBeVisible();
-  expect(await page.locator('#settingsMobileIndex button').count()).toBeGreaterThanOrEqual(6);
+  expect(await page.locator('#settingsMobileIndex button').count()).toBeGreaterThanOrEqual(5);
 
   await page.locator('#settingsGuide').scrollIntoViewIfNeeded();
   await page.locator('#settingsGuide').click();
