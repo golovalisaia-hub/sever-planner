@@ -33,7 +33,9 @@ test('v94 keeps phone controls touch-safe and makes progress scannable above the
   assert.match(css, /\.settings-mobile-index button[\s\S]*min-height:\s*44px\s*!important/);
   assert.match(css, /#progressView \.stats[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(css, /#progressView \.stats > article[\s\S]*min-height:\s*92px\s*!important/);
+  assert.match(css, /#noteDialog \.notes-polish-checklist-editor:not\(\.hidden\)[\s\S]*flex:\s*0 0 auto\s*!important/);
   assert.match(css, /#noteDialog \.notes-polish-checklist-editor:not\(\.hidden\)[\s\S]*padding-bottom:\s*22px\s*!important/);
+  assert.match(css, /#noteDialog \.note-security,[\s\S]*#noteDialog \.notes-polish-editor-actions[\s\S]*flex:\s*0 0 auto\s*!important/);
 });
 
 test('fresh mobile Notes hides organization chrome until there is content', () => {
