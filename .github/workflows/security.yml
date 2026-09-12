@@ -26,6 +26,8 @@ jobs:
         run: node --test tests/*.test.mjs
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
+      - name: Money lifecycle probe (phone 360)
+        run: pnpm exec playwright test tests/browser/usability-v84.spec.cjs --project=phone-360 --workers=1 -g "editing a Money plan keeps completed payment history"
       - name: Browser E2E (phones and desktop)
         run: pnpm exec playwright test
       - name: Real user cloud marathon (phone)
