@@ -7,6 +7,13 @@
   let moneyObserver = null;
   let guideObserver = null;
   let reconcileRunning = false;
+  let powerUserInstalled = false;
+  let settingsDetails = null;
+  let settingsRecords = [];
+  const rapidSubmitAt = new WeakMap();
+  const rapidClickAt = new WeakMap();
+  const mobileSettings = window.matchMedia('(max-width: 700px)');
+  const RAPID_GUARD_MS = 450;
 
   const state = () => window.SeverApp?.getState?.() || null;
   const todayISO = () => {
@@ -110,6 +117,104 @@
     }
   }
 
+  function rapidSubmitGuard(event) {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || !form.closest('main, dialog')) return;
+    const current = performance.now();
+    const previous = rapidSubmitAt.get(form) || -Infinity;
+    if (current - previous < RAPID_GUARD_MS) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      form.dataset.severRapidBlocked = 'true';
+      window.setTimeout(() => delete form.dataset.severRapidBlocked, RAPID_GUARD_MS);
+      return;
+    }
+    rapidSubmitAt.set(form, current);
+    form.dataset.severSubmitting = 'true';
+    form.setAttribute('aria-busy', 'true');
+    window.setTimeout(() => {
+      if ((performance.now() - (rapidSubmitAt.get(form) || 0)) < RAPID_GUARD_MS - 40) return;
+      delete form.dataset.severSubmitting;
+      form.removeAttribute('aria-busy');
+    }, RAPID_GUARD_MS + 25);
+  }
+
+  function rapidClickGuard(event) {
+    const target = event.target instanceof Element
+      ? event.target.closest('.task .check, #timerToggle, #todayFocusToggle, #moneyScheduleConfirm')
+      : null;
+    if (!(target instanceof HTMLElement)) return;
+    const current = performance.now();
+    const previous = rapidClickAt.get(target) || -Infinity;
+    if (current - previous < RAPID_GUARD_MS) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      target.dataset.severRapidBlocked = 'true';
+      window.setTimeout(() => delete target.dataset.severRapidBlocked, RAPID_GUARD_MS);
+      return;
+    }
+    rapidClickAt.set(target, current);
+  }
+
+  function settingsTitle(section) {
+    return section.querySelector(':scope > small')?.textContent?.trim().toUpperCase() || '';
+  }
+
+  function mountAdvancedSettings() {
+    if (!mobileSettings.matches || settingsDetails) return;
+    const list = $('#settingsView .settings-list');
+    if (!list) return;
+    const advanced = [...list.querySelectorAll(':scope > .settings-section')].filter(section =>
+      ['БЕЗОПАСНОСТЬ', 'ДАННЫЕ', 'SEVER AI', 'ОПАСНАЯ ЗОНА'].includes(settingsTitle(section))
+    );
+    if (!advanced.length) return;
+
+    const details = document.createElement('details');
+    details.id = 'severSettingsAdvanced';
+    details.className = 'sever-settings-advanced';
+    const summary = document.createElement('summary');
+    summary.innerHTML = '<span><b>Дополнительно</b><em>Безопасность, данные, SEVER AI и сброс</em></span><i aria-hidden="true">›</i>';
+    details.appendChild(summary);
+    list.insertBefore(details, advanced[0]);
+
+    settingsRecords = advanced.map((section, index) => {
+      const marker = document.createComment(`sever-settings-${index}`);
+      list.insertBefore(marker, section);
+      details.appendChild(section);
+      return { section, marker };
+    });
+    settingsDetails = details;
+    try { details.open = sessionStorage.getItem('sever-settings-advanced-open') === '1'; } catch {}
+    details.addEventListener('toggle', () => {
+      try { sessionStorage.setItem('sever-settings-advanced-open', details.open ? '1' : '0'); } catch {}
+    });
+  }
+
+  function unmountAdvancedSettings() {
+    if (!settingsDetails) return;
+    for (const { section, marker } of settingsRecords) {
+      marker.parentNode?.insertBefore(section, marker.nextSibling);
+      marker.remove();
+    }
+    settingsRecords = [];
+    settingsDetails.remove();
+    settingsDetails = null;
+  }
+
+  function syncAdvancedSettings() {
+    if (mobileSettings.matches) mountAdvancedSettings();
+    else unmountAdvancedSettings();
+  }
+
+  function installPowerUserHardening() {
+    if (!powerUserInstalled) {
+      powerUserInstalled = true;
+      mobileSettings.addEventListener?.('change', syncAdvancedSettings);
+    }
+    syncAdvancedSettings();
+    document.documentElement.dataset.severPowerUser = 'v91';
+  }
+
   function handleCaptureSubmit(event) {
     if (event.target?.id === 'moneyItemForm') {
       const existing = itemById($('#moneyItemId')?.value);
@@ -165,6 +270,7 @@
   function boot() {
     if (!window.SeverApp?.getState || !window.SeverMoney || !$('#moneyView') || !$('#tourDialog')) return false;
     installObservers();
+    installPowerUserHardening();
     document.documentElement.dataset.severUsability = 'v84';
     void reconcileSchedules();
     return true;
@@ -180,6 +286,8 @@
     bootTimer = setTimeout(scheduleBoot, 50);
   }
 
+  document.addEventListener('submit', rapidSubmitGuard, true);
+  document.addEventListener('click', rapidClickGuard, true);
   document.addEventListener('submit', handleCaptureSubmit, true);
   document.addEventListener('click', handleCaptureClick, true);
   document.addEventListener('visibilitychange', () => {
