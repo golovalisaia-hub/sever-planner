@@ -72,7 +72,48 @@
     const style = document.createElement('style');
     style.id = 'severVideoAuditStyles';
     style.textContent = `
+      /* Safari-safe guide mask: four real panes instead of a 999vmax shadow. */
+      #tourDialog .guide-spotlight {
+        opacity: 0 !important;
+        border: 0 !important;
+        box-shadow: none !important;
+      }
+      #tourDialog .guide-mask-pane {
+        position: fixed;
+        z-index: 3;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: rgba(3, 3, 5, .58);
+        pointer-events: none;
+        transition: left .18s ease, top .18s ease, width .18s ease, height .18s ease, background-color .18s ease;
+      }
+      #tourDialog[data-guide-mask-target="false"] .guide-mask-pane { background: rgba(3, 3, 5, .26); }
+      #tourDialog .guide-mask-ring {
+        position: fixed;
+        z-index: 4;
+        display: none;
+        box-sizing: border-box;
+        border: 2px solid rgba(255, 255, 255, .88);
+        border-radius: 16px;
+        box-shadow: 0 0 0 5px rgba(255, 255, 255, .09), 0 12px 34px rgba(0, 0, 0, .26);
+        pointer-events: none;
+        transition: left .18s ease, top .18s ease, width .18s ease, height .18s ease;
+      }
+      #tourDialog[data-guide-mask-target="true"] .guide-mask-ring { display: block; }
+      #tourDialog .guide-card { z-index: 8; }
+      html[data-theme="light"] #tourDialog .guide-mask-pane { background: rgba(28, 27, 30, .38); }
+      html[data-theme="light"] #tourDialog[data-guide-mask-target="false"] .guide-mask-pane { background: rgba(28, 27, 30, .14); }
+      html[data-theme="light"] #tourDialog .guide-mask-ring {
+        border-color: rgba(25, 24, 26, .82);
+        box-shadow: 0 0 0 5px rgba(25, 24, 26, .08), 0 12px 34px rgba(0, 0, 0, .14);
+      }
       @media (max-width: 900px) {
+        #tourDialog[data-step="5"] .guide-card {
+          bottom: calc(78px + env(safe-area-inset-bottom));
+          border-bottom: 1px solid var(--border, rgba(127,127,127,.18));
+          border-radius: 22px;
+        }
         #dayDialog .day-task-list .empty {
           min-height: 180px;
           padding: 24px 18px 18px;
@@ -137,6 +178,10 @@
       @media (min-width: 901px) {
         .settings-mobile-index { display: none !important; }
       }
+      @media (prefers-reduced-motion: reduce) {
+        #tourDialog .guide-mask-pane,
+        #tourDialog .guide-mask-ring { transition: none; }
+      }
     `;
     document.head.appendChild(style);
   }
@@ -177,12 +222,100 @@
     list.prepend(nav);
   }
 
+  function installGuideSpotlightMask() {
+    const dialog = $('#tourDialog');
+    const originalSpot = $('#guideSpotlight');
+    if (!dialog || !originalSpot || dialog.dataset.severMaskReady === 'true') return;
+    dialog.dataset.severMaskReady = 'true';
+
+    const names = ['top', 'left', 'right', 'bottom'];
+    const panes = {};
+    names.forEach(name => {
+      const pane = document.createElement('div');
+      pane.className = `guide-mask-pane guide-mask-${name}`;
+      pane.setAttribute('aria-hidden', 'true');
+      dialog.insertBefore(pane, dialog.querySelector('.guide-card'));
+      panes[name] = pane;
+    });
+    const ring = document.createElement('div');
+    ring.className = 'guide-mask-ring';
+    ring.setAttribute('aria-hidden', 'true');
+    dialog.insertBefore(ring, dialog.querySelector('.guide-card'));
+
+    const expandedRect = (target, gap = 7) => {
+      const rect = target?.getBoundingClientRect?.();
+      if (!rect || rect.width <= 1 || rect.height <= 1) return null;
+      const left = Math.max(0, rect.left - gap);
+      const top = Math.max(0, rect.top - gap);
+      const right = Math.min(window.innerWidth, rect.right + gap);
+      const bottom = Math.min(window.innerHeight, rect.bottom + gap);
+      return { left, top, right, bottom, width: right - left, height: bottom - top };
+    };
+
+    const currentRect = () => {
+      // Steps 2–4 are already anchored by app.js. Read the real positioned spot,
+      // but render the mask ourselves so Safari cannot lose the transparent hole.
+      if (dialog.dataset.hasTarget === 'true') {
+        const rect = originalSpot.getBoundingClientRect();
+        if (rect.width > 1 && rect.height > 1) {
+          return { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
+        }
+      }
+      // The final guide step talks about navigation. Show the navigation instead of
+      // returning to a fully grey backdrop with no visible referent.
+      if (dialog.dataset.step === '5') {
+        return expandedRect(isPhone() ? $('.bottom-nav') : $('.desktop-sidebar .app-nav'), 5);
+      }
+      return null;
+    };
+
+    const box = (node, left, top, width, height) => {
+      node.style.left = `${Math.max(0, left)}px`;
+      node.style.top = `${Math.max(0, top)}px`;
+      node.style.width = `${Math.max(0, width)}px`;
+      node.style.height = `${Math.max(0, height)}px`;
+    };
+
+    let frame = 0;
+    const sync = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        if (!dialog.open) return;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const rect = currentRect();
+        dialog.dataset.guideMaskTarget = rect ? 'true' : 'false';
+        if (!rect) {
+          box(panes.top, 0, 0, vw, vh);
+          box(panes.left, 0, 0, 0, 0);
+          box(panes.right, 0, 0, 0, 0);
+          box(panes.bottom, 0, 0, 0, 0);
+          return;
+        }
+        box(panes.top, 0, 0, vw, rect.top);
+        box(panes.left, 0, rect.top, rect.left, rect.height);
+        box(panes.right, rect.right, rect.top, vw - rect.right, rect.height);
+        box(panes.bottom, 0, rect.bottom, vw, vh - rect.bottom);
+        box(ring, rect.left, rect.top, rect.width, rect.height);
+        ring.style.borderRadius = originalSpot.style.borderRadius || '16px';
+      });
+    };
+
+    new MutationObserver(sync).observe(dialog, { attributes: true, attributeFilter: ['open', 'data-step', 'data-has-target'] });
+    new MutationObserver(sync).observe(originalSpot, { attributes: true, attributeFilter: ['style'] });
+    ['tourNext', 'tourBack'].forEach(id => $(`#${id}`)?.addEventListener('click', () => setTimeout(sync, 0)));
+    window.addEventListener('resize', sync, { passive: true });
+    window.addEventListener('scroll', sync, { passive: true });
+    sync();
+  }
+
   function setup() {
     if (initialized) return;
     initialized = true;
     installVideoAuditStyles();
     tidyDayDialog();
     installSettingsIndex();
+    installGuideSpotlightMask();
 
     // Presentation only: keep the task renderer and its event handlers intact.
     const tidyTaskMetadata = root => root.querySelectorAll('.task-meta').forEach(meta => {
