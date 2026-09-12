@@ -74,6 +74,7 @@ test('task completion shows a real checkmark and remains reversible in every the
     await check.click();
     await expect(task).not.toHaveClass(/\bdone\b/);
     await expect(check).toHaveAttribute('aria-pressed', 'false');
+    await page.waitForTimeout(500);
   }
 });
 
@@ -126,6 +127,7 @@ test('habit completion keeps edit button and seven-day geometry stable in every 
     await page.waitForTimeout(500);
     await today.click();
     await expect(habit).not.toHaveClass(/\bdone\b/);
+    await page.waitForTimeout(500);
   }
 });
 
