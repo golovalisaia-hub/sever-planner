@@ -42,7 +42,7 @@ test('cloud recovery v80 ships atomically inside the power-user PWA release', as
     './sever2-notes-organization.css?v=72','./sever2-notes-organization.js?v=72',
     './sever2-notes-editor-flow.css?v=90','./sever2-notes-editor-flow.js?v=73',
     './sever2-notes-navigation.css?v=74','./sever2-notes-navigation.js?v=74',
-    './sever2-notes-polish.css?v=79','./sever2-notes-polish.js?v=79',
+    './sever2-notes-polish.css?v=90','./sever2-notes-polish.js?v=90',
     './sever2-mobile-consistency.css?v=76','./sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=84','./sever2-usability-v84.js?v=84',
     './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
