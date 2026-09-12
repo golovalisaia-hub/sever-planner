@@ -59,16 +59,16 @@ test('v78 interaction polish remains after Home v85 and usability v84 in the ato
   assert.match(themeInit, /sever2-interaction-polish\.js\?v=78/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v90-video-audit-v2'/);
+  assert.match(sw, /const CACHE = 'sever-v92-unified-release-v1'/);
   for (const asset of [
     './sever2-home-core.js?v=85',
-    './sever2-notes-polish.css?v=90','./sever2-notes-polish.js?v=90',
+    './sever2-notes-polish.css?v=92','./sever2-notes-polish.js?v=90',
     './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=84','./sever2-usability-v84.js?v=84',
     './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80',
     './sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82',
-    './js/theme-init.js?v=85'
+    './js/theme-init.js?v=92'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   assert.match(sw, /'\/sever2-home-core\.js'/);
   assert.match(sw, /'\/sever2-usability-v84\.css'/);
