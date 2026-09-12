@@ -29,6 +29,18 @@ async function quickNote(page, text) {
   await expect(page.locator('#noteList')).toContainText(text);
 }
 
+async function chooseFilter(page, value) {
+  const compact = page.locator('#notesCompactType');
+  if (await compact.isVisible().catch(() => false)) {
+    await compact.selectOption(value);
+    await expect(compact).toHaveValue(value);
+    return;
+  }
+  const button = page.locator(`[data-notes-core-filter="${value}"]`);
+  await button.click();
+  await expect(button).toHaveClass(/active/);
+}
+
 test.beforeEach(async ({ page }) => {
   await seed(page);
 });
@@ -54,11 +66,11 @@ test('Notes core quick capture, filters, sorting and card opening stay functiona
   await expect(page.locator('#noteList')).toContainText('Список дел');
   expect(await page.evaluate(() => window.SeverApp.getState().notes.length)).toBe(2);
 
-  await page.locator('[data-notes-core-filter="checklist"]').click();
+  await chooseFilter(page, 'checklist');
   await expect(page.locator('#noteList .note-card')).toHaveCount(1);
   await expect(page.locator('#noteList')).toContainText('Список дел');
 
-  await page.locator('[data-notes-core-filter="all"]').click();
+  await chooseFilter(page, 'all');
   await page.locator('#notesCoreSort').selectOption('title');
   await expect(page.locator('#noteList .note-card')).toHaveCount(2);
   await expect(page.locator('#noteList .note-card h3').first()).toHaveText('Первая мысль');
