@@ -206,11 +206,37 @@
     else unmountAdvancedSettings();
   }
 
+  function installPowerUserStyles() {
+    if ($('#severPowerUserStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'severPowerUserStyles';
+    style.textContent = `
+      form[data-sever-submitting="true"] button[type="submit"]{pointer-events:none;opacity:.68}
+      [data-sever-rapid-blocked="true"]{animation:none!important;transform:none!important}
+      .sever-settings-advanced{border:0;padding:0;margin:0}
+      .sever-settings-advanced>summary{list-style:none}
+      .sever-settings-advanced>summary::-webkit-details-marker{display:none}
+      @media(max-width:700px){
+        #settingsView .sever-settings-advanced{border:1px solid var(--line,rgba(127,127,127,.2));border-radius:16px;overflow:clip;background:var(--surface,transparent)}
+        #settingsView .sever-settings-advanced>summary{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;min-height:58px;padding:10px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+        #settingsView .sever-settings-advanced>summary span{display:grid;gap:2px;min-width:0}
+        #settingsView .sever-settings-advanced>summary b{font-size:.92rem;line-height:1.2}
+        #settingsView .sever-settings-advanced>summary em{overflow:hidden;color:var(--muted,#777);font-size:.72rem;font-style:normal;line-height:1.25;text-overflow:ellipsis;white-space:nowrap}
+        #settingsView .sever-settings-advanced>summary i{font-size:1.35rem;font-style:normal;transition:transform .18s ease}
+        #settingsView .sever-settings-advanced[open]>summary i{transform:rotate(90deg)}
+        #settingsView .sever-settings-advanced>.settings-section{margin:0;border-top:1px solid var(--line,rgba(127,127,127,.16));border-radius:0}
+      }
+      @media(prefers-reduced-motion:reduce){#settingsView .sever-settings-advanced>summary i{transition:none}}
+    `;
+    document.head.appendChild(style);
+  }
+
   function installPowerUserHardening() {
     if (!powerUserInstalled) {
       powerUserInstalled = true;
       mobileSettings.addEventListener?.('change', syncAdvancedSettings);
     }
+    installPowerUserStyles();
     syncAdvancedSettings();
     document.documentElement.dataset.severPowerUser = 'v91';
   }
