@@ -62,7 +62,7 @@ test('v78 interaction polish remains after Home v85 and usability v84 in the ato
   assert.match(sw, /const CACHE = 'sever-v90-video-audit-v2'/);
   for (const asset of [
     './sever2-home-core.js?v=85',
-    './sever2-notes-polish.css?v=79','./sever2-notes-polish.js?v=79',
+    './sever2-notes-polish.css?v=90','./sever2-notes-polish.js?v=90',
     './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=84','./sever2-usability-v84.js?v=84',
     './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
