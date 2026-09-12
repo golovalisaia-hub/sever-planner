@@ -65,3 +65,23 @@ test('video audit: rapid mobile sheet switches leave one modal sheet open and no
   await expect(page.locator('dialog.mobile-sheet[open]')).toHaveCount(1);
   expect(errors).toEqual([]);
 });
+
+test('video audit: checklist editor keeps description compact and save action reachable', async ({ page }) => {
+  await page.evaluate(() => window.SeverApp.switchView('notes'));
+  await page.locator('#openNote').click();
+  await expect(page.locator('#noteCreateSheet')).toBeVisible();
+  await page.locator('#noteCreateNote').click();
+  await expect(page.locator('#noteDialog')).toBeVisible();
+
+  await page.locator('#noteDialog [data-note-type="checklist"]').click();
+  await expect(page.locator('#checklistEditor')).toBeVisible();
+
+  const metrics = await page.locator('#noteBody').evaluate(element => {
+    const style = getComputedStyle(element);
+    return { minHeight: parseFloat(style.minHeight), maxHeight: parseFloat(style.maxHeight) };
+  });
+  expect(metrics.minHeight).toBeLessThanOrEqual(100);
+  expect(metrics.maxHeight).toBeLessThanOrEqual(140);
+  await expect(page.locator('#noteDialog .dialog-actions .primary')).toBeVisible();
+  await expect(page.locator('#noteDialog .dialog-actions')).toHaveCSS('position', 'sticky');
+});
