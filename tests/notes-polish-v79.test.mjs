@@ -9,8 +9,9 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const js = read('sever2-notes-polish.js');
 const css = read('sever2-notes-polish.css');
 const editorCss = read('sever2-notes-editor-flow.css');
+const usabilityCss = read('sever2-usability-v84.css');
 
-test('Notes polish v90 is syntax-valid and More progressively expands checklist cards inline', () => {
+test('Notes polish v93 is syntax-valid and More progressively expands checklist cards inline', () => {
   const checked = spawnSync(process.execPath, ['--check', path.join(root, 'sever2-notes-polish.js')]);
   assert.equal(checked.status, 0, checked.stderr.toString());
   assert.match(js, /const expandedChecklists = new Set\(\)/);
@@ -24,6 +25,13 @@ test('Notes polish v90 is syntax-valid and More progressively expands checklist 
   assert.match(css, /notes-polish-checklist-expanded[\s\S]*overflow-y:\s*auto/);
 });
 
+test('Notes polish updates button markup only when visual state changes', () => {
+  assert.match(js, /dataset\.notesPolishRender/);
+  assert.match(js, /if \(control\.dataset\.notesPolishRender !== renderKey\)/);
+  assert.match(js, /if \(toggle\.dataset\.notesPolishRender !== renderKey\)/);
+  assert.match(js, /if \(button\.dataset\.notesPolishRender !== renderKey\)/);
+});
+
 test('mobile Notes editor uses one scroll flow and save actions cannot cover checklist rows', () => {
   assert.match(css, /#noteDialog\.notes-polish-editor/);
   assert.match(css, /height:\s*100dvh\s*!important/);
@@ -33,4 +41,6 @@ test('mobile Notes editor uses one scroll flow and save actions cannot cover che
   assert.match(editorCss, /\.notes-polish-editor-actions[\s\S]*position:\s*static\s*!important/);
   assert.match(editorCss, /\.notes-polish-editor-actions[\s\S]*bottom:\s*auto\s*!important/);
   assert.match(editorCss, /\.notes-polish-editor-actions[\s\S]*backdrop-filter:\s*none\s*!important/);
+  assert.match(usabilityCss, /\.notes-polish-items-editor[\s\S]*margin-bottom:\s*14px\s*!important/);
+  assert.match(usabilityCss, /\.notes-polish-editor-actions[\s\S]*margin-top:\s*24px\s*!important/);
 });
