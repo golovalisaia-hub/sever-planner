@@ -60,6 +60,7 @@ test('phone v84 reduces Money and Settings vertical chrome without shrinking tou
   assert.match(css, /#moneyView \.money-add-pills button[\s\S]*min-height: 44px/);
   assert.match(css, /@media \(max-width: 350px\)/);
   assert.match(css, /grid-auto-columns: minmax\(146px, 78%\) !important/);
+  assert.match(css, /\.notes-polish-items-editor[\s\S]*margin-bottom:\s*14px\s*!important/);
 });
 
 test('v84 and v91 hardening remain after Home v85 in the atomic offline release', () => {
@@ -71,8 +72,8 @@ test('v84 and v91 hardening remain after Home v85 in the atomic offline release'
   assert.match(loader, /sever2-home-core\.js\?v=85/);
   assert.match(loader, /sever2-usability-v84\.css\?v=84/);
   assert.match(loader, /sever2-usability-v84\.js\?v=84/);
-  assert.match(sw, /const CACHE = 'sever-v92-unified-release-v1'/);
-  for (const asset of ['./sever2-home-core.js?v=85', './sever2-usability-v84.css?v=84', './sever2-usability-v84.js?v=84', './sever2-reminders.css?v=86', './js/theme-init.js?v=92']) {
+  assert.match(sw, /const CACHE = 'sever-v93-complete-release-v1'/);
+  for (const asset of ['./sever2-home-core.js?v=85', './sever2-usability-v84.css?v=93', './sever2-usability-v84.js?v=84', './sever2-notes-compact-v87.js?v=87', './sever2-reminders.css?v=86', './js/theme-init.js?v=92']) {
     assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   }
   assert.ok(sw.includes("'/sever2-home-core.js'"));
