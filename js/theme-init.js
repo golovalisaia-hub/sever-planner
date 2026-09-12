@@ -66,6 +66,64 @@
     catch { return ''; }
   }
 
+  /* app.js historically dispatched sever:ready immediately after starting its
+     async initializer. Presentation modules use that event as a hard readiness
+     contract, so a very fast first interaction could race IndexedDB recovery or
+     the first durable save. theme-init runs in <head>, before app.js, and holds
+     only this one event until the core has demonstrably completed persistence. */
+  function installInitialReadyBarrier() {
+    const originalDispatch = window.dispatchEvent.bind(window);
+    let pendingReady = null;
+    let released = false;
+    let pollTimer = 0;
+
+    const durable = () => {
+      let savedAt = 0;
+      try {
+        savedAt = Number(JSON.parse(localStorage.getItem(ANONYMOUS_STATE_KEY) || '{}')._savedAt) || 0;
+      } catch {}
+      const status = document.querySelector('#storageStatus')?.textContent?.trim() || '';
+      const finished = status && !/Проверяем/i.test(status);
+      return savedAt > 0 && finished;
+    };
+
+    const restoreDispatch = () => {
+      try { delete window.dispatchEvent; } catch {}
+      if (window.dispatchEvent === guardedDispatch) {
+        try { window.dispatchEvent = originalDispatch; } catch {}
+      }
+    };
+
+    const release = () => {
+      pollTimer = 0;
+      if (released || !pendingReady) return;
+      if (!durable()) {
+        pollTimer = window.setTimeout(release, 16);
+        return;
+      }
+      const event = pendingReady;
+      pendingReady = null;
+      released = true;
+      restoreDispatch();
+      originalDispatch(event);
+    };
+
+    function guardedDispatch(event) {
+      if (event?.type === 'sever:ready' && !released) {
+        pendingReady = event;
+        if (!pollTimer) pollTimer = window.setTimeout(release, 0);
+        return true;
+      }
+      return originalDispatch(event);
+    }
+
+    try {
+      window.dispatchEvent = guardedDispatch;
+    } catch {
+      return;
+    }
+  }
+
   /* app.js registers the service worker from a window load handler. A browser,
      private-mode environment or test shell can transiently reject registration
      or return no registration object. That must never crash the planner. Keep
@@ -284,6 +342,7 @@
     observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
   }
 
+  installInitialReadyBarrier();
   installServiceWorkerStartupGuard();
   seedFreshAnonymousState();
   retireLegacyHomeLayer();
