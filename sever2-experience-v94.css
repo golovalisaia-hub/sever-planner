@@ -138,6 +138,17 @@
   #progressView .review {
     border-radius: 18px !important;
   }
+
+  /* Reserve space at the checklist section level, not on the final row. This
+     keeps the following security/actions blocks in normal document flow even
+     when Safari rounds grid row geometry by fractional pixels. */
+  #noteDialog .notes-polish-checklist-editor:not(.hidden) {
+    padding-bottom: 22px !important;
+  }
+
+  #noteDialog .notes-polish-editor-actions {
+    flex: 0 0 auto !important;
+  }
 }
 
 @media (max-width: 350px) {
