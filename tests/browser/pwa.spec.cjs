@@ -20,7 +20,7 @@ test('installed release reloads offline with one complete active asset set', asy
       try {
         releaseCache = await page.evaluate(async () => {
           const names = await caches.keys();
-          const releaseNames = names.filter(name => name.startsWith('sever-v93-'));
+          const releaseNames = names.filter(name => name.startsWith('sever-v94-'));
           const name = releaseNames.at(-1) || '';
           if (!name) return { name: '', entries: [], releaseNames };
           const cache = await caches.open(name);
@@ -41,6 +41,8 @@ test('installed release reloads offline with one complete active asset set', asy
           && cached.includes('/sever2-mobile-consistency.css?v=76')
           && cached.includes('/sever2-notes-compact-v87.css?v=87')
           && cached.includes('/sever2-notes-compact-v87.js?v=87')
+          && cached.includes('/sever2-experience-v94.css?v=94')
+          && cached.includes('/sever2-experience-v94.js?v=94')
           && cached.includes('/sever2-money.js?v=83')
           && cached.includes('/sever2-usability-v84.css?v=93')
           && cached.includes('/sever2-usability-v84.js?v=84')
@@ -53,7 +55,7 @@ test('installed release reloads offline with one complete active asset set', asy
       } catch { return false; }
     }).toBe(true);
 
-    expect(releaseCache.name).toBe('sever-v93-complete-release-v1');
+    expect(releaseCache.name).toBe('sever-v94-experience-release-v1');
     const cached = releaseCache.entries;
     for (const asset of [
       '/mobile-home.css?v=52','/desktop-system.css?v=60','/themes.css?v=60','/sever2-ui.css?v=61','/sever2-qa.css?v=61',
@@ -63,6 +65,7 @@ test('installed release reloads offline with one complete active asset set', asy
       '/sever2-notes-organization.css?v=72','/sever2-notes-organization.js?v=72','/sever2-notes-editor-flow.css?v=90','/sever2-notes-editor-flow.js?v=73',
       '/sever2-notes-navigation.css?v=74','/sever2-notes-navigation.js?v=74','/sever2-notes-polish.css?v=92','/sever2-notes-polish.js?v=93',
       '/sever2-mobile-consistency.css?v=76','/sever2-notes-compact-v87.css?v=87','/sever2-notes-compact-v87.js?v=87',
+      '/sever2-experience-v94.css?v=94','/sever2-experience-v94.js?v=94',
       '/sever2-money.css?v=83','/sever2-money.js?v=83','/sever2-usability-v84.css?v=93','/sever2-usability-v84.js?v=84',
       '/sever2-interaction-polish.css?v=78','/sever2-interaction-polish.js?v=78','/sever2-reminders.css?v=86','/sever2-task-reminders.js?v=82',
       '/sever2-cloud-recovery.css?v=80','/sever2-cloud-recovery.js?v=80','/mobile-ui.js?v=92','/js/theme-init.js?v=92','/app.js?v=51','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55'
@@ -75,16 +78,19 @@ test('installed release reloads offline with one complete active asset set', asy
     for (const key of ['severProductivity','severFocusFlow','severEfficiency','severCalendarClarity','severCreateFlow','severHomeCore','severNotesCore','severNotesOrganization','severNotesEditorFlow','severNotesNavigation','severNotesPolish','severMoney','severInteractionPolish','severCloudRecovery']) {
       await expect.poll(() => page.evaluate(name => document.documentElement.dataset[name], key)).toBe('ready');
     }
-    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesCompact)).toBe('v87');
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesCompact)).toBe('v94');
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severExperience)).toBe('v94');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severUsability)).toBe('v84');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severPowerUser)).toBe('v91');
     await expect(page.locator('link[data-sever2-home-core-pack]')).toHaveAttribute('href', /sever2-home-core\.css\?v=85$/);
     await expect(page.locator('script[data-sever2-home-core-script]')).toHaveAttribute('src', /sever2-home-core\.js\?v=85$/);
     // Loader query strings are legacy labels. The service worker serves refreshed
-    // v93 files by pathname, while the omitted v87 Notes layer loads explicitly.
+    // files by pathname, while the compact Notes layer bootstraps v94 explicitly.
     await expect(page.locator('link[data-sever2-notes-polish-pack]')).toHaveAttribute('href', /sever2-notes-polish\.css\?v=79$/);
     await expect(page.locator('link[data-sever2-notes-compact-v87-pack]')).toHaveAttribute('href', /sever2-notes-compact-v87\.css\?v=87$/);
     await expect(page.locator('script[data-sever2-notes-compact-v87-script]')).toHaveAttribute('src', /sever2-notes-compact-v87\.js\?v=87$/);
+    await expect(page.locator('link[data-sever2-experience-v94-pack]')).toHaveAttribute('href', /sever2-experience-v94\.css\?v=94$/);
+    await expect(page.locator('script[data-sever2-experience-v94-script]')).toHaveAttribute('src', /sever2-experience-v94\.js\?v=94$/);
     await expect(page.locator('link[data-sever2-mobile-consistency-pack]')).toHaveAttribute('href', /sever2-mobile-consistency\.css\?v=76$/);
     await expect(page.locator('link[data-sever2-money-pack]')).toHaveAttribute('href', /sever2-money\.css\?v=77$/);
     await expect(page.locator('link[data-sever2-usability-v84-pack]')).toHaveAttribute('href', /sever2-usability-v84\.css\?v=84$/);
