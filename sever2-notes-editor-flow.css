@@ -160,8 +160,41 @@
     font-size: 1.12rem;
   }
 
+  /* The phone editor should feel like a note, not a long settings form. */
   #noteDialog #noteBody {
-    min-height: 260px;
+    min-height: 138px;
+    resize: vertical;
+  }
+
+  #noteDialog:has([data-note-type="checklist"].active) #noteBody {
+    min-height: 88px;
+    max-height: 132px;
+  }
+
+  #noteDialog .checklist-editor-head {
+    align-items: center;
+  }
+
+  #noteDialog .checklist-editor-head > div {
+    min-width: 0;
+  }
+
+  #noteDialog .checklist-editor-head > div > span {
+    display: none;
+  }
+
+  #noteDialog .dialog-actions {
+    position: sticky;
+    z-index: 4;
+    bottom: 0;
+    margin-top: 12px;
+    padding-top: 12px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, transparent 0, var(--surface-1, var(--panel)) 22px);
+  }
+
+  #noteDialog .dialog-actions .primary {
+    min-height: 48px;
   }
 }
 
