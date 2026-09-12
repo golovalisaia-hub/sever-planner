@@ -63,14 +63,14 @@ test('cloud recovery v80 remains in the atomic power-user PWA release', () => {
   assert.match(themeInit, /sever2-cloud-recovery\.css\?v=80/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v90-video-audit-v2'/);
+  assert.match(sw, /const CACHE = 'sever-v92-unified-release-v1'/);
   for (const asset of [
     './sever2-home-core.js?v=85',
     './sever2-usability-v84.css?v=84',
     './sever2-usability-v84.js?v=84',
     './sever2-cloud-recovery.css?v=80',
     './sever2-cloud-recovery.js?v=80',
-    './js/theme-init.js?v=85',
+    './js/theme-init.js?v=92',
     './sever2-reminders.css?v=86',
     './sever2-task-reminders.js?v=82'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
