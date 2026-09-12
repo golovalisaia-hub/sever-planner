@@ -63,11 +63,13 @@ test('cloud recovery v80 remains in the atomic power-user PWA release', () => {
   assert.match(themeInit, /sever2-cloud-recovery\.css\?v=80/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v92-unified-release-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v93-complete-release-v1'/);
   for (const asset of [
     './sever2-home-core.js?v=85',
-    './sever2-usability-v84.css?v=84',
+    './sever2-usability-v84.css?v=93',
     './sever2-usability-v84.js?v=84',
+    './sever2-notes-compact-v87.css?v=87',
+    './sever2-notes-compact-v87.js?v=87',
     './sever2-cloud-recovery.css?v=80',
     './sever2-cloud-recovery.js?v=80',
     './js/theme-init.js?v=92',
