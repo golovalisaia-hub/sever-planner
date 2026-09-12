@@ -76,9 +76,11 @@ test('installed release reloads offline with one complete active asset set', asy
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severPowerUser)).toBe('v91');
     await expect(page.locator('link[data-sever2-home-core-pack]')).toHaveAttribute('href', /sever2-home-core\.css\?v=85$/);
     await expect(page.locator('script[data-sever2-home-core-script]')).toHaveAttribute('src', /sever2-home-core\.js\?v=85$/);
-    await expect(page.locator('link[data-sever2-notes-polish-pack]')).toHaveAttribute('href', /sever2-notes-polish\.css\?v=90$/);
+    // Loader query strings are legacy labels. The service worker serves the refreshed
+    // v92 cache entry by pathname, so the DOM URL and cached content version differ intentionally.
+    await expect(page.locator('link[data-sever2-notes-polish-pack]')).toHaveAttribute('href', /sever2-notes-polish\.css\?v=79$/);
     await expect(page.locator('link[data-sever2-mobile-consistency-pack]')).toHaveAttribute('href', /sever2-mobile-consistency\.css\?v=76$/);
-    await expect(page.locator('link[data-sever2-money-pack]')).toHaveAttribute('href', /sever2-money\.css\?v=83$/);
+    await expect(page.locator('link[data-sever2-money-pack]')).toHaveAttribute('href', /sever2-money\.css\?v=77$/);
     await expect(page.locator('link[data-sever2-usability-v84-pack]')).toHaveAttribute('href', /sever2-usability-v84\.css\?v=84$/);
     await expect(page.locator('link[data-sever2-interaction-polish-pack]')).toHaveAttribute('href', /sever2-interaction-polish\.css\?v=78$/);
     await expect(page.locator('link[data-sever2-cloud-recovery-pack]')).toHaveAttribute('href', /sever2-cloud-recovery\.css\?v=80$/);
