@@ -31,6 +31,23 @@
     min-height: 94px;
     scroll-snap-align: start;
   }
+
+  /* Notes v92: legacy compact CSS must never keep rows hidden after the user
+     explicitly expands a checklist. */
+  #notesView .note-card[data-notes-compact-checklist="true"].notes-polish-checklist-expanded .note-check {
+    display: flex !important;
+  }
+
+  /* Keep the final checklist row visually separate from Delete/Save. */
+  #noteDialog .notes-polish-items-editor {
+    margin-bottom: 6px !important;
+  }
+
+  #noteDialog .notes-polish-editor-actions {
+    position: static !important;
+    margin-top: 18px !important;
+    transform: none !important;
+  }
 }
 
 @media (max-width: 430px) {
