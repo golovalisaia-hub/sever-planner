@@ -51,7 +51,7 @@ test('Notes editor recovery loads after Home v85 and before compact Notes polish
   assert.match(sw, /sever2-notes-editor-flow\.css\?v=90/);
   assert.match(sw, /sever2-notes-editor-flow\.js\?v=73/);
   assert.match(sw, /sever2-notes-navigation\.js\?v=74/);
-  assert.match(sw, /sever2-notes-polish\.js\?v=79/);
+  assert.match(sw, /sever2-notes-polish\.js\?v=90/);
   assert.match(sw, /sever2-mobile-consistency\.css\?v=76/);
   assert.match(sw, /sever2-money\.js\?v=83/);
   assert.match(sw, /sever2-usability-v84\.js\?v=84/);
