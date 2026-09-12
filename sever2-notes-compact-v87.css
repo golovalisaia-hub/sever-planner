@@ -1,4 +1,4 @@
-/* SEVER Notes v87 — compact mobile controls without removing organization features. */
+/* SEVER Notes v94 — compact mobile controls with progressive disclosure. */
 
 .notes-compact-type {
   display: none;
@@ -60,6 +60,27 @@
     stroke-linejoin: round;
     color: var(--text-secondary, var(--muted));
     pointer-events: none;
+  }
+
+  /* A fresh Notes screen should help the user create the first note, not ask
+     them to understand search, folders, tags, filters and sort before content exists. */
+  #notesView.notes-v94-empty-library .notes-navigation-sticky,
+  #notesView.notes-v94-empty-library .notes-core-controls,
+  #notesView.notes-v94-empty-library .notes-core-summary {
+    display: none !important;
+  }
+
+  #notesView.notes-v94-empty-library .notes-core-capture {
+    margin-bottom: 12px;
+  }
+
+  #notesView.notes-v94-empty-library #noteList {
+    margin-top: 0;
+  }
+
+  #notesView.notes-v94-empty-library #noteList > .empty,
+  #notesView.notes-v94-empty-library #noteList > .notes-core-empty {
+    min-height: 146px;
   }
 
   #notesView:has(#noteList > .empty) .notes-core-summary,
