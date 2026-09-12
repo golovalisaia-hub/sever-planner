@@ -59,7 +59,7 @@ test('v78 interaction polish remains after Home v85 and usability v84 in the ato
   assert.match(themeInit, /sever2-interaction-polish\.js\?v=78/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v82-reminders-desktop-v9'/);
+  assert.match(sw, /const CACHE = 'sever-v90-video-audit-v2'/);
   for (const asset of [
     './sever2-home-core.js?v=85',
     './sever2-notes-polish.css?v=79','./sever2-notes-polish.js?v=79',
