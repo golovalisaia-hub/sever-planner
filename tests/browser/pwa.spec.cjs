@@ -48,7 +48,7 @@ test('installed release reloads offline with one complete active asset set', asy
       } catch { return false; }
     }).toBe(true);
 
-    expect(releaseCache.name).toBe('sever-v82-reminders-desktop-v8');
+    expect(releaseCache.name).toBe('sever-v82-reminders-desktop-v9');
     const cached = releaseCache.entries;
     for (const asset of [
       '/mobile-home.css?v=52','/desktop-system.css?v=60','/themes.css?v=60','/sever2-ui.css?v=61','/sever2-qa.css?v=61',
@@ -70,6 +70,7 @@ test('installed release reloads offline with one complete active asset set', asy
       await expect.poll(() => page.evaluate(name => document.documentElement.dataset[name], key)).toBe('ready');
     }
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severUsability)).toBe('v84');
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severPowerUser)).toBe('v91');
     await expect(page.locator('link[data-sever2-home-core-pack]')).toHaveAttribute('href', /sever2-home-core\.css\?v=85$/);
     await expect(page.locator('script[data-sever2-home-core-script]')).toHaveAttribute('src', /sever2-home-core\.js\?v=85$/);
     await expect(page.locator('link[data-sever2-notes-polish-pack]')).toHaveAttribute('href', /sever2-notes-polish\.css\?v=79$/);
