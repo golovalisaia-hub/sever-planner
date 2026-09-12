@@ -14,6 +14,23 @@
     protected: 'Защищённые'
   };
 
+  function installExperiencePack() {
+    if (!document.querySelector('link[data-sever2-experience-v94-pack]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'sever2-experience-v94.css?v=94';
+      link.setAttribute('data-sever2-experience-v94-pack', 'v94');
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[data-sever2-experience-v94-script]')) {
+      const script = document.createElement('script');
+      script.src = 'sever2-experience-v94.js?v=94';
+      script.async = false;
+      script.setAttribute('data-sever2-experience-v94-script', 'v94');
+      document.head.appendChild(script);
+    }
+  }
+
   function sourceButtons() {
     return [...document.querySelectorAll('#notesView .notes-core-filters [data-notes-core-filter]')];
   }
@@ -25,9 +42,8 @@
   function syncLibraryState() {
     const view = $('#notesView');
     if (!view) return;
-    const count = Array.isArray(window.SeverApp?.getState?.()?.notes)
-      ? window.SeverApp.getState().notes.length
-      : view.querySelectorAll('#noteList .note-card').length;
+    const notes = window.SeverApp?.getState?.()?.notes;
+    const count = Array.isArray(notes) ? notes.length : view.querySelectorAll('#noteList .note-card').length;
     view.classList.toggle('notes-v94-empty-library', count === 0);
     view.dataset.notesLibraryState = count === 0 ? 'empty' : 'ready';
   }
@@ -49,6 +65,7 @@
   }
 
   function install() {
+    installExperiencePack();
     const controls = $('#notesView .notes-core-controls');
     const sort = controls?.querySelector('.notes-core-sort');
     const buttons = sourceButtons();
