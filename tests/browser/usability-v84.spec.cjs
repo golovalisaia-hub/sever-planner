@@ -1,5 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
+test.use({ serviceWorkers: 'block' });
+
 async function boot(page) {
   await page.route('**/supabase-config.js*', route => route.fulfill({ contentType: 'text/javascript', body: 'window.SEVER_SUPABASE_CONFIG={};' }));
   await page.addInitScript(() => {
@@ -15,6 +17,7 @@ async function boot(page) {
   });
   await page.goto('/');
   await page.waitForFunction(() => window.SeverApp
+    && window.SeverCloudReady
     && document.documentElement.dataset.severMoney === 'ready'
     && document.documentElement.dataset.severUsability === 'v84'
     && document.documentElement.dataset.severReminders === 'v82');
