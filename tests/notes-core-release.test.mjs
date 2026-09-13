@@ -33,7 +33,7 @@ test('presentation layers load deterministically through cloud recovery v80', as
   assert.ok(home >= 0 && core > home && organization > core && editor > organization && navigation > editor && polish > navigation && money > polish && usability > money && interactions > usability && recovery > interactions);
 });
 
-test('cloud recovery v80 ships atomically inside the complete v94 PWA release', async () => {
+test('cloud recovery v80 ships atomically inside the complete v99 PWA release', async () => {
   const source = await read('sw.js');
   assert.match(source, /const CACHE = 'sever-v94-experience-release-v1'/);
   for (const asset of [
@@ -44,7 +44,7 @@ test('cloud recovery v80 ships atomically inside the complete v94 PWA release', 
     './sever2-notes-navigation.css?v=74','./sever2-notes-navigation.js?v=74',
     './sever2-notes-polish.css?v=92','./sever2-notes-polish.js?v=93',
     './sever2-mobile-consistency.css?v=76','./sever2-notes-compact-v87.css?v=87','./sever2-notes-compact-v87.js?v=87',
-    './sever2-experience-v94.css?v=94','./sever2-experience-v94.js?v=94',
+    './sever2-experience-v94.css?v=94','./sever2-experience-v94.js?v=99',
     './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84',
     './sever2-interaction-polish.css?v=97','./sever2-interaction-polish.js?v=78',
