@@ -123,8 +123,6 @@
 
   async function reconcileSchedules({ persist = true } = {}) {
     if (reconcileRunning) return false;
-    // Money owns its editor transaction. Background cleanup must never mutate
-    // the same item while an edit/progress dialog is waiting for its save.
     if ($('#moneyItemDialog')?.open || $('#moneyProgressDialog')?.open || $('#moneyScheduleDialog')?.open) return false;
     reconcileRunning = true;
     try {
@@ -180,20 +178,14 @@
       const siblings = parent ? [...parent.children].filter(node => node.matches?.('.habit, .habit-week-row')) : [];
       return `habit:${siblings.indexOf(card)}:${target.dataset.date || target.dataset.day || ''}`;
     }
-    if (target.matches('.task .check')) {
-      const card = target.closest('.task');
-      const parent = card?.parentElement;
-      const siblings = parent ? [...parent.children].filter(node => node.matches?.('.task')) : [];
-      const name = card?.querySelector('.task-name')?.textContent?.trim() || '';
-      const meta = card?.querySelector('.task-meta')?.textContent?.trim() || '';
-      return `task:${parent?.id || ''}:${siblings.indexOf(card)}:${name}:${meta}`;
-    }
     return '';
   }
 
   function rapidClickGuard(event) {
+    // Task completion is intentionally NOT debounced. Every deliberate tap must
+    // toggle the task, even when taps arrive much faster than 450 ms on a phone.
     const target = event.target instanceof Element
-      ? event.target.closest('.task .check, .habit-day, #timerToggle, #todayFocusToggle, #moneyScheduleConfirm')
+      ? event.target.closest('.habit-day, #timerToggle, #todayFocusToggle, #moneyScheduleConfirm')
       : null;
     if (!(target instanceof HTMLElement)) return;
     const key = rapidActionKey(target);

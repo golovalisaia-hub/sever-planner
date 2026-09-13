@@ -22,7 +22,7 @@ async function boot(page) {
   await expect.poll(() => page.evaluate(() => document.querySelector('#severAiOpen')?.dataset.severHeaderDock)).toBe('true');
 }
 
-test('mobile header keeps sync clear of AI and seasonal SEVER signature tiny', async ({ page }, info) => {
+test('mobile header keeps sync clear of AI and seasonal SEVER signature restrained', async ({ page }, info) => {
   test.skip(info.project.name === 'desktop');
   await boot(page);
 
@@ -53,6 +53,8 @@ test('mobile header keeps sync clear of AI and seasonal SEVER signature tiny', a
     const mark = document.querySelector('#mobileHeaderTitle .sever-season-mark');
     const markBox = mark.getBoundingClientRect();
     const markStyle = getComputedStyle(mark);
+    const leaf = mark.querySelector('svg');
+    const leafBox = leaf.getBoundingClientRect();
     const aiStyle = getComputedStyle(aiEl);
     const month = new Date().getMonth();
     const expectedSeason = month === 11 || month <= 1 ? 'winter' : month <= 4 ? 'spring' : month <= 7 ? 'summer' : 'autumn';
@@ -71,7 +73,10 @@ test('mobile header keeps sync clear of AI and seasonal SEVER signature tiny', a
       markSeason: mark.dataset.season,
       markPosition: markStyle.position,
       markWidth: markBox.width,
-      markHeight: markBox.height
+      markHeight: markBox.height,
+      markPointerEvents: markStyle.pointerEvents,
+      leafWidth: leafBox.width,
+      leafHeight: leafBox.height
     };
   });
 
@@ -83,6 +88,17 @@ test('mobile header keeps sync clear of AI and seasonal SEVER signature tiny', a
   expect(result.season).toBe(result.expectedSeason);
   expect(result.markSeason).toBe(result.expectedSeason);
   expect(result.markPosition).toBe('absolute');
-  expect(result.markWidth).toBeLessThanOrEqual(12);
-  expect(result.markHeight).toBeLessThanOrEqual(12);
+  expect(result.markPointerEvents).toBe('none');
+  if (result.expectedSeason === 'autumn') {
+    // The absolute overlay is intentionally allowed to span the wordmark. The
+    // actual animated leaves stay tiny and must never create page overflow.
+    expect(result.markWidth).toBeGreaterThan(40);
+    expect(result.markWidth).toBeLessThanOrEqual(120);
+    expect(result.markHeight).toBeGreaterThan(0);
+  } else {
+    expect(result.markWidth).toBeLessThanOrEqual(12);
+    expect(result.markHeight).toBeLessThanOrEqual(12);
+  }
+  expect(result.leafWidth).toBeLessThanOrEqual(12);
+  expect(result.leafHeight).toBeLessThanOrEqual(12);
 });

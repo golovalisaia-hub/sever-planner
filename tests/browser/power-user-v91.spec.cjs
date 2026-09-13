@@ -70,14 +70,20 @@ test('rapid double submit creates one task, not a duplicate', async ({ page }) =
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.filter(task => task.title === 'RAPID double submit').length)).toBe(1);
 });
 
-test('rapid task completion stays completed even when the first tap rerenders the button', async ({ page }) => {
-  await page.evaluate(() => {
+test('every rapid task tap toggles even though each tap rerenders the button', async ({ page }) => {
+  const states = await page.evaluate(() => {
+    const result = [];
     const findCheck = () => [...document.querySelectorAll('#todayTasks .task')]
       .find(card => card.textContent.includes('RAPID toggle'))?.querySelector('.check');
-    findCheck()?.click();
-    findCheck()?.click();
+    const completed = () => Boolean(window.SeverApp.getState().tasks.find(task => task.id === 'rapid-task')?.completed);
+    for (let index = 0; index < 4; index += 1) {
+      findCheck()?.click();
+      result.push(completed());
+    }
+    return result;
   });
-  await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.find(task => task.id === 'rapid-task')?.completed)).toBe(true);
+  expect(states).toEqual([true, false, true, false]);
+  await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.find(task => task.id === 'rapid-task')?.completed)).toBe(false);
 });
 
 test('rapid habit tap stays checked even though the habit card rerenders after the first tap', async ({ page }) => {

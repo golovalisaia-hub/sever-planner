@@ -1,6 +1,6 @@
-/* SEVER 2 interaction polish v78 — stable state feedback across all three themes. */
+/* SEVER 2 interaction polish v97 — stable state feedback across all three themes. */
 
-/* ---------- Task completion: a completed task must look completed ---------- */
+/* ---------- Task completion: preserve the original 28px control and lock ✓ to its center ---------- */
 .task .check {
   position: relative;
   display: grid !important;
@@ -14,6 +14,9 @@
   border-color: var(--border-strong, var(--line)) !important;
   background: transparent !important;
   color: transparent !important;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transform: none !important;
 }
 .task.done {
   opacity: 1 !important;
@@ -34,26 +37,117 @@
 }
 .task.done .check::after {
   content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
   display: block;
   box-sizing: border-box;
-  flex: 0 0 auto;
   width: 7px;
   height: 12px;
-  margin-top: -2px;
+  margin: 0;
   background: transparent !important;
   -webkit-mask: none !important;
   mask: none !important;
   border-right: 2px solid #fff;
   border-bottom: 2px solid #fff;
-  transform: rotate(45deg);
+  transform: translate(-50%, -58%) rotate(45deg) !important;
   transform-origin: center;
+  pointer-events: none;
 }
 html[data-theme="black"] .task.done .check::after {
   border-color: #08120f;
 }
+.task .check:active,
+.task .check:focus-visible {
+  transform: none !important;
+}
 .task .check:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent, var(--sever-blue)) 78%, transparent);
   outline-offset: 3px;
+}
+
+/* ---------- Autumn signature: three soft orange leaves cross the wordmark ---------- */
+html[data-sever-season="autumn"] .mobile-wordmark,
+html[data-sever-season="autumn"] .desktop-sidebar > .wordmark {
+  position: relative;
+}
+html[data-sever-season="autumn"] .mobile-wordmark .sever-season-mark[data-season="autumn"],
+html[data-sever-season="autumn"] .desktop-sidebar > .wordmark .sever-season-mark[data-season="autumn"] {
+  position: absolute !important;
+  z-index: 2;
+  left: -10px !important;
+  right: -12px !important;
+  top: -6px !important;
+  bottom: -6px !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  color: #d97932 !important;
+  opacity: 1 !important;
+  overflow: visible;
+  pointer-events: none;
+  animation: none !important;
+  transform: none !important;
+  will-change: auto !important;
+}
+html[data-theme="black"][data-sever-season="autumn"] .sever-season-mark[data-season="autumn"] {
+  color: #e79a53 !important;
+}
+html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"] > svg,
+html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::before,
+html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::after {
+  position: absolute;
+  left: -10px;
+  width: 8px !important;
+  height: 8px !important;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+  will-change: left, top, transform, opacity;
+}
+html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"] > svg {
+  top: 22%;
+  stroke: currentColor !important;
+  animation: sever-autumn-flight-a 7.2s ease-in-out infinite;
+}
+html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::before,
+html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::after {
+  content: "";
+  background: currentColor;
+  border-radius: 90% 12% 90% 18%;
+}
+html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::before {
+  top: 52%;
+  width: 7px !important;
+  height: 5px !important;
+  animation: sever-autumn-flight-b 7.2s ease-in-out .28s infinite;
+}
+html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::after {
+  top: 36%;
+  width: 6px !important;
+  height: 5px !important;
+  animation: sever-autumn-flight-c 7.2s ease-in-out .56s infinite;
+}
+@keyframes sever-autumn-flight-a {
+  0%, 5% { left: -10px; top: 18%; opacity: 0; transform: rotate(-28deg) scale(.88); }
+  13% { opacity: .42; }
+  42% { top: 52%; opacity: .32; transform: rotate(58deg) scale(1); }
+  73% { top: 28%; opacity: .26; transform: rotate(126deg) scale(.92); }
+  92%, 100% { left: calc(100% + 10px); top: 58%; opacity: 0; transform: rotate(196deg) scale(.82); }
+}
+@keyframes sever-autumn-flight-b {
+  0%, 9% { left: -10px; top: 60%; opacity: 0; transform: rotate(18deg) scale(.9); }
+  17% { opacity: .34; }
+  48% { top: 32%; opacity: .28; transform: rotate(96deg) scale(1); }
+  78% { top: 56%; opacity: .22; transform: rotate(158deg) scale(.88); }
+  94%, 100% { left: calc(100% + 10px); top: 38%; opacity: 0; transform: rotate(226deg) scale(.8); }
+}
+@keyframes sever-autumn-flight-c {
+  0%, 12% { left: -10px; top: 34%; opacity: 0; transform: rotate(-4deg) scale(.82); }
+  20% { opacity: .3; }
+  52% { top: 62%; opacity: .25; transform: rotate(82deg) scale(.94); }
+  80% { top: 36%; opacity: .2; transform: rotate(144deg) scale(.86); }
+  96%, 100% { left: calc(100% + 10px); top: 54%; opacity: 0; transform: rotate(214deg) scale(.76); }
 }
 
 /* ---------- Calendar: today and task presence are two different signals ---------- */
@@ -273,5 +367,20 @@ html[data-theme="black"] #todayView .today-focus-widget .primary::before {
 @media (prefers-reduced-motion: reduce) {
   .task.done .check {
     animation: none !important;
+  }
+  html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"] > svg,
+  html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::before,
+  html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::after {
+    animation: none !important;
+  }
+  html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"] > svg {
+    left: calc(100% + 4px);
+    top: 42%;
+    opacity: .28;
+    transform: rotate(22deg);
+  }
+  html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::before,
+  html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::after {
+    display: none;
   }
 }
