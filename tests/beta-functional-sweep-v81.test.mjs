@@ -19,7 +19,7 @@ test('beta functional sweep covers every primary SEVER area', () => {
   assert.match(source, /page\.reload\(\)/);
 });
 
-test('v81 startup guard remains active inside the v101 reliability release cache', () => {
+test('v81 startup guard remains active inside the v102 desktop polish release cache', () => {
   assert.match(themeInit, /function installServiceWorkerStartupGuard\(\)/);
   assert.match(themeInit, /originalRegister\.apply\(container, args\)/);
   assert.match(themeInit, /return registration \|\| fallbackRegistration/);
@@ -27,7 +27,8 @@ test('v81 startup guard remains active inside the v101 reliability release cache
   assert.match(themeInit, /container\.register !== safeRegister/);
   assert.match(themeInit, /sever2-home-core\.js\?v=85/);
   assert.match(themeInit, /sever2-usability-v84\.js\?v=84/);
-  assert.match(sw, /const CACHE = 'sever-v101-reliability-release-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v102-desktop-polish-release-v1'/);
+  assert.match(sw, /sever2-efficiency\.css\?v=102/);
   assert.match(sw, /sever2-home-core\.js\?v=85/);
   assert.match(sw, /sever2-notes-compact-v87\.js\?v=87/);
   assert.match(sw, /sever2-notes-polish\.js\?v=93/);
