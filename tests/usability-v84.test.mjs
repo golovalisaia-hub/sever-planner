@@ -24,13 +24,18 @@ test('usability v84 is syntax-valid and removes only pending Money schedule task
   assert.match(source, /window\.SeverCloud\?\.syncSoon\?\.\(0\)/);
 });
 
-test('power-user v91 blocks accidental duplicate actions and progressively discloses rare phone settings', () => {
+test('power-user v91 blocks destructive duplicate actions but never debounces task completion', () => {
   assert.match(source, /const RAPID_GUARD_MS = 450/);
   assert.match(source, /function rapidSubmitGuard\(event\)/);
   assert.match(source, /function rapidClickGuard\(event\)/);
   assert.match(source, /stopImmediatePropagation\(\)/);
   assert.match(source, /#timerToggle/);
   assert.match(source, /#moneyScheduleConfirm/);
+  assert.match(source, /Task completion is intentionally NOT debounced/);
+  const clickGuard = source.slice(source.indexOf('function rapidClickGuard'), source.indexOf('function settingsTitle'));
+  assert.doesNotMatch(clickGuard, /\.task \.check/);
+  const actionKey = source.slice(source.indexOf('function rapidActionKey'), source.indexOf('function rapidClickGuard'));
+  assert.doesNotMatch(actionKey, /\.task \.check/);
   assert.match(source, /function mountAdvancedSettings\(\)/);
   assert.match(source, /Безопасность, данные, SEVER AI и сброс/);
   assert.match(source, /document\.documentElement\.dataset\.severPowerUser = 'v91'/);
