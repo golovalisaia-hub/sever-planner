@@ -1,5 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
+const seasonForMonth = month => month === 11 || month <= 1 ? 'winter' : month <= 4 ? 'spring' : month <= 7 ? 'summer' : 'autumn';
+
 test('installed release reloads offline with one complete active asset set', async ({ browser }) => {
   const context = await browser.newContext({ serviceWorkers: 'allow', viewport: { width: 390, height: 844 } });
   try {
@@ -20,7 +22,7 @@ test('installed release reloads offline with one complete active asset set', asy
       try {
         releaseCache = await page.evaluate(async () => {
           const names = await caches.keys();
-          const releaseNames = names.filter(name => name.startsWith('sever-v94-'));
+          const releaseNames = names.filter(name => name.startsWith('sever-v101-'));
           const name = releaseNames.at(-1) || '';
           if (!name) return { name: '', entries: [], releaseNames };
           const cache = await caches.open(name);
@@ -41,22 +43,23 @@ test('installed release reloads offline with one complete active asset set', asy
           && cached.includes('/sever2-mobile-consistency.css?v=76')
           && cached.includes('/sever2-notes-compact-v87.css?v=87')
           && cached.includes('/sever2-notes-compact-v87.js?v=87')
-          && cached.includes('/sever2-experience-v94.css?v=94')
-          && cached.includes('/sever2-experience-v94.js?v=99')
+          && cached.includes('/sever2-experience-v94.css?v=101')
+          && cached.includes('/sever2-experience-v94.js?v=101')
           && cached.includes('/sever2-money.js?v=83')
           && cached.includes('/sever2-usability-v84.css?v=93')
           && cached.includes('/sever2-usability-v84.js?v=84')
           && cached.includes('/sever2-interaction-polish.css?v=97')
-          && cached.includes('/sever2-interaction-polish.js?v=78')
+          && cached.includes('/sever2-interaction-polish.js?v=101')
           && cached.includes('/sever2-reminders.css?v=86')
           && cached.includes('/sever2-task-reminders.js?v=82')
           && cached.includes('/sever2-cloud-recovery.js?v=80')
           && cached.includes('/mobile-ui.js?v=92')
-          && cached.includes('/js/theme-init.js?v=92');
+          && cached.includes('/js/theme-init.js?v=92')
+          && cached.includes('/js/sever-ai.js?v=100');
       } catch { return false; }
     }).toBe(true);
 
-    expect(releaseCache.name).toBe('sever-v94-experience-release-v1');
+    expect(releaseCache.name).toBe('sever-v101-reliability-release-v1');
     const cached = releaseCache.entries;
     for (const asset of [
       '/mobile-home.css?v=52','/desktop-system.css?v=60','/themes.css?v=60','/sever2-ui.css?v=61','/sever2-qa.css?v=61',
@@ -66,11 +69,14 @@ test('installed release reloads offline with one complete active asset set', asy
       '/sever2-notes-organization.css?v=72','/sever2-notes-organization.js?v=72','/sever2-notes-editor-flow.css?v=90','/sever2-notes-editor-flow.js?v=73',
       '/sever2-notes-navigation.css?v=74','/sever2-notes-navigation.js?v=74','/sever2-notes-polish.css?v=92','/sever2-notes-polish.js?v=93',
       '/sever2-mobile-consistency.css?v=76','/sever2-notes-compact-v87.css?v=87','/sever2-notes-compact-v87.js?v=87',
-      '/sever2-experience-v94.css?v=94','/sever2-experience-v94.js?v=99',
+      '/sever2-experience-v94.css?v=101','/sever2-experience-v94.js?v=101',
       '/sever2-money.css?v=83','/sever2-money.js?v=83','/sever2-usability-v84.css?v=93','/sever2-usability-v84.js?v=84',
-      '/sever2-interaction-polish.css?v=97','/sever2-interaction-polish.js?v=78','/sever2-reminders.css?v=86','/sever2-task-reminders.js?v=82',
-      '/sever2-cloud-recovery.css?v=80','/sever2-cloud-recovery.js?v=80','/mobile-ui.js?v=92','/js/theme-init.js?v=92','/app.js?v=51','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55'
+      '/sever2-interaction-polish.css?v=97','/sever2-interaction-polish.js?v=101','/sever2-reminders.css?v=86','/sever2-task-reminders.js?v=82',
+      '/sever2-cloud-recovery.css?v=80','/sever2-cloud-recovery.js?v=80','/mobile-ui.js?v=92','/js/theme-init.js?v=92','/app.js?v=51','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55','/js/sever-ai.js?v=100'
     ]) expect(cached).toContain(asset);
+    expect(cached).not.toContain('/sever2-experience-v94.css?v=94');
+    expect(cached).not.toContain('/sever2-experience-v94.js?v=99');
+    expect(cached).not.toContain('/sever2-interaction-polish.js?v=78');
     expect(cached).not.toContain('/desktop-home.css?v=60');
 
     await context.setOffline(true);
@@ -81,8 +87,9 @@ test('installed release reloads offline with one complete active asset set', asy
     }
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesCompact)).toBe('v94');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severExperience)).toBe('v94');
-    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severSeasonSignature)).toBe('v99');
-    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severSeason)).toBe('summer');
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severSeasonSignature)).toBe('v101');
+    const expectedSeason = seasonForMonth(new Date().getMonth());
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severSeason)).toBe(expectedSeason);
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severUsability)).toBe('v84');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severPowerUser)).toBe('v91');
     await expect(page.locator('link[data-sever2-home-core-pack]')).toHaveAttribute('href', /sever2-home-core\.css\?v=85$/);

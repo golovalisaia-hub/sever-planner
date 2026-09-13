@@ -18,11 +18,11 @@ async function boot(page) {
   await page.goto('/');
   await page.waitForFunction(() => window.SeverApp && document.querySelector('#severAiOpen'));
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severExperience)).toBe('v94');
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severSeasonSignature)).toBe('v99');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severSeasonSignature)).toBe('v101');
   await expect.poll(() => page.evaluate(() => document.querySelector('#severAiOpen')?.dataset.severHeaderDock)).toBe('true');
 }
 
-test('mobile header keeps sync clear of AI and temporary summer SEVER signature restrained', async ({ page }, info) => {
+test('mobile header uses a stable sync dot and the current automatic SEVER season', async ({ page }, info) => {
   test.skip(info.project.name === 'desktop');
   await boot(page);
 
@@ -43,7 +43,8 @@ test('mobile header keeps sync clear of AI and temporary summer SEVER signature 
   await expect(ai).toBeVisible();
   await expect(mark).toHaveCount(1);
   await expect(mark.locator('svg')).toHaveCount(1);
-  await expect(sync.locator('.sever-sync-copy')).toHaveText('Синхронизация…');
+  await expect(sync).toHaveAttribute('data-state', 'busy');
+  await expect(sync).toHaveAttribute('aria-label', /синхронизирует/i);
 
   const result = await page.evaluate(() => {
     const syncEl = document.querySelector('#severMobileSyncIndicator');
@@ -53,9 +54,12 @@ test('mobile header keeps sync clear of AI and temporary summer SEVER signature 
     const mark = document.querySelector('#mobileHeaderTitle .sever-season-mark');
     const markBox = mark.getBoundingClientRect();
     const markStyle = getComputedStyle(mark);
+    const copyStyle = getComputedStyle(syncEl.querySelector('.sever-sync-copy'));
     const icon = mark.querySelector('svg');
     const iconBox = icon.getBoundingClientRect();
     const aiStyle = getComputedStyle(aiEl);
+    const month = new Date().getMonth();
+    const expectedSeason = month === 11 || month <= 1 ? 'winter' : month <= 4 ? 'spring' : month <= 7 ? 'summer' : 'autumn';
     const overlaps = !(
       syncBox.right <= aiBox.left || aiBox.right <= syncBox.left ||
       syncBox.bottom <= aiBox.top || aiBox.bottom <= syncBox.top
@@ -67,13 +71,17 @@ test('mobile header keeps sync clear of AI and temporary summer SEVER signature 
       aiDocked: aiEl.parentElement?.classList.contains('top-actions') && aiEl.dataset.severHeaderDock === 'true',
       aiPosition: aiStyle.position,
       season: document.documentElement.dataset.severSeason,
+      expectedSeason,
       markSeason: mark.dataset.season,
       markPosition: markStyle.position,
       markWidth: markBox.width,
       markHeight: markBox.height,
       markPointerEvents: markStyle.pointerEvents,
       iconWidth: iconBox.width,
-      iconHeight: iconBox.height
+      iconHeight: iconBox.height,
+      syncWidth: syncBox.width,
+      syncHeight: syncBox.height,
+      copyWidth: Number.parseFloat(copyStyle.width)
     };
   });
 
@@ -82,12 +90,15 @@ test('mobile header keeps sync clear of AI and temporary summer SEVER signature 
   expect(result.overlaps).toBe(false);
   expect(result.gap).toBeGreaterThanOrEqual(4);
   expect(result.overflow).toBeLessThanOrEqual(1);
-  expect(result.season).toBe('summer');
-  expect(result.markSeason).toBe('summer');
+  expect(result.syncWidth).toBeLessThanOrEqual(16);
+  expect(result.syncHeight).toBeLessThanOrEqual(16);
+  expect(result.copyWidth).toBeLessThanOrEqual(1.5);
+  expect(result.season).toBe(result.expectedSeason);
+  expect(result.markSeason).toBe(result.expectedSeason);
   expect(result.markPosition).toBe('absolute');
   expect(result.markPointerEvents).toBe('none');
-  expect(result.markWidth).toBeLessThanOrEqual(12);
-  expect(result.markHeight).toBeLessThanOrEqual(12);
-  expect(result.iconWidth).toBeLessThanOrEqual(12);
-  expect(result.iconHeight).toBeLessThanOrEqual(12);
+  expect(result.markWidth).toBeLessThanOrEqual(16);
+  expect(result.markHeight).toBeLessThanOrEqual(16);
+  expect(result.iconWidth).toBeLessThanOrEqual(16);
+  expect(result.iconHeight).toBeLessThanOrEqual(16);
 });
