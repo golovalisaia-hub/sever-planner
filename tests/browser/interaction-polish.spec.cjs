@@ -43,7 +43,7 @@ async function taskCheckVisual(check) {
     const button = el.getBoundingClientRect();
     return {
       content: pseudo.content,
-      left: parseFloat(pseudo.borderLeftWidth),
+      right: parseFloat(pseudo.borderRightWidth),
       bottom: parseFloat(pseudo.borderBottomWidth),
       width: parseFloat(pseudo.width),
       height: parseFloat(pseudo.height),
@@ -58,12 +58,14 @@ async function taskCheckVisual(check) {
 
 function expectIntactTaskCheck(visual) {
   expect(visual.content).not.toBe('none');
-  expect(visual.left).toBeGreaterThan(0);
+  expect(visual.right).toBeGreaterThan(0);
   expect(visual.bottom).toBeGreaterThan(0);
-  expect(visual.width).toBeGreaterThanOrEqual(10);
-  expect(visual.height).toBeGreaterThanOrEqual(6);
-  expect(visual.buttonWidth).toBeGreaterThanOrEqual(43);
-  expect(visual.buttonHeight).toBeGreaterThanOrEqual(43);
+  expect(visual.width).toBeGreaterThanOrEqual(7);
+  expect(visual.height).toBeGreaterThanOrEqual(12);
+  expect(visual.buttonWidth).toBeGreaterThanOrEqual(27);
+  expect(visual.buttonWidth).toBeLessThanOrEqual(29);
+  expect(visual.buttonHeight).toBeGreaterThanOrEqual(27);
+  expect(visual.buttonHeight).toBeLessThanOrEqual(29);
   expect(visual.maskImage).toBe('none');
   if (visual.webkitMaskImage) expect(visual.webkitMaskImage).toBe('none');
   expect(visual.overflow).toBeLessThanOrEqual(1);
@@ -75,7 +77,7 @@ function closeEnough(a, b, tolerance = 1.5) {
 
 test.beforeEach(async ({ page }) => { await boot(page); });
 
-test('task completion shows a real checkmark and remains reversible in every theme', async ({ page }) => {
+test('task completion keeps the original 28px checkbox and remains reversible in every theme', async ({ page }) => {
   await page.evaluate(() => window.SeverApp.switchView('today'));
   const task = page.locator('#todayTasks .task').first();
   const check = task.locator('.check');
