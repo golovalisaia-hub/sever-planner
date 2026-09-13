@@ -18,11 +18,11 @@ async function boot(page) {
   await page.goto('/');
   await page.waitForFunction(() => window.SeverApp && document.querySelector('#severAiOpen'));
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severExperience)).toBe('v94');
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severSeasonSignature)).toBe('v96');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severSeasonSignature)).toBe('v99');
   await expect.poll(() => page.evaluate(() => document.querySelector('#severAiOpen')?.dataset.severHeaderDock)).toBe('true');
 }
 
-test('mobile header keeps sync clear of AI and seasonal SEVER signature restrained', async ({ page }, info) => {
+test('mobile header keeps sync clear of AI and temporary summer SEVER signature restrained', async ({ page }, info) => {
   test.skip(info.project.name === 'desktop');
   await boot(page);
 
@@ -53,11 +53,9 @@ test('mobile header keeps sync clear of AI and seasonal SEVER signature restrain
     const mark = document.querySelector('#mobileHeaderTitle .sever-season-mark');
     const markBox = mark.getBoundingClientRect();
     const markStyle = getComputedStyle(mark);
-    const leaf = mark.querySelector('svg');
-    const leafBox = leaf.getBoundingClientRect();
+    const icon = mark.querySelector('svg');
+    const iconBox = icon.getBoundingClientRect();
     const aiStyle = getComputedStyle(aiEl);
-    const month = new Date().getMonth();
-    const expectedSeason = month === 11 || month <= 1 ? 'winter' : month <= 4 ? 'spring' : month <= 7 ? 'summer' : 'autumn';
     const overlaps = !(
       syncBox.right <= aiBox.left || aiBox.right <= syncBox.left ||
       syncBox.bottom <= aiBox.top || aiBox.bottom <= syncBox.top
@@ -69,14 +67,13 @@ test('mobile header keeps sync clear of AI and seasonal SEVER signature restrain
       aiDocked: aiEl.parentElement?.classList.contains('top-actions') && aiEl.dataset.severHeaderDock === 'true',
       aiPosition: aiStyle.position,
       season: document.documentElement.dataset.severSeason,
-      expectedSeason,
       markSeason: mark.dataset.season,
       markPosition: markStyle.position,
       markWidth: markBox.width,
       markHeight: markBox.height,
       markPointerEvents: markStyle.pointerEvents,
-      leafWidth: leafBox.width,
-      leafHeight: leafBox.height
+      iconWidth: iconBox.width,
+      iconHeight: iconBox.height
     };
   });
 
@@ -85,20 +82,12 @@ test('mobile header keeps sync clear of AI and seasonal SEVER signature restrain
   expect(result.overlaps).toBe(false);
   expect(result.gap).toBeGreaterThanOrEqual(4);
   expect(result.overflow).toBeLessThanOrEqual(1);
-  expect(result.season).toBe(result.expectedSeason);
-  expect(result.markSeason).toBe(result.expectedSeason);
+  expect(result.season).toBe('summer');
+  expect(result.markSeason).toBe('summer');
   expect(result.markPosition).toBe('absolute');
   expect(result.markPointerEvents).toBe('none');
-  if (result.expectedSeason === 'autumn') {
-    // The absolute overlay is intentionally allowed to span the wordmark. The
-    // actual animated leaves stay tiny and must never create page overflow.
-    expect(result.markWidth).toBeGreaterThan(40);
-    expect(result.markWidth).toBeLessThanOrEqual(120);
-    expect(result.markHeight).toBeGreaterThan(0);
-  } else {
-    expect(result.markWidth).toBeLessThanOrEqual(12);
-    expect(result.markHeight).toBeLessThanOrEqual(12);
-  }
-  expect(result.leafWidth).toBeLessThanOrEqual(12);
-  expect(result.leafHeight).toBeLessThanOrEqual(12);
+  expect(result.markWidth).toBeLessThanOrEqual(12);
+  expect(result.markHeight).toBeLessThanOrEqual(12);
+  expect(result.iconWidth).toBeLessThanOrEqual(12);
+  expect(result.iconHeight).toBeLessThanOrEqual(12);
 });
