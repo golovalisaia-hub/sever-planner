@@ -59,12 +59,13 @@ test('v95 repairs Notes organization shell if the core summary appears after org
   assert.match(sw, /sever2-notes-org-repair-v95\.js\?v=95/);
 });
 
-test('signed-out startup retires a stale device push subscription on both desktop and mobile', () => {
-  assert.match(interaction, /retireStalePushSubscription/);
-  assert.match(interaction, /auth\.getSession\(\)/);
-  assert.match(interaction, /serviceWorker\.getRegistration\(\)/);
-  assert.match(interaction, /pushManager\?\.getSubscription\(\)/);
-  assert.match(interaction, /subscription\?\.unsubscribe\(\)/);
+test('v101 startup never destroys a push subscription before auth has settled', () => {
+  assert.doesNotMatch(interaction, /retireStalePushSubscription/);
+  assert.doesNotMatch(interaction, /serviceWorker\.getRegistration\(\)/);
+  assert.doesNotMatch(interaction, /subscription\?\.unsubscribe\(\)/);
+  assert.match(reminders, /event === 'SIGNED_OUT'/);
+  assert.match(reminders, /pushSubscription\(\)\.then\(subscription => subscription\?\.unsubscribe\(\)\)/);
+  assert.match(sw, /sever2-interaction-polish\.js\?v=101/);
 });
 
 test('reminder settings have dedicated wide desktop and compact mobile layouts', () => {
