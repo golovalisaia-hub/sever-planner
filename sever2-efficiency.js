@@ -194,9 +194,9 @@
     button.id = 'sever2CommandOpen';
     button.type = 'button';
     button.className = 'sever2-command-open';
-    button.setAttribute('aria-label', 'Быстрые команды');
-    button.title = 'Быстрые команды · /';
-    button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg><span>Команды</span><kbd>/</kbd>';
+    button.setAttribute('aria-label', 'Поиск и команды');
+    button.title = 'Поиск и команды · Ctrl+K';
+    button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg><span>Команды</span><kbd>Ctrl K</kbd>';
     button.addEventListener('click', openCommandCenter);
     topbar.appendChild(button);
   }
@@ -206,11 +206,13 @@
     document.documentElement.dataset.severEfficiencyKeyboard = 'ready';
     document.addEventListener('keydown', event => {
       const key = event.key.toLowerCase();
-      /* Ctrl/Cmd+K is kept as a best-effort accelerator in installed PWAs,
-         but browsers often reserve it for the address bar. Slash is the
-         dependable in-page shortcut and is what the UI advertises. */
-      if ((event.ctrlKey || event.metaKey) && key === 'k') {
+      /* On desktop Ctrl/Cmd+K belongs to the single command surface. This
+         capture listener runs before the legacy Quick Add shortcut in app.js,
+         preventing two different UI systems from competing for the same key.
+         Mobile keeps the legacy create shortcut. */
+      if ((event.ctrlKey || event.metaKey) && key === 'k' && window.matchMedia('(min-width: 901px)').matches) {
         event.preventDefault();
+        event.stopImmediatePropagation();
         openCommandCenter();
         return;
       }
@@ -224,7 +226,7 @@
         event.preventDefault();
         openQuickAdd();
       }
-    });
+    }, true);
   }
 
   function installQuickAddFocus() {
