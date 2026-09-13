@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 const root = path.resolve(import.meta.dirname, '..');
 const source = fs.readFileSync(path.join(root, 'sever2-notes-responsiveness-v104.js'), 'utf8');
 const polish = fs.readFileSync(path.join(root, 'sever2-notes-polish.js'), 'utf8');
+const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 
 test('v104 checklist responsiveness layer is syntax-valid and avoids full Notes rerenders', () => {
   const checked = spawnSync(process.execPath, ['--check', path.join(root, 'sever2-notes-responsiveness-v104.js')]);
@@ -30,4 +31,11 @@ test('Notes polish loads the v104 responsiveness layer exactly once', () => {
   assert.match(polish, /sever2-notes-responsiveness-v104\.js\?v=104/);
   assert.match(polish, /data-sever2-notes-responsiveness-v104-script/);
   assert.match(polish, /installCompactNotesLayer\(\);[\s\S]*installResponsivenessLayer\(\);/);
+});
+
+test('installed PWA prefers refreshed Notes polish and caches the v104 interaction layer', () => {
+  assert.match(sw, /v104 makes ordinary checklist-note interactions paint before persistence/);
+  assert.ok(sw.indexOf("'./sever2-notes-polish.js?v=104'") < sw.indexOf("'./sever2-notes-polish.js?v=93'"));
+  assert.ok(sw.includes("'./sever2-notes-responsiveness-v104.js?v=104'"));
+  assert.ok(sw.includes("'/sever2-notes-responsiveness-v104.js'"));
 });
