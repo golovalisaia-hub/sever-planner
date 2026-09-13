@@ -11,16 +11,29 @@ const css = read('sever2-interaction-polish.css');
 const themeInit = read('js/theme-init.js');
 const sw = read('sw.js');
 
-test('interaction polish v78 is syntax-valid and makes completion feedback explicit', () => {
+test('interaction polish keeps task completion centered and phone-touch safe', () => {
   const checked = spawnSync(process.execPath, ['--check', path.join(root, 'sever2-interaction-polish.js')]);
   assert.equal(checked.status, 0, checked.stderr.toString());
-  assert.match(css, /\.task\.done \.check::after/);
-  assert.match(css, /-webkit-mask:\s*none\s*!important/);
-  assert.match(css, /mask:\s*none\s*!important/);
-  assert.match(css, /background:\s*transparent\s*!important/);
-  assert.match(css, /\.task\.done \.task-name/);
+  assert.match(css, /\.task \.check \{[\s\S]*width:\s*44px[\s\S]*height:\s*44px/);
+  assert.match(css, /\.task \.check::before \{[\s\S]*width:\s*28px[\s\S]*height:\s*28px[\s\S]*translate\(-50%, -50%\)/);
+  assert.match(css, /\.task\.done \.check::after \{[\s\S]*position:\s*absolute[\s\S]*left:\s*50%[\s\S]*top:\s*50%/);
+  assert.match(css, /transform:\s*translate\(-50%, -58%\) rotate\(-45deg\) !important/);
+  assert.match(css, /touch-action:\s*manipulation/);
+  assert.match(css, /-webkit-tap-highlight-color:\s*transparent/);
   assert.match(source, /check\.setAttribute\('aria-pressed', String\(done\)\)/);
   assert.match(source, /Задача выполнена/);
+});
+
+test('autumn wordmark sends three transparent orange leaves across SEVER and remains motion-safe', () => {
+  assert.match(css, /Autumn signature: three soft orange leaves cross the wordmark/);
+  assert.match(css, /color:\s*#d97932 !important/);
+  assert.match(css, /\.sever-season-mark\[data-season="autumn"\] > svg/);
+  assert.match(css, /\.sever-season-mark\[data-season="autumn"\]::before/);
+  assert.match(css, /\.sever-season-mark\[data-season="autumn"\]::after/);
+  assert.match(css, /@keyframes sever-autumn-flight-a/);
+  assert.match(css, /@keyframes sever-autumn-flight-b/);
+  assert.match(css, /@keyframes sever-autumn-flight-c/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*animation:\s*none !important/);
 });
 
 test('calendar task status no longer becomes a second today badge', () => {
@@ -48,7 +61,7 @@ test('habit completion cannot restyle the whole card and Focus play stays center
   assert.match(css, /border-left:\s*11px solid currentColor/);
 });
 
-test('v78 interaction polish remains inside the atomic v94 experience PWA release', () => {
+test('v97 interaction polish remains inside the atomic v94 experience PWA release', () => {
   const home = themeInit.indexOf('sever2-home-core-script');
   const money = themeInit.indexOf('sever2-money-script');
   const usability = themeInit.indexOf('sever2-usability-v84-script');
@@ -70,7 +83,7 @@ test('v78 interaction polish remains inside the atomic v94 experience PWA releas
     './sever2-experience-v94.css?v=94','./sever2-experience-v94.js?v=94',
     './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84',
-    './sever2-interaction-polish.css?v=78','./sever2-interaction-polish.js?v=78',
+    './sever2-interaction-polish.css?v=97','./sever2-interaction-polish.js?v=78',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80',
     './sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82',
     './js/theme-init.js?v=92'
