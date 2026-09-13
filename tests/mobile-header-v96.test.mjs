@@ -40,14 +40,15 @@ test('SEVER automatically selects winter, spring, summer and autumn', () => {
   for (const season of ['winter', 'spring', 'summer', 'autumn']) {
     assert.match(css, new RegExp(`\\.sever-season-mark\\[data-season="${season}"\\]`));
   }
-  assert.match(css, /\.mobile-wordmark \.sever-season-mark\s*\{[\s\S]*position:\s*absolute/);
+  assert.match(css, /\.mobile-wordmark \.sever-season-mark\s*\{[\s\S]*position:\s*absolute !important/);
+  assert.match(css, /\.mobile-wordmark \.sever-season-mark\s*\{[\s\S]*max-width:\s*11px !important/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.sever-season-mark[\s\S]*animation:\s*none !important/);
 });
 
 test('installed PWA ships v101 reliability assets while preserving v100 Sever AI', () => {
   assert.match(sw, /v101 refreshes mobile reliability assets/);
   assert.match(sw, /v100 refreshes Sever AI/);
-  assert.match(sw, /const CACHE = 'sever-v94-experience-release-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v101-reliability-release-v1'/);
   assert.ok(sw.includes("'./sever2-experience-v94.css?v=101'"));
   assert.ok(sw.includes("'./sever2-experience-v94.js?v=101'"));
   assert.ok(sw.includes("'./sever2-interaction-polish.css?v=97'"));
