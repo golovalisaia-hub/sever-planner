@@ -49,14 +49,17 @@ test('mobile header uses a stable sync dot and the current automatic SEVER seaso
   const result = await page.evaluate(() => {
     const syncEl = document.querySelector('#severMobileSyncIndicator');
     const aiEl = document.querySelector('#severAiOpen');
+    const wordmark = document.querySelector('#mobileHeaderTitle');
     const syncBox = syncEl.getBoundingClientRect();
     const aiBox = aiEl.getBoundingClientRect();
-    const mark = document.querySelector('#mobileHeaderTitle .sever-season-mark');
+    const wordmarkBox = wordmark.getBoundingClientRect();
+    const mark = wordmark.querySelector('.sever-season-mark');
     const markBox = mark.getBoundingClientRect();
     const markStyle = getComputedStyle(mark);
     const copyStyle = getComputedStyle(syncEl.querySelector('.sever-sync-copy'));
     const icon = mark.querySelector('svg');
     const iconBox = icon.getBoundingClientRect();
+    const iconStyle = getComputedStyle(icon);
     const aiStyle = getComputedStyle(aiEl);
     const month = new Date().getMonth();
     const expectedSeason = month === 11 || month <= 1 ? 'winter' : month <= 4 ? 'spring' : month <= 7 ? 'summer' : 'autumn';
@@ -64,6 +67,7 @@ test('mobile header uses a stable sync dot and the current automatic SEVER seaso
       syncBox.right <= aiBox.left || aiBox.right <= syncBox.left ||
       syncBox.bottom <= aiBox.top || aiBox.bottom <= syncBox.top
     );
+    const markCoversWordmark = markBox.left <= wordmarkBox.left + 1 && markBox.right >= wordmarkBox.right - 1;
     return {
       overlaps,
       gap: aiBox.left - syncBox.right,
@@ -77,8 +81,11 @@ test('mobile header uses a stable sync dot and the current automatic SEVER seaso
       markWidth: markBox.width,
       markHeight: markBox.height,
       markPointerEvents: markStyle.pointerEvents,
+      markCoversWordmark,
       iconWidth: iconBox.width,
       iconHeight: iconBox.height,
+      iconWillChange: iconStyle.willChange,
+      iconAnimationName: iconStyle.animationName,
       syncWidth: syncBox.width,
       syncHeight: syncBox.height,
       copyWidth: Number.parseFloat(copyStyle.width)
@@ -97,8 +104,18 @@ test('mobile header uses a stable sync dot and the current automatic SEVER seaso
   expect(result.markSeason).toBe(result.expectedSeason);
   expect(result.markPosition).toBe('absolute');
   expect(result.markPointerEvents).toBe('none');
-  expect(result.markWidth).toBeLessThanOrEqual(16);
-  expect(result.markHeight).toBeLessThanOrEqual(16);
-  expect(result.iconWidth).toBeLessThanOrEqual(16);
-  expect(result.iconHeight).toBeLessThanOrEqual(16);
+  expect(result.iconWidth).toBeLessThanOrEqual(9);
+  expect(result.iconHeight).toBeLessThanOrEqual(9);
+
+  if (result.expectedSeason === 'autumn') {
+    expect(result.markCoversWordmark).toBe(true);
+    expect(result.markWidth).toBeGreaterThan(30);
+    expect(result.markWidth).toBeLessThan(120);
+    expect(result.iconWillChange).toContain('transform');
+    expect(result.iconWillChange).toContain('opacity');
+    expect(result.iconAnimationName).toBe('sever-autumn-flight-a');
+  } else {
+    expect(result.markWidth).toBeLessThanOrEqual(16);
+    expect(result.markHeight).toBeLessThanOrEqual(16);
+  }
 });
