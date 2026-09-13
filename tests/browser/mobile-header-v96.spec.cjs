@@ -89,9 +89,14 @@ test('mobile header keeps sync clear of AI and seasonal SEVER signature restrain
   expect(result.markSeason).toBe(result.expectedSeason);
   expect(result.markPosition).toBe('absolute');
   expect(result.markPointerEvents).toBe('none');
-  expect(result.markWidth).toBeGreaterThan(40);
-  expect(result.markWidth).toBeLessThanOrEqual(120);
-  expect(result.markHeight).toBeLessThanOrEqual(40);
+  if (result.expectedSeason === 'autumn') {
+    expect(result.markWidth).toBeGreaterThan(40);
+    expect(result.markWidth).toBeLessThanOrEqual(120);
+    expect(result.markHeight).toBeLessThanOrEqual(40);
+  } else {
+    expect(result.markWidth).toBeLessThanOrEqual(12);
+    expect(result.markHeight).toBeLessThanOrEqual(12);
+  }
   expect(result.leafWidth).toBeLessThanOrEqual(12);
   expect(result.leafHeight).toBeLessThanOrEqual(12);
 });
