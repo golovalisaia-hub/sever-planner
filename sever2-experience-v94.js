@@ -5,6 +5,57 @@
   let installed = false;
   let retryBusy = false;
 
+  const seasonIcons = {
+    winter: `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9"/>
+        <path d="m12 3-2 2m2-2 2 2m-2 16-2-2m2 2 2-2"/>
+      </svg>`,
+    spring: `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 20v-8"/>
+        <path d="M12 13c-1.2-4-4.1-5.3-7-4.8.4 3.4 2.7 5.7 7 5.8Z"/>
+        <path d="M12 11c1-3.6 3.7-5 7-4.8-.2 3.1-2.4 5.4-7 5.8Z"/>
+      </svg>`,
+    summer: `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="3.5"/>
+        <path d="M12 2.8v2.1M12 19.1v2.1M2.8 12h2.1M19.1 12h2.1M5.5 5.5 7 7M17 17l1.5 1.5M18.5 5.5 17 7M7 17l-1.5 1.5"/>
+      </svg>`,
+    autumn: `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M19 4C11.6 4.3 6.2 7.2 5 14.1c3.2 1.7 7.2 1.1 10-1.8C17.6 9.7 18.7 6.8 19 4Z"/>
+        <path d="M5 20c2.1-4.4 5.4-7.8 10-10.2"/>
+      </svg>`
+  };
+
+  function seasonForMonth(month) {
+    if (month === 11 || month <= 1) return 'winter';
+    if (month <= 4) return 'spring';
+    if (month <= 7) return 'summer';
+    return 'autumn';
+  }
+
+  function ensureSeasonalSignature() {
+    const season = seasonForMonth(new Date().getMonth());
+    document.documentElement.dataset.severSeason = season;
+    document.documentElement.dataset.severSeasonSignature = 'v96';
+
+    document.querySelectorAll('.mobile-wordmark, .desktop-sidebar > .wordmark').forEach(wordmark => {
+      let mark = wordmark.querySelector('.sever-season-mark');
+      if (!mark) {
+        mark = document.createElement('span');
+        mark.className = 'sever-season-mark';
+        mark.setAttribute('aria-hidden', 'true');
+        wordmark.append(mark);
+      }
+      if (mark.dataset.season !== season) {
+        mark.dataset.season = season;
+        mark.innerHTML = seasonIcons[season];
+      }
+    });
+  }
+
   function ensureIndicator() {
     let root = $('#severMobileSyncIndicator');
     if (root) return root;
@@ -89,6 +140,7 @@
   }
 
   function render() {
+    ensureSeasonalSignature();
     const root = ensureIndicator();
     if (!root) return;
     const model = viewModel();
@@ -114,6 +166,7 @@
       return;
     }
     installed = true;
+    ensureSeasonalSignature();
     ensureIndicator();
     window.addEventListener('sever:cloud-status', render);
     window.addEventListener('sever:cloud-ready', render);
