@@ -9,10 +9,16 @@ const experienceJs = fs.readFileSync(path.join(root, 'sever2-experience-v94.js')
 const aiCss = fs.readFileSync(path.join(root, 'sever-ai.css'), 'utf8');
 const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 
-test('mobile header reserves a dedicated lane for the fixed AI launcher', () => {
+test('mobile header docks AI in the same flex flow as sync instead of overlaying it', () => {
   assert.match(aiCss, /\.sever-ai-launch\{top:calc\(4px \+ env\(safe-area-inset-top\)\);right:max\(12px,env\(safe-area-inset-right\)\)/);
-  assert.match(css, /\.topbar \.top-actions\s*\{[\s\S]*padding-right:\s*60px/);
+  assert.match(experienceJs, /function syncAiLauncherPlacement\(\)/);
+  assert.match(experienceJs, /actions\.append\(ai\)/);
+  assert.match(experienceJs, /ai\.dataset\.severHeaderDock = 'true'/);
+  assert.match(experienceJs, /home\.insertBefore\(ai, aiLauncherHome\.nextSibling\)/);
+  assert.match(css, /\.topbar \.top-actions > \.sever-ai-launch\[data-sever-header-dock="true"\][\s\S]*position:\s*static !important/);
+  assert.match(css, /\.topbar \.top-actions\s*\{[\s\S]*flex:\s*0 1 auto/);
   assert.match(css, /\.sever-sync-indicator\s*\{[\s\S]*max-width:\s*min\(148px, 39vw\)/);
+  assert.doesNotMatch(css, /\.topbar \.top-actions\s*\{[\s\S]{0,160}padding-right:\s*60px/);
 });
 
 test('SEVER wordmark signature follows all four seasons and stays motion-safe', () => {
