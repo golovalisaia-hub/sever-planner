@@ -32,6 +32,7 @@ test('desktop topbar stays one row with commands centered and one create action'
   const topbar = page.locator('.topbar');
   const command = page.locator('#sever2CommandOpen');
   await expect(command).toBeVisible();
+  await expect(command.locator('kbd')).toHaveText('Ctrl K');
   await expect(page.locator('#globalCommand')).toBeHidden();
   await expect(page.locator('#globalAddBtn')).toBeVisible();
   await expect(page.locator('#severAiOpen')).toBeHidden();
@@ -53,6 +54,11 @@ test('desktop topbar stays one row with commands centered and one create action'
   expect(Math.abs(geometry.createCenter - geometry.topCenter)).toBeLessThanOrEqual(2);
 
   await command.click();
+  await expect(page.locator('#sever2CommandDialog')).toHaveAttribute('open', '');
+  await expect(page.locator('#quickAddDialog')).not.toHaveAttribute('open', '');
+  await page.keyboard.press('Escape');
+
+  await page.keyboard.press('Control+k');
   await expect(page.locator('#sever2CommandDialog')).toHaveAttribute('open', '');
   await expect(page.locator('#quickAddDialog')).not.toHaveAttribute('open', '');
 });
