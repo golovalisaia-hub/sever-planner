@@ -28,19 +28,22 @@
     } catch {}
   }
 
-  // Paint the interaction first. save() snapshots to localStorage synchronously when
-  // this frame finishes, while IndexedDB/cloud work is allowed to complete later.
+  // Let the checked state/progress reach the first visual frame before starting
+  // save(), whose localStorage snapshot is synchronous. Multiple taps inside the
+  // same frame coalesce and persist the newest in-memory note state once.
   function persistAfterPaint() {
     if (persistScheduled) return;
     persistScheduled = true;
     requestAnimationFrame(() => {
-      persistScheduled = false;
-      try {
-        if (typeof save !== 'function') return;
-        Promise.resolve(save()).catch(reportPersistFailure);
-      } catch {
-        reportPersistFailure();
-      }
+      setTimeout(() => {
+        persistScheduled = false;
+        try {
+          if (typeof save !== 'function') return;
+          Promise.resolve(save()).catch(reportPersistFailure);
+        } catch {
+          reportPersistFailure();
+        }
+      }, 0);
     });
   }
 
