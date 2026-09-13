@@ -19,6 +19,7 @@ async function boot(page) {
   await page.waitForFunction(() => window.SeverApp && document.querySelector('#severAiOpen'));
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severExperience)).toBe('v94');
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severSeasonSignature)).toBe('v96');
+  await expect.poll(() => page.evaluate(() => document.querySelector('#severAiOpen')?.dataset.severHeaderDock)).toBe('true');
 }
 
 test('mobile header keeps sync clear of AI and seasonal SEVER signature tiny', async ({ page }, info) => {
@@ -45,11 +46,14 @@ test('mobile header keeps sync clear of AI and seasonal SEVER signature tiny', a
   await expect(sync.locator('.sever-sync-copy')).toHaveText('Синхронизация…');
 
   const result = await page.evaluate(() => {
-    const syncBox = document.querySelector('#severMobileSyncIndicator').getBoundingClientRect();
-    const aiBox = document.querySelector('#severAiOpen').getBoundingClientRect();
+    const syncEl = document.querySelector('#severMobileSyncIndicator');
+    const aiEl = document.querySelector('#severAiOpen');
+    const syncBox = syncEl.getBoundingClientRect();
+    const aiBox = aiEl.getBoundingClientRect();
     const mark = document.querySelector('#mobileHeaderTitle .sever-season-mark');
     const markBox = mark.getBoundingClientRect();
     const markStyle = getComputedStyle(mark);
+    const aiStyle = getComputedStyle(aiEl);
     const month = new Date().getMonth();
     const expectedSeason = month === 11 || month <= 1 ? 'winter' : month <= 4 ? 'spring' : month <= 7 ? 'summer' : 'autumn';
     const overlaps = !(
@@ -60,6 +64,8 @@ test('mobile header keeps sync clear of AI and seasonal SEVER signature tiny', a
       overlaps,
       gap: aiBox.left - syncBox.right,
       overflow: Math.max(0, document.documentElement.scrollWidth - innerWidth),
+      aiDocked: aiEl.parentElement?.classList.contains('top-actions') && aiEl.dataset.severHeaderDock === 'true',
+      aiPosition: aiStyle.position,
       season: document.documentElement.dataset.severSeason,
       expectedSeason,
       markSeason: mark.dataset.season,
@@ -69,6 +75,8 @@ test('mobile header keeps sync clear of AI and seasonal SEVER signature tiny', a
     };
   });
 
+  expect(result.aiDocked).toBe(true);
+  expect(result.aiPosition).toBe('static');
   expect(result.overlaps).toBe(false);
   expect(result.gap).toBeGreaterThanOrEqual(4);
   expect(result.overflow).toBeLessThanOrEqual(1);
