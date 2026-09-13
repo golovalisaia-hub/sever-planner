@@ -1,6 +1,8 @@
 /* SEVER 2 Notes navigation — compact scopes instead of long folder/tag rails. */
 
-#notesView .notes-navigation-source {
+#notesView .notes-navigation-source,
+html[data-sever-notes-navigation="ready"] #notesView #folderTabs,
+html[data-sever-notes-navigation="ready"] #notesView #notesOrganizationTags {
   display: none !important;
 }
 
