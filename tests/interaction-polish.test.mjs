@@ -8,20 +8,24 @@ const root = path.resolve(import.meta.dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const source = read('sever2-interaction-polish.js');
 const css = read('sever2-interaction-polish.css');
+const usability = read('sever2-usability-v84.js');
 const themeInit = read('js/theme-init.js');
 const sw = read('sw.js');
 
-test('interaction polish keeps task completion centered and phone-touch safe', () => {
+test('interaction polish keeps the original task checkbox size and centered completion mark', () => {
   const checked = spawnSync(process.execPath, ['--check', path.join(root, 'sever2-interaction-polish.js')]);
   assert.equal(checked.status, 0, checked.stderr.toString());
-  assert.match(css, /\.task \.check \{[\s\S]*width:\s*44px[\s\S]*height:\s*44px/);
-  assert.match(css, /\.task \.check::before \{[\s\S]*width:\s*28px[\s\S]*height:\s*28px[\s\S]*translate\(-50%, -50%\)/);
+  assert.match(css, /\.task \.check \{[\s\S]*width:\s*28px[\s\S]*height:\s*28px/);
+  assert.doesNotMatch(css, /\.task \.check \{[\s\S]*width:\s*44px/);
   assert.match(css, /\.task\.done \.check::after \{[\s\S]*position:\s*absolute[\s\S]*left:\s*50%[\s\S]*top:\s*50%/);
-  assert.match(css, /transform:\s*translate\(-50%, -58%\) rotate\(-45deg\) !important/);
+  assert.match(css, /width:\s*7px[\s\S]*height:\s*12px/);
+  assert.match(css, /transform:\s*translate\(-50%, -58%\) rotate\(45deg\) !important/);
   assert.match(css, /touch-action:\s*manipulation/);
   assert.match(css, /-webkit-tap-highlight-color:\s*transparent/);
   assert.match(source, /check\.setAttribute\('aria-pressed', String\(done\)\)/);
   assert.match(source, /Задача выполнена/);
+  assert.match(usability, /Task completion is intentionally NOT debounced/);
+  assert.doesNotMatch(usability, /closest\('\.task \.check, \.habit-day/);
 });
 
 test('v96.3 retires Money schedule reminders synchronously before the Money save persists', () => {
@@ -75,10 +79,10 @@ test('habit completion cannot restyle the whole card and Focus play stays center
 test('v97 interaction polish remains inside the atomic v94 experience PWA release', () => {
   const home = themeInit.indexOf('sever2-home-core-script');
   const money = themeInit.indexOf('sever2-money-script');
-  const usability = themeInit.indexOf('sever2-usability-v84-script');
+  const usabilityIndex = themeInit.indexOf('sever2-usability-v84-script');
   const polish = themeInit.indexOf('sever2-interaction-polish-script');
   const recovery = themeInit.indexOf('sever2-cloud-recovery-script');
-  assert.ok(home >= 0 && money > home && usability > money && polish > usability && recovery > polish);
+  assert.ok(home >= 0 && money > home && usabilityIndex > money && polish > usabilityIndex && recovery > polish);
   assert.match(themeInit, /sever2-home-core\.js\?v=85/);
   assert.match(themeInit, /sever2-usability-v84\.css\?v=84/);
   assert.match(themeInit, /sever2-usability-v84\.js\?v=84/);
