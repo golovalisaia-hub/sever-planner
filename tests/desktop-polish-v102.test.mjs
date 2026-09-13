@@ -6,6 +6,7 @@ import path from 'node:path';
 const root = path.resolve(import.meta.dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const css = read('sever2-efficiency.css');
+const efficiency = read('sever2-efficiency.js');
 const app = read('app.js');
 const sw = read('sw.js');
 
@@ -16,6 +17,16 @@ test('v102 desktop keeps one command surface and one explicit create action', ()
   assert.match(css, /\.topbar \.sever2-command-open span::after[\s\S]*content:"Поиск и команды"/);
   assert.match(css, /#severAiOpen\.sever-ai-launch\{display:none!important\}/);
   assert.match(css, /body:has\(#tourDialog\[open\]\) \.topbar \.global-command\{display:flex!important/);
+  assert.match(efficiency, /button\.title = 'Поиск и команды · Ctrl\+K'/);
+  assert.match(efficiency, /<kbd>Ctrl K<\/kbd>/);
+});
+
+test('desktop Ctrl K is captured by the single command center before legacy Quick Add', () => {
+  assert.match(efficiency, /window\.matchMedia\('\(min-width: 901px\)'\)\.matches/);
+  assert.match(efficiency, /event\.stopImmediatePropagation\(\)/);
+  assert.match(efficiency, /openCommandCenter\(\)/);
+  assert.match(efficiency, /document\.addEventListener\('keydown',[\s\S]*\}, true\);/);
+  assert.match(app, /openGlobalCreate/);
 });
 
 test('v102 Home removes duplicate rail Quick Note and gives habit rhythm readable cells', () => {
@@ -33,8 +44,10 @@ test('timer progress remains data-driven and v102 makes the changing arc visuall
   assert.doesNotMatch(timerRule, /stroke-dashoffset\s*:/, 'CSS must not override the JS-computed timer offset');
 });
 
-test('v102 rotates the atomic PWA release and ships the refreshed efficiency stylesheet', () => {
+test('v102 rotates the atomic PWA release and ships refreshed efficiency CSS and JS', () => {
   assert.match(sw, /const CACHE = 'sever-v102-desktop-polish-release-v1'/);
   assert.ok(sw.includes("'./sever2-efficiency.css?v=102'"));
+  assert.ok(sw.includes("'./sever2-efficiency.js?v=102'"));
   assert.ok(sw.includes("'/sever2-efficiency.css'"));
+  assert.ok(sw.includes("'/sever2-efficiency.js'"));
 });
