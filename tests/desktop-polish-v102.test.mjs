@@ -29,6 +29,14 @@ test('desktop Ctrl K is captured by the single command center before legacy Quic
   assert.match(app, /openGlobalCreate/);
 });
 
+test('command options stay mounted while the pointer moves so clicks cannot chase detached buttons', () => {
+  assert.match(efficiency, /function syncActive\(\)/);
+  assert.match(efficiency, /button\.addEventListener\('mouseenter',[\s\S]*syncActive\(\)/);
+  assert.doesNotMatch(efficiency, /button\.addEventListener\('mousemove',[\s\S]*render\(\)/);
+  assert.match(efficiency, /ArrowDown[\s\S]*syncActive\(\)/);
+  assert.match(efficiency, /ArrowUp[\s\S]*syncActive\(\)/);
+});
+
 test('v102 Home removes duplicate rail Quick Note and gives habit rhythm readable cells', () => {
   assert.match(css, /body:has\(#todayView\.view\.active\) \.desktop-rail \.quick-note-card\{display:none!important\}/);
   assert.match(css, /\.desktop-habit-summary \.habit-week-markers \.habit-day[\s\S]*height:31px!important/);
