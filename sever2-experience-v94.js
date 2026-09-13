@@ -31,6 +31,10 @@
       </svg>`
   };
 
+  // Temporary product choice: keep the automatic four-season system intact,
+  // but show the restrained summer signature until the override is removed.
+  const SEVER_SEASON_OVERRIDE = 'summer';
+
   function seasonForMonth(month) {
     if (month === 11 || month <= 1) return 'winter';
     if (month <= 4) return 'spring';
@@ -39,9 +43,9 @@
   }
 
   function ensureSeasonalSignature() {
-    const season = seasonForMonth(new Date().getMonth());
+    const season = SEVER_SEASON_OVERRIDE || seasonForMonth(new Date().getMonth());
     document.documentElement.dataset.severSeason = season;
-    document.documentElement.dataset.severSeasonSignature = 'v96';
+    document.documentElement.dataset.severSeasonSignature = 'v99';
 
     document.querySelectorAll('.mobile-wordmark, .desktop-sidebar > .wordmark').forEach(wordmark => {
       let mark = wordmark.querySelector('.sever-season-mark');
