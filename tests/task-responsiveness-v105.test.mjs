@@ -38,3 +38,14 @@ test('v105 Focus completion updates task and focus domains without rebuilding un
   assert.match(source, /if\(changed\.has\('tasks'\)\)\{renderToday\(\);renderCalendar\(\);renderProgress\(\);renderTimerTask\(\)\}/);
   assert.match(source, /if\(changed\.has\('focusSessions'\)\)\{renderToday\(\);renderProgress\(\);renderTimerTask\(\)\}/);
 });
+
+
+test('v105 PWA ships the refreshed planner core atomically', () => {
+  const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const sw = fs.readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
+  assert.match(html, /<script src=\"app\.js\?v=105\" defer><\/script>/);
+  assert.doesNotMatch(html, /app\.js\?v=51/);
+  assert.match(sw, /'\.\/app\.js\?v=105'/);
+  assert.doesNotMatch(sw, /'\.\/app\.js\?v=51'/);
+  assert.match(sw, /v105 scopes hot task mutations to task\/focus rendering/);
+});
