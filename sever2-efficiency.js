@@ -79,6 +79,14 @@
     let active = 0;
     let visible = [];
 
+    function syncActive() {
+      list.querySelectorAll('[data-command-id]').forEach((button, index) => {
+        const selected = index === active;
+        button.classList.toggle('active', selected);
+        button.setAttribute('aria-selected', String(selected));
+      });
+    }
+
     function render() {
       const query = input.value.trim().toLocaleLowerCase('ru-RU');
       visible = commands().filter(command => `${command.label} ${command.keywords}`.toLocaleLowerCase('ru-RU').includes(query));
@@ -103,7 +111,11 @@
         const hint = document.createElement('small');
         hint.textContent = command.hint;
         button.append(label, hint);
-        button.addEventListener('mousemove', () => { active = index; render(); });
+        button.addEventListener('mouseenter', () => {
+          if (active === index) return;
+          active = index;
+          syncActive();
+        });
         button.addEventListener('click', () => execute(index));
         list.appendChild(button);
       });
@@ -121,11 +133,13 @@
       if (event.key === 'ArrowDown') {
         event.preventDefault();
         active = Math.min(active + 1, visible.length - 1);
-        render();
+        syncActive();
+        list.querySelector('.active')?.scrollIntoView?.({ block: 'nearest' });
       } else if (event.key === 'ArrowUp') {
         event.preventDefault();
         active = Math.max(active - 1, 0);
-        render();
+        syncActive();
+        list.querySelector('.active')?.scrollIntoView?.({ block: 'nearest' });
       } else if (event.key === 'Enter') {
         event.preventDefault();
         execute();
