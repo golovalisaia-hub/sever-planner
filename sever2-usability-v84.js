@@ -100,8 +100,24 @@
     } catch {}
   }
 
+  function queueScheduleCleanupAfterClose(dialogId, itemId) {
+    const dialog = $(dialogId);
+    if (!dialog || !itemId) return;
+    dialog.addEventListener('close', () => {
+      void (async () => {
+        const item = itemById(itemId);
+        if (!item || !clearPendingSchedule(item)) return;
+        await persistMoneyCleanup();
+        if ($('#moneyView')?.classList.contains('active')) window.SeverMoney?.render?.();
+      })();
+    }, { once: true });
+  }
+
   async function reconcileSchedules({ persist = true } = {}) {
     if (reconcileRunning) return false;
+    // Money owns its editor transaction. Background cleanup must never mutate
+    // the same item while an edit/progress dialog is waiting for its save.
+    if ($('#moneyItemDialog')?.open || $('#moneyProgressDialog')?.open || $('#moneyScheduleDialog')?.open) return false;
     reconcileRunning = true;
     try {
       let changed = false;
@@ -275,14 +291,18 @@
 
   function handleCaptureSubmit(event) {
     if (event.target?.id === 'moneyItemForm') {
-      const existing = itemById($('#moneyItemId')?.value);
-      if (existing && planningFieldsChanged(existing)) clearPendingSchedule(existing);
+      const itemId = $('#moneyItemId')?.value;
+      const existing = itemById(itemId);
+      if (existing && planningFieldsChanged(existing)) queueScheduleCleanupAfterClose('#moneyItemDialog', itemId);
       return;
     }
     if (event.target?.id === 'moneyProgressForm') {
-      const item = itemById($('#moneyProgressId')?.value);
+      const itemId = $('#moneyProgressId')?.value;
+      const item = itemById(itemId);
       const delta = amount($('#moneyProgressAmount')?.value);
-      if (item && delta > 0 && amount(item.currentAmount) + delta >= amount(item.targetAmount)) clearPendingSchedule(item);
+      if (item && delta > 0 && amount(item.currentAmount) + delta >= amount(item.targetAmount)) {
+        queueScheduleCleanupAfterClose('#moneyProgressDialog', itemId);
+      }
     }
   }
 
