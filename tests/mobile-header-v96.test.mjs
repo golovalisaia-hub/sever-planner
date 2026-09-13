@@ -21,13 +21,16 @@ test('mobile header docks AI in the same flex flow as sync instead of overlaying
   assert.doesNotMatch(css, /\.topbar \.top-actions\s*\{[\s\S]{0,160}padding-right:\s*60px/);
 });
 
-test('SEVER wordmark signature follows all four seasons and stays motion-safe', () => {
+test('SEVER keeps all four seasonal signatures but temporarily pins summer', () => {
   assert.match(experienceJs, /const seasonIcons = \{[\s\S]*winter:[\s\S]*spring:[\s\S]*summer:[\s\S]*autumn:/);
+  assert.match(experienceJs, /const SEVER_SEASON_OVERRIDE = 'summer'/);
   assert.match(experienceJs, /function seasonForMonth\(month\)/);
   assert.match(experienceJs, /month === 11 \|\| month <= 1/);
   assert.match(experienceJs, /month <= 4/);
   assert.match(experienceJs, /month <= 7/);
+  assert.match(experienceJs, /SEVER_SEASON_OVERRIDE \|\| seasonForMonth\(new Date\(\)\.getMonth\(\)\)/);
   assert.match(experienceJs, /dataset\.severSeason = season/);
+  assert.match(experienceJs, /severSeasonSignature = 'v99'/);
   assert.match(experienceJs, /className = 'sever-season-mark'/);
   for (const season of ['winter', 'spring', 'summer', 'autumn']) {
     assert.match(css, new RegExp(`\\.sever-season-mark\\[data-season="${season}"\\]`));
@@ -36,11 +39,11 @@ test('SEVER wordmark signature follows all four seasons and stays motion-safe', 
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.sever-season-mark[\s\S]*animation:\s*none !important/);
 });
 
-test('installed PWA keeps the guarded atomic cache while later releases refresh individual assets', () => {
-  assert.match(sw, /v98 refreshes the reminder compatibility bridge/);
+test('installed PWA keeps the guarded atomic cache while v99 refreshes summer experience JS', () => {
+  assert.match(sw, /v99 temporarily pins the SEVER signature to summer/);
   assert.match(sw, /const CACHE = 'sever-v94-experience-release-v1'/);
   assert.ok(sw.includes("'./sever2-experience-v94.css?v=94'"));
-  assert.ok(sw.includes("'./sever2-experience-v94.js?v=94'"));
+  assert.ok(sw.includes("'./sever2-experience-v94.js?v=99'"));
   assert.ok(sw.includes("'./sever2-interaction-polish.css?v=97'"));
   assert.ok(sw.includes("'./sever2-reminder-bridge-v95.js?v=98'"));
 });
