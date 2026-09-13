@@ -82,6 +82,17 @@ async function openHabitCreate(page) {
   await expect(page.locator('#habitDialog')).toBeVisible();
 }
 
+async function openAI(page) {
+  const launcher = page.locator('#severAiOpen');
+  if (await launcher.isVisible()) {
+    await launcher.click();
+    return;
+  }
+  await page.locator('#sever2CommandOpen').click();
+  await expect(page.locator('#sever2CommandDialog')).toHaveAttribute('open', '');
+  await page.locator('[data-command-id="ai"]').click();
+}
+
 test.beforeEach(async ({ page }) => { await boot(page); });
 
 test('experienced user can hammer primary flows without stale UI or duplicate writes', async ({ page }, info) => {
@@ -193,10 +204,19 @@ test('experienced user can hammer primary flows without stale UI or duplicate wr
   await page.locator('#moneyItemName').fill(moneyTitle);
   await page.locator('#moneyItemTarget').fill('12000');
   await page.locator('#moneyItemBudget').fill('6000');
+  const moneyDeadline = await page.evaluate(() => {
+    const date = new Date();
+    date.setDate(1);
+    date.setMonth(date.getMonth() + 3);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  });
+  await page.locator('#moneyItemDeadline').fill(moneyDeadline);
   await page.locator('#moneyItemForm button.primary').click();
   const moneyCard = page.locator('.money-card').filter({ hasText: moneyTitle });
   await expect(moneyCard).toBeVisible();
-  await moneyCard.locator('.money-card-actions button').filter({ hasText: 'В календарь' }).click();
+  const scheduleButton = moneyCard.locator('.money-card-actions button').filter({ hasText: 'В календарь' });
+  await expect(scheduleButton).toBeEnabled();
+  await scheduleButton.click();
   await page.locator('#moneyScheduleConfirm').click();
   const generatedCount = await page.evaluate(title => {
     const state = window.SeverApp.getState();
@@ -223,8 +243,8 @@ test('experienced user can hammer primary flows without stale UI or duplicate wr
   await page.locator('#tourSkip').click();
   await expect(page.locator('#tourDialog')).toBeHidden();
 
-  // AI shell should open/close without moving content outside the viewport.
-  await page.locator('#severAiOpen').click();
+  // AI stays directly available on mobile and through the single command center on desktop.
+  await openAI(page);
   await expect(page.locator('#severAiPanel')).toBeVisible();
   await expect(page.locator('#severAiInput')).toBeVisible();
   await noOverflow(page);
