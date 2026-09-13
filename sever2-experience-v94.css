@@ -114,12 +114,25 @@
   }
 
   .mobile-wordmark .sever-season-mark {
-    position: absolute;
-    left: calc(100% + 7px);
-    top: 50%;
-    width: 11px;
-    height: 11px;
-    margin: 0;
+    position: absolute !important;
+    inset: auto !important;
+    left: calc(100% + 7px) !important;
+    top: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    inline-size: 11px !important;
+    block-size: 11px !important;
+    width: 11px !important;
+    min-width: 11px !important;
+    max-width: 11px !important;
+    height: 11px !important;
+    min-height: 11px !important;
+    max-height: 11px !important;
+    flex: 0 0 11px !important;
+    margin: -5.5px 0 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    overflow: visible;
     transform-origin: 50% 50%;
   }
 
@@ -257,9 +270,17 @@
 
 @media (max-width: 350px) {
   .mobile-wordmark .sever-season-mark {
-    left: calc(100% + 5px);
-    width: 10px;
-    height: 10px;
+    left: calc(100% + 5px) !important;
+    inline-size: 10px !important;
+    block-size: 10px !important;
+    width: 10px !important;
+    min-width: 10px !important;
+    max-width: 10px !important;
+    height: 10px !important;
+    min-height: 10px !important;
+    max-height: 10px !important;
+    flex-basis: 10px !important;
+    margin-top: -5px !important;
   }
 }
 
@@ -279,6 +300,6 @@
   }
 
   .mobile-wordmark .sever-season-mark {
-    transform: translateY(-50%) !important;
+    transform: none !important;
   }
 }
