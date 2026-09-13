@@ -82,7 +82,7 @@ test('v84 and v91 hardening remain inside the atomic v102 desktop polish release
     './sever2-efficiency.css?v=102',
     './sever2-home-core.js?v=85', './sever2-usability-v84.css?v=93', './sever2-usability-v84.js?v=84',
     './sever2-notes-compact-v87.js?v=87', './sever2-experience-v94.js?v=101',
-    './sever2-reminders.css?v=86', './js/theme-init.js?v=92', './sever2-interaction-polish.css?v=97'
+    './sever2-reminders.css?v=86', './js/theme-init.js?v=92', './sever2-interaction-polish.css?v=103'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   assert.ok(sw.includes("'/sever2-efficiency.css'"));
   assert.ok(sw.includes("'/sever2-home-core.js'"));

@@ -40,6 +40,15 @@
     }
   }
 
+  function installResponsivenessLayer() {
+    if (document.querySelector('script[data-sever2-notes-responsiveness-v104-script]')) return;
+    const script = document.createElement('script');
+    script.src = 'sever2-notes-responsiveness-v104.js?v=104';
+    script.async = false;
+    script.setAttribute('data-sever2-notes-responsiveness-v104-script', 'v104');
+    document.head.appendChild(script);
+  }
+
   function icon(name) {
     if (name === 'more') return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
     if (name === 'less') return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>';
@@ -200,6 +209,7 @@
     }
     booted = true;
     installCompactNotesLayer();
+    installResponsivenessLayer();
     const root = document.querySelector('#notesView');
     observer = new MutationObserver(schedule);
     observer.observe(root, { childList: true, subtree: true });

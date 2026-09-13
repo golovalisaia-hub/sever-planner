@@ -49,14 +49,17 @@ test('mobile header uses a stable sync dot and the current automatic SEVER seaso
   const result = await page.evaluate(() => {
     const syncEl = document.querySelector('#severMobileSyncIndicator');
     const aiEl = document.querySelector('#severAiOpen');
+    const wordmark = document.querySelector('#mobileHeaderTitle');
     const syncBox = syncEl.getBoundingClientRect();
     const aiBox = aiEl.getBoundingClientRect();
-    const mark = document.querySelector('#mobileHeaderTitle .sever-season-mark');
+    const wordmarkBox = wordmark.getBoundingClientRect();
+    const mark = wordmark.querySelector('.sever-season-mark');
     const markBox = mark.getBoundingClientRect();
     const markStyle = getComputedStyle(mark);
     const copyStyle = getComputedStyle(syncEl.querySelector('.sever-sync-copy'));
     const icon = mark.querySelector('svg');
     const iconBox = icon.getBoundingClientRect();
+    const iconStyle = getComputedStyle(icon);
     const aiStyle = getComputedStyle(aiEl);
     const month = new Date().getMonth();
     const expectedSeason = month === 11 || month <= 1 ? 'winter' : month <= 4 ? 'spring' : month <= 7 ? 'summer' : 'autumn';
@@ -74,11 +77,18 @@ test('mobile header uses a stable sync dot and the current automatic SEVER seaso
       expectedSeason,
       markSeason: mark.dataset.season,
       markPosition: markStyle.position,
+      markLeft: markBox.left,
       markWidth: markBox.width,
       markHeight: markBox.height,
       markPointerEvents: markStyle.pointerEvents,
+      wordmarkLeft: wordmarkBox.left,
+      wordmarkWidth: wordmarkBox.width,
       iconWidth: iconBox.width,
       iconHeight: iconBox.height,
+      iconCssWidth: Number.parseFloat(iconStyle.width),
+      iconCssHeight: Number.parseFloat(iconStyle.height),
+      iconWillChange: iconStyle.willChange,
+      iconAnimationName: iconStyle.animationName,
       syncWidth: syncBox.width,
       syncHeight: syncBox.height,
       copyWidth: Number.parseFloat(copyStyle.width)
@@ -97,8 +107,26 @@ test('mobile header uses a stable sync dot and the current automatic SEVER seaso
   expect(result.markSeason).toBe(result.expectedSeason);
   expect(result.markPosition).toBe('absolute');
   expect(result.markPointerEvents).toBe('none');
-  expect(result.markWidth).toBeLessThanOrEqual(16);
-  expect(result.markHeight).toBeLessThanOrEqual(16);
-  expect(result.iconWidth).toBeLessThanOrEqual(16);
-  expect(result.iconHeight).toBeLessThanOrEqual(16);
+
+  if (result.expectedSeason === 'autumn') {
+    // The authored leaf stays 8px; its rotating visual box can become slightly larger.
+    expect(result.iconCssWidth).toBeLessThanOrEqual(8.1);
+    expect(result.iconCssHeight).toBeLessThanOrEqual(8.1);
+    expect(result.iconWidth).toBeLessThanOrEqual(10.5);
+    expect(result.iconHeight).toBeLessThanOrEqual(10.5);
+    // v103 anchors the tiny sprite source at the LEFT edge of SEVER. The
+    // compositor keyframes then carry the leaves 78–82px through the wordmark.
+    expect(result.wordmarkWidth).toBeGreaterThan(30);
+    expect(result.markWidth).toBeLessThanOrEqual(16);
+    expect(result.markLeft).toBeLessThanOrEqual(result.wordmarkLeft + 1);
+    expect(result.markLeft).toBeGreaterThanOrEqual(result.wordmarkLeft - 6);
+    expect(result.iconWillChange).toContain('transform');
+    expect(result.iconWillChange).toContain('opacity');
+    expect(result.iconAnimationName).toBe('sever-autumn-flight-a');
+  } else {
+    expect(result.iconWidth).toBeLessThanOrEqual(16);
+    expect(result.iconHeight).toBeLessThanOrEqual(16);
+    expect(result.markWidth).toBeLessThanOrEqual(16);
+    expect(result.markHeight).toBeLessThanOrEqual(16);
+  }
 });

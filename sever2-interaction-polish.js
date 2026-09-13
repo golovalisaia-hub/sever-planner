@@ -111,6 +111,42 @@
     document.head.appendChild(script);
   }
 
+  /* v101 intentionally kept autumn as an 11px signature to the right of the
+     mobile wordmark. v103 changes that product decision: the same tiny leaf
+     sprites start at the left edge of SEVER and travel across the letters using
+     transform-only keyframes from interaction-polish.css. A dedicated late
+     style resolves the old higher-specificity phone rule without changing the
+     winter/spring/summer signatures. */
+  function installAutumnMobileFlightAnchor() {
+    if (document.querySelector('style[data-sever-autumn-mobile-v103]')) return;
+    const style = document.createElement('style');
+    style.dataset.severAutumnMobileV103 = 'true';
+    style.textContent = `
+      @media (max-width: 900px) {
+        html[data-sever-season="autumn"] body .topbar .mobile-wordmark.mobile-wordmark .sever-season-mark[data-season="autumn"] {
+          position: absolute !important;
+          inset: auto !important;
+          left: -4px !important;
+          right: auto !important;
+          top: 50% !important;
+          bottom: auto !important;
+          inline-size: 11px !important;
+          block-size: 11px !important;
+          width: 11px !important;
+          min-width: 11px !important;
+          max-width: 11px !important;
+          height: 11px !important;
+          min-height: 11px !important;
+          max-height: 11px !important;
+          margin: -5.5px 0 0 !important;
+          padding: 0 !important;
+          overflow: visible !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function taskSummaryFor(date) {
     const tasks = (state().tasks || []).filter(task => task?.date === date);
     const done = tasks.filter(task => task.completed).length;
@@ -226,6 +262,7 @@
   document.documentElement.dataset.severMoneyLifecycle = 'v96.3';
   installReminderLayer();
   installNotesOrganizationRepair();
+  installAutumnMobileFlightAnchor();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleBoot, { once: true });
   else scheduleBoot();
   window.addEventListener('load', scheduleBoot, { once: true });

@@ -33,7 +33,7 @@ test('presentation layers load deterministically through cloud recovery v80', as
   assert.ok(home >= 0 && core > home && organization > core && editor > organization && navigation > editor && polish > navigation && money > polish && usability > money && interactions > usability && recovery > interactions);
 });
 
-test('cloud recovery v80 ships atomically inside the complete v102 desktop polish PWA release', async () => {
+test('cloud recovery v80 ships atomically inside the complete v102 desktop polish PWA release with v103 autumn CSS', async () => {
   const source = await read('sw.js');
   assert.match(source, /const CACHE = 'sever-v102-desktop-polish-release-v1'/);
   for (const asset of [
@@ -48,7 +48,7 @@ test('cloud recovery v80 ships atomically inside the complete v102 desktop polis
     './sever2-experience-v94.css?v=101','./sever2-experience-v94.js?v=101',
     './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84',
-    './sever2-interaction-polish.css?v=97','./sever2-interaction-polish.js?v=101',
+    './sever2-interaction-polish.css?v=103','./sever2-interaction-polish.js?v=101',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80',
     './sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82','./mobile-ui.js?v=92','./js/theme-init.js?v=92'
   ]) assert.ok(source.includes(`'${asset}'`), `missing ${asset}`);

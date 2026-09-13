@@ -43,15 +43,25 @@ test('v96.3 retires Money schedule reminders synchronously before the Money save
   assert.match(source, /dataset\.severMoneyLifecycle = 'v96\.3'/);
 });
 
-test('autumn wordmark sends three transparent orange leaves across SEVER and remains motion-safe', () => {
-  assert.match(css, /Autumn signature: three soft orange leaves cross the wordmark/);
+test('v103 autumn wordmark sends three smooth orange leaves through SEVER without layout animation', () => {
+  assert.match(css, /Autumn signature v103: three compositor-only leaves cross SEVER/);
   assert.match(css, /color:\s*#d97932 !important/);
   assert.match(css, /\.sever-season-mark\[data-season="autumn"\] > svg/);
   assert.match(css, /\.sever-season-mark\[data-season="autumn"\]::before/);
   assert.match(css, /\.sever-season-mark\[data-season="autumn"\]::after/);
+  assert.match(css, /will-change:\s*transform, opacity/);
+  assert.match(css, /backface-visibility:\s*hidden/);
   assert.match(css, /@keyframes sever-autumn-flight-a/);
   assert.match(css, /@keyframes sever-autumn-flight-b/);
   assert.match(css, /@keyframes sever-autumn-flight-c/);
+  assert.match(css, /translate3d\(/);
+  assert.doesNotMatch(css, /will-change:\s*left, top/);
+  for (const name of ['a','b','c']) {
+    const block = css.match(new RegExp(`@keyframes sever-autumn-flight-${name} \\{([\\s\\S]*?)\\n\\}`))?.[1] || '';
+    assert.ok(block, `missing autumn flight ${name}`);
+    assert.doesNotMatch(block, /\bleft\s*:/);
+    assert.doesNotMatch(block, /\btop\s*:/);
+  }
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*animation:\s*none !important/);
 });
 
@@ -80,7 +90,7 @@ test('habit completion cannot restyle the whole card and Focus play stays center
   assert.match(css, /border-left:\s*11px solid currentColor/);
 });
 
-test('v97 interaction polish remains inside the atomic v102 desktop polish PWA release', () => {
+test('v103 interaction polish remains inside the atomic v102 desktop polish PWA release', () => {
   const home = themeInit.indexOf('sever2-home-core-script');
   const money = themeInit.indexOf('sever2-money-script');
   const usabilityIndex = themeInit.indexOf('sever2-usability-v84-script');
@@ -95,6 +105,7 @@ test('v97 interaction polish remains inside the atomic v102 desktop polish PWA r
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
   assert.match(sw, /const CACHE = 'sever-v102-desktop-polish-release-v1'/);
+  assert.match(sw, /v103 refreshes the autumn wordmark animation/);
   for (const asset of [
     './sever2-efficiency.css?v=102',
     './sever2-home-core.js?v=85',
@@ -103,7 +114,7 @@ test('v97 interaction polish remains inside the atomic v102 desktop polish PWA r
     './sever2-experience-v94.css?v=101','./sever2-experience-v94.js?v=101',
     './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84',
-    './sever2-interaction-polish.css?v=97','./sever2-interaction-polish.js?v=101',
+    './sever2-interaction-polish.css?v=103','./sever2-interaction-polish.js?v=101',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80',
     './sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82',
     './js/theme-init.js?v=92'
