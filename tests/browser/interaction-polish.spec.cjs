@@ -110,7 +110,6 @@ test('every rapid phone tap toggles task completion instead of being debounced',
     await expect(task).toHaveClass(expectedDone ? /\bdone\b/ : /^(?!.*\bdone\b)/);
     await expect(check).toHaveAttribute('aria-pressed', String(expectedDone));
     if (expectedDone) expectIntactTaskCheck(await taskCheckVisual(check));
-    await page.waitForTimeout(20);
   }
 
   await expect(task).not.toHaveClass(/\bdone\b/);
