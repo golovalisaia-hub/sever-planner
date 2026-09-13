@@ -71,16 +71,33 @@
 .sever-season-mark[data-season="autumn"] { animation: sever-season-autumn 6.1s ease-in-out infinite; }
 
 @media (max-width: 900px) {
-  /* The AI launcher is a fixed 48px control at the right edge. Reserve a real
-     layout lane for it so the sync pill can never slide underneath it. */
+  /* Sync status and AI are now siblings in the same flex row. This removes the
+     fixed-overlay collision completely instead of reserving guessed pixels. */
   .topbar .top-actions {
     gap: 7px;
-    padding-right: 60px;
     min-width: 0;
+    margin-left: auto;
+    flex: 0 1 auto;
+  }
+
+  .topbar .top-actions > .sever-ai-launch[data-sever-header-dock="true"] {
+    position: static !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    z-index: auto;
+    flex: 0 0 48px;
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+    min-height: 48px;
   }
 
   .mobile-wordmark {
     position: relative;
+    flex: 0 0 auto;
   }
 
   /* On phones the seasonal mark floats immediately after SEVER and therefore
@@ -99,9 +116,11 @@
     display: inline-flex;
     min-width: 0;
     min-height: 36px;
+    flex: 0 1 auto;
     align-items: center;
     gap: 7px;
     max-width: min(148px, 39vw);
+    overflow: hidden;
     padding: 0 9px;
     border: 1px solid var(--border-subtle, var(--line));
     border-radius: 999px;
@@ -154,6 +173,7 @@
     height: 28px;
     min-width: 28px;
     min-height: 28px;
+    flex: 0 0 28px;
     place-items: center;
     margin: 0 -4px 0 0;
     padding: 0;
@@ -228,10 +248,6 @@
 }
 
 @media (max-width: 350px) {
-  .topbar .top-actions {
-    padding-right: 56px;
-  }
-
   .sever-sync-indicator {
     max-width: min(112px, 35vw);
     padding-inline: 8px;
