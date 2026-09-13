@@ -196,17 +196,17 @@ test('desktop Focus Peak becomes focus-first while Calm remains task-first', asy
   expect(focusLayout.filters).toBe('none');
 });
 
-test('desktop AI is a header action and does not overlap Create', async ({ page }) => {
+test('desktop AI stays accessible through the command center without an extra header action', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await seedPlanner(page);
   await page.goto('/');
-  await expect.poll(() => page.evaluate(() => Boolean(window.SeverApp))).toBe(true);
-  const geometry = await page.evaluate(() => {
-    const box = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
-    return { ai: box('#severAiOpen'), topbar: box('.topbar'), create: box('#globalAddBtn') };
-  });
-  expect(geometry.ai.width).toBeGreaterThanOrEqual(44);
-  expect(geometry.ai.top).toBeGreaterThanOrEqual(geometry.topbar.top);
-  expect(geometry.ai.bottom).toBeLessThanOrEqual(geometry.topbar.bottom);
-  expect(geometry.ai.right).toBeLessThanOrEqual(geometry.create.left - 6);
+  await expect.poll(() => page.evaluate(() => Boolean(window.SeverApp && document.querySelector('#sever2CommandOpen')))).toBe(true);
+  await expect(page.locator('#severAiOpen')).toBeHidden();
+  await expect(page.locator('#sever2CommandOpen')).toBeVisible();
+  await page.keyboard.press('Control+K');
+  await expect(page.locator('#sever2CommandDialog')).toHaveAttribute('open', '');
+  await page.locator('[data-command-id="ai"]').click();
+  await expect(page.locator('#severAiPanel')).toBeVisible();
+  await expect(page.locator('#severAiInput')).toBeVisible();
+  await page.locator('#severAiClose').click();
 });
