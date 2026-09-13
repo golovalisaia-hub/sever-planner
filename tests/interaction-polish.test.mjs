@@ -80,7 +80,7 @@ test('habit completion cannot restyle the whole card and Focus play stays center
   assert.match(css, /border-left:\s*11px solid currentColor/);
 });
 
-test('v97 interaction polish remains inside the atomic v94 experience PWA release', () => {
+test('v97 interaction polish remains inside the atomic v99 experience PWA release', () => {
   const home = themeInit.indexOf('sever2-home-core-script');
   const money = themeInit.indexOf('sever2-money-script');
   const usabilityIndex = themeInit.indexOf('sever2-usability-v84-script');
@@ -99,7 +99,7 @@ test('v97 interaction polish remains inside the atomic v94 experience PWA releas
     './sever2-home-core.js?v=85',
     './sever2-notes-polish.css?v=92','./sever2-notes-polish.js?v=93',
     './sever2-notes-compact-v87.css?v=87','./sever2-notes-compact-v87.js?v=87',
-    './sever2-experience-v94.css?v=94','./sever2-experience-v94.js?v=94',
+    './sever2-experience-v94.css?v=94','./sever2-experience-v94.js?v=99',
     './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84',
     './sever2-interaction-polish.css?v=97','./sever2-interaction-polish.js?v=78',
