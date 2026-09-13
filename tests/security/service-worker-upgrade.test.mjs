@@ -34,7 +34,7 @@ test('current service worker installs the guarded release atomically and removes
     './sever2-notes-editor-flow.css?v=90','./sever2-notes-editor-flow.js?v=73','./sever2-notes-navigation.css?v=74',
     './sever2-notes-navigation.js?v=74','./sever2-notes-polish.css?v=92','./sever2-notes-polish.js?v=93',
     './sever2-mobile-consistency.css?v=76','./sever2-notes-compact-v87.css?v=87','./sever2-notes-compact-v87.js?v=87',
-    './sever2-experience-v94.css?v=94','./sever2-experience-v94.js?v=94',
+    './sever2-experience-v94.css?v=94','./sever2-experience-v94.js?v=99',
     './sever2-money.css?v=83','./sever2-money.js?v=83','./sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84',
     './sever2-interaction-polish.css?v=97','./sever2-interaction-polish.js?v=78','./sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./js/theme-init.js?v=92'
@@ -50,7 +50,7 @@ test('current service worker installs the guarded release atomically and removes
   assert.equal(skipped, true);
 });
 
-test('installed current release serves v94 experience and core planner assets from one release cache', async () => {
+test('installed current release serves v99 experience and core planner assets from one release cache', async () => {
   const handlers = new Map();
   const requests = [];
   let network = 0;
@@ -62,7 +62,7 @@ test('installed current release serves v94 experience and core planner assets fr
   const caches = {
     open: async name => {
       assert.equal(name, RELEASE_CACHE);
-      return { match: async key => { requests.push(key); return { release: 94, key }; } };
+      return { match: async key => { requests.push(key); return { release: 99, key }; } };
     }
   };
   vm.runInNewContext(source, { self, caches, URL, Response, fetch: async () => { network++; throw Error('network must not update a release'); } });
@@ -82,7 +82,7 @@ test('installed current release serves v94 experience and core planner assets fr
     ['sever2-notes-compact-v87.css?v=old','cors','./sever2-notes-compact-v87.css?v=87'],
     ['sever2-notes-compact-v87.js?v=old','cors','./sever2-notes-compact-v87.js?v=87'],
     ['sever2-experience-v94.css?v=old','cors','./sever2-experience-v94.css?v=94'],
-    ['sever2-experience-v94.js?v=old','cors','./sever2-experience-v94.js?v=94'],
+    ['sever2-experience-v94.js?v=old','cors','./sever2-experience-v94.js?v=99'],
     ['sever2-money.css?v=old','cors','./sever2-money.css?v=83'],
     ['sever2-money.js?v=old','cors','./sever2-money.js?v=83'],
     ['sever2-usability-v84.css?v=old','cors','./sever2-usability-v84.css?v=93'],
