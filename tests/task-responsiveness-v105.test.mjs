@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-// Final v105 release validation covers both task-scoped rendering and the refreshed PWA core asset.
+// Final v105 release validation covers task-scoped rendering, the refreshed PWA core asset, and the static release contract.
 const source = fs.readFileSync(new URL('../app.js', import.meta.url), 'utf8');
 
 const handler = marker => {
