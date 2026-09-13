@@ -136,6 +136,31 @@
     transform-origin: 50% 50%;
   }
 
+  /* interaction-polish.css is loaded after this file and its desktop autumn
+     flight intentionally spans the whole wordmark. On phones the season is a
+     compact signature beside SEVER, so this higher-specificity rule wins even
+     against that later !important desktop geometry. */
+  html[data-sever-season="autumn"] body .topbar .mobile-wordmark .sever-season-mark[data-season="autumn"] {
+    position: absolute !important;
+    inset: auto !important;
+    left: calc(100% + 7px) !important;
+    right: auto !important;
+    top: 50% !important;
+    bottom: auto !important;
+    inline-size: 11px !important;
+    block-size: 11px !important;
+    width: 11px !important;
+    min-width: 11px !important;
+    max-width: 11px !important;
+    height: 11px !important;
+    min-height: 11px !important;
+    max-height: 11px !important;
+    flex: 0 0 11px !important;
+    margin: -5.5px 0 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
   .sever-sync-indicator {
     display: inline-flex;
     position: relative;
@@ -270,6 +295,20 @@
 
 @media (max-width: 350px) {
   .mobile-wordmark .sever-season-mark {
+    left: calc(100% + 5px) !important;
+    inline-size: 10px !important;
+    block-size: 10px !important;
+    width: 10px !important;
+    min-width: 10px !important;
+    max-width: 10px !important;
+    height: 10px !important;
+    min-height: 10px !important;
+    max-height: 10px !important;
+    flex-basis: 10px !important;
+    margin-top: -5px !important;
+  }
+
+  html[data-sever-season="autumn"] body .topbar .mobile-wordmark .sever-season-mark[data-season="autumn"] {
     left: calc(100% + 5px) !important;
     inline-size: 10px !important;
     block-size: 10px !important;
