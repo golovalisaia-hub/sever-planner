@@ -1,6 +1,7 @@
 // Upgrade lineage retained for static release-audit compatibility:
 // sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.
 // index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.
+// index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.
 // v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.
 const CACHE = 'sever-v94-experience-release-v1';
 const ASSETS = [
