@@ -37,6 +37,33 @@ async function setTheme(page, theme) {
   await page.waitForTimeout(50);
 }
 
+async function taskCheckVisual(check) {
+  return check.evaluate(el => {
+    const pseudo = getComputedStyle(el, '::after');
+    return {
+      content: pseudo.content,
+      right: parseFloat(pseudo.borderRightWidth),
+      bottom: parseFloat(pseudo.borderBottomWidth),
+      width: parseFloat(pseudo.width),
+      height: parseFloat(pseudo.height),
+      maskImage: pseudo.maskImage,
+      webkitMaskImage: pseudo.webkitMaskImage,
+      overflow: Math.max(0, document.documentElement.scrollWidth - innerWidth)
+    };
+  });
+}
+
+function expectIntactTaskCheck(visual) {
+  expect(visual.content).not.toBe('none');
+  expect(visual.right).toBeGreaterThan(0);
+  expect(visual.bottom).toBeGreaterThan(0);
+  expect(visual.width).toBeGreaterThanOrEqual(7);
+  expect(visual.height).toBeGreaterThanOrEqual(12);
+  expect(visual.maskImage).toBe('none');
+  if (visual.webkitMaskImage) expect(visual.webkitMaskImage).toBe('none');
+  expect(visual.overflow).toBeLessThanOrEqual(1);
+}
+
 function closeEnough(a, b, tolerance = 1.5) {
   return Math.abs(a - b) <= tolerance;
 }
@@ -55,20 +82,7 @@ test('task completion shows a real checkmark and remains reversible in every the
     await check.click();
     await expect(task).toHaveClass(/\bdone\b/);
     await expect(check).toHaveAttribute('aria-pressed', 'true');
-
-    const completed = await check.evaluate(el => {
-      const pseudo = getComputedStyle(el, '::after');
-      return {
-        content: pseudo.content,
-        right: parseFloat(pseudo.borderRightWidth),
-        bottom: parseFloat(pseudo.borderBottomWidth),
-        overflow: Math.max(0, document.documentElement.scrollWidth - innerWidth)
-      };
-    });
-    expect(completed.content).not.toBe('none');
-    expect(completed.right).toBeGreaterThan(0);
-    expect(completed.bottom).toBeGreaterThan(0);
-    expect(completed.overflow).toBeLessThanOrEqual(1);
+    expectIntactTaskCheck(await taskCheckVisual(check));
 
     await page.waitForTimeout(500);
     await check.click();
@@ -76,6 +90,34 @@ test('task completion shows a real checkmark and remains reversible in every the
     await expect(check).toHaveAttribute('aria-pressed', 'false');
     await page.waitForTimeout(500);
   }
+});
+
+test('task checkmark survives rapid repeated phone taps without collapsing into a dot', async ({ page }, info) => {
+  if (info.project.name === 'desktop') test.skip();
+  await page.evaluate(() => window.SeverApp.switchView('today'));
+  const task = page.locator('#todayTasks .task').first();
+  const check = task.locator('.check');
+  await expect(check).toBeVisible();
+
+  const box = await check.boundingBox();
+  expect(box).not.toBeNull();
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+
+  // Reproduce the user's recording: hammer the same completion target while
+  // the task is repeatedly rebuilt by render(). An even number must return to
+  // pending, then the final tap must leave one full, unmasked checkmark.
+  for (let index = 0; index < 12; index += 1) {
+    await page.mouse.click(x, y);
+    await page.waitForTimeout(20);
+  }
+  await expect(task).not.toHaveClass(/\bdone\b/);
+  await expect(check).toHaveAttribute('aria-pressed', 'false');
+
+  await page.mouse.click(x, y);
+  await expect(task).toHaveClass(/\bdone\b/);
+  await expect(check).toHaveAttribute('aria-pressed', 'true');
+  expectIntactTaskCheck(await taskCheckVisual(check));
 });
 
 test('habit completion keeps edit button and seven-day geometry stable in every theme', async ({ page }) => {
