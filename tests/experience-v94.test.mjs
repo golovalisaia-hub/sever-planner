@@ -28,6 +28,13 @@ test('v94 experience script is syntax-valid and reports cloud problems without m
   assert.doesNotMatch(source, /alert\(|confirm\(/);
 });
 
+test('v99 keeps automatic season support while summer is temporarily selected', () => {
+  assert.match(source, /const SEVER_SEASON_OVERRIDE = 'summer'/);
+  assert.match(source, /function seasonForMonth\(month\)/);
+  assert.match(source, /SEVER_SEASON_OVERRIDE \|\| seasonForMonth\(new Date\(\)\.getMonth\(\)\)/);
+  assert.match(source, /severSeasonSignature = 'v99'/);
+});
+
 test('v94 keeps phone controls touch-safe and makes progress scannable above the fold', () => {
   assert.match(css, /:where\(button, a\[href\], input, select, textarea, summary\):focus-visible/);
   assert.match(css, /\.settings-mobile-index button[\s\S]*min-height:\s*44px\s*!important/);
@@ -47,9 +54,9 @@ test('fresh mobile Notes hides organization chrome until there is content', () =
   assert.match(notesCss, /display:\s*none !important/);
 });
 
-test('v94 experience files are part of the atomic offline release', () => {
+test('v99 experience JS is part of the atomic offline release', () => {
   assert.match(sw, /const CACHE = 'sever-v94-experience-release-v1'/);
-  for (const asset of ['./sever2-experience-v94.css?v=94', './sever2-experience-v94.js?v=94']) {
+  for (const asset of ['./sever2-experience-v94.css?v=94', './sever2-experience-v94.js?v=99']) {
     assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   }
   assert.ok(sw.includes("'/sever2-experience-v94.css'"));
