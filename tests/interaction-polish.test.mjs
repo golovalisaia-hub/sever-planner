@@ -23,6 +23,17 @@ test('interaction polish v78 is syntax-valid and makes completion feedback expli
   assert.match(source, /Задача выполнена/);
 });
 
+test('v96.3 retires Money schedule reminders synchronously before the Money save persists', () => {
+  assert.match(source, /function guardMoneyLifecycleSubmit\(event\)/);
+  assert.match(source, /function clearPendingMoneySchedule\(item\)/);
+  assert.match(source, /!ids\.has\(String\(task\.id\)\) \|\| task\.completed/);
+  assert.match(source, /item\.calendarTaskIds = \[\]/);
+  assert.match(source, /moneyPlanningFieldsChanged\(item\)/);
+  assert.match(source, /amount\(item\.currentAmount\) \+ delta >= amount\(item\.targetAmount\)/);
+  assert.match(source, /document\.addEventListener\('submit', guardMoneyLifecycleSubmit, true\)/);
+  assert.match(source, /dataset\.severMoneyLifecycle = 'v96\.3'/);
+});
+
 test('calendar task status no longer becomes a second today badge', () => {
   assert.match(source, /document\.createElement\('div'\)/);
   assert.match(source, /sever2-day-status sever2-v78-status/);
