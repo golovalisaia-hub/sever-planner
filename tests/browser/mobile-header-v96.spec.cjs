@@ -52,6 +52,7 @@ test('mobile header uses a stable sync dot and the current automatic SEVER seaso
     const wordmark = document.querySelector('#mobileHeaderTitle');
     const syncBox = syncEl.getBoundingClientRect();
     const aiBox = aiEl.getBoundingClientRect();
+    const wordmarkBox = wordmark.getBoundingClientRect();
     const mark = wordmark.querySelector('.sever-season-mark');
     const markBox = mark.getBoundingClientRect();
     const markStyle = getComputedStyle(mark);
@@ -76,9 +77,12 @@ test('mobile header uses a stable sync dot and the current automatic SEVER seaso
       expectedSeason,
       markSeason: mark.dataset.season,
       markPosition: markStyle.position,
+      markLeft: markBox.left,
       markWidth: markBox.width,
       markHeight: markBox.height,
       markPointerEvents: markStyle.pointerEvents,
+      wordmarkLeft: wordmarkBox.left,
+      wordmarkWidth: wordmarkBox.width,
       iconWidth: iconBox.width,
       iconHeight: iconBox.height,
       iconCssWidth: Number.parseFloat(iconStyle.width),
@@ -110,10 +114,12 @@ test('mobile header uses a stable sync dot and the current automatic SEVER seaso
     expect(result.iconCssHeight).toBeLessThanOrEqual(8.1);
     expect(result.iconWidth).toBeLessThanOrEqual(10.5);
     expect(result.iconHeight).toBeLessThanOrEqual(10.5);
-    // Browser computed left/right are used absolute positions here, not the authored
-    // negative CSS offsets. Validate the resolved layer geometry instead.
-    expect(result.markWidth).toBeGreaterThan(30);
-    expect(result.markWidth).toBeLessThan(120);
+    // v103 anchors the tiny sprite source at the LEFT edge of SEVER. The
+    // compositor keyframes then carry the leaves 78–82px through the wordmark.
+    expect(result.wordmarkWidth).toBeGreaterThan(30);
+    expect(result.markWidth).toBeLessThanOrEqual(16);
+    expect(result.markLeft).toBeLessThanOrEqual(result.wordmarkLeft + 1);
+    expect(result.markLeft).toBeGreaterThanOrEqual(result.wordmarkLeft - 6);
     expect(result.iconWillChange).toContain('transform');
     expect(result.iconWillChange).toContain('opacity');
     expect(result.iconAnimationName).toBe('sever-autumn-flight-a');
