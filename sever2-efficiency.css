@@ -278,3 +278,145 @@
   .sever2-inbox-actions [data-inbox-focus] svg,
   .sever2-inbox-actions [data-inbox-edit] svg{margin:auto}
 }
+
+/* ---------- v102 desktop simplification ----------
+   One command surface, one create action, a calmer context rail and a timer
+   whose accent arc visibly represents time remaining. */
+@media (min-width:901px){
+  .topbar{
+    grid-template-columns:minmax(120px,1fr) minmax(320px,480px) minmax(120px,1fr)!important;
+    grid-template-rows:1fr!important;
+  }
+
+  /* The legacy Ctrl+K create field is still kept in the DOM for onboarding and
+     compatibility, but the visible desktop command surface is the real command
+     palette. During the guide we temporarily reveal the original target. */
+  .topbar .global-command{display:none!important}
+  body:has(#tourDialog[open]) .topbar .global-command{display:flex!important;grid-column:2;grid-row:1}
+  body:has(#tourDialog[open]) .topbar .sever2-command-open{display:none!important}
+
+  .topbar .sever2-command-open{
+    display:grid!important;
+    grid-column:2!important;
+    grid-row:1!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:40px!important;
+    margin:0!important;
+    padding:0 12px!important;
+    grid-template-columns:18px minmax(0,1fr) auto!important;
+    align-items:center!important;
+    justify-self:stretch!important;
+    gap:10px!important;
+    border:1px solid var(--border-subtle,var(--line))!important;
+    border-radius:11px!important;
+    background:var(--surface-1,var(--panel))!important;
+    color:var(--text-muted,var(--muted))!important;
+    box-shadow:none!important;
+    cursor:pointer;
+  }
+  .topbar .sever2-command-open:hover{
+    border-color:var(--border-strong,var(--line))!important;
+    background:var(--surface-2,var(--panel2))!important;
+    color:var(--text-primary,var(--text))!important;
+  }
+  .topbar .sever2-command-open span{
+    min-width:0;
+    overflow:hidden;
+    text-align:left;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:0;
+  }
+  .topbar .sever2-command-open span::after{
+    content:"Поиск и команды";
+    font-size:12px;
+    font-weight:650;
+  }
+  .topbar .sever2-command-open kbd{justify-self:end}
+
+  /* Keep one obvious create action. The AI remains available through the
+     command palette on desktop; its compact header launcher is kept on phone. */
+  .topbar .top-actions{grid-column:3!important;grid-row:1!important;align-self:center!important}
+  #severAiOpen.sever-ai-launch{display:none!important}
+
+  /* Home already contains a real Quick Note card. Do not repeat the same
+     action again in the right context rail. */
+  body:has(#todayView.view.active) .desktop-rail .quick-note-card{display:none!important}
+
+  /* Habit rhythm needs to be readable, not squeezed into tiny 25px pills. */
+  .desktop-habit-summary{gap:14px!important}
+  .desktop-habit-summary .habit-week-row{gap:8px!important}
+  .desktop-habit-summary .habit-week-title{
+    display:block!important;
+    width:100%!important;
+    min-height:20px!important;
+    height:auto!important;
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+    color:var(--text-primary)!important;
+    font-size:12px!important;
+    font-weight:650!important;
+    line-height:1.35!important;
+    text-align:left!important;
+  }
+  .desktop-habit-summary .habit-week-markers{gap:5px!important}
+  .desktop-habit-summary .habit-week-markers .habit-day{
+    position:relative;
+    display:grid!important;
+    width:100%!important;
+    min-width:0!important;
+    height:31px!important;
+    min-height:31px!important;
+    place-items:center!important;
+    padding:0!important;
+    border:1px solid var(--border-subtle)!important;
+    border-radius:10px!important;
+    background:var(--surface-1)!important;
+    color:var(--text-muted)!important;
+    font-size:10px!important;
+    font-weight:750!important;
+    line-height:1!important;
+  }
+  .desktop-habit-summary .habit-week-markers .habit-day:empty::before{
+    content:attr(data-day);
+  }
+  .desktop-habit-summary .habit-week-markers .habit-day.today{
+    border-color:var(--border-strong)!important;
+    color:var(--text-primary)!important;
+    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 28%,transparent)!important;
+  }
+  .desktop-habit-summary .habit-week-markers .habit-day.done{
+    border-color:var(--accent)!important;
+    background:var(--accent)!important;
+    color:#fff!important;
+    box-shadow:none!important;
+  }
+  html[data-theme="black"] .desktop-habit-summary .habit-week-markers .habit-day.done{color:#08120f!important}
+  .desktop-habit-summary .habit-week-markers .habit-day:disabled{opacity:.42!important}
+}
+
+/* The timer already computes strokeDashoffset from remaining seconds in
+   app.js. v102 makes that state visually unmistakable instead of decorative. */
+#timerView .timer-ring svg{overflow:visible;transform-origin:center}
+#timerView .timer-track{
+  stroke:color-mix(in srgb,var(--accent) 7%,var(--border-subtle))!important;
+  opacity:.62!important;
+}
+#timerView .timer-progress{
+  stroke:var(--accent)!important;
+  stroke-width:8!important;
+  stroke-linecap:round!important;
+  stroke-dasharray:490.09!important;
+  opacity:1!important;
+  filter:drop-shadow(0 0 5px color-mix(in srgb,var(--accent) 22%,transparent))!important;
+  transition:stroke-dashoffset .25s linear!important;
+}
+#timerView .focus-card.running .timer-progress{
+  filter:drop-shadow(0 0 8px color-mix(in srgb,var(--accent) 30%,transparent))!important;
+}
+
+@media (prefers-reduced-motion:reduce){
+  #timerView .timer-progress{transition:none!important;filter:none!important}
+}
