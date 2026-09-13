@@ -30,6 +30,24 @@
       script.dataset.sever2Reminders = 'v82';
       document.head.appendChild(script);
     }
+    if (!document.querySelector('script[data-sever2-reminder-bridge]')) {
+      const bridge = document.createElement('script');
+      bridge.src = 'sever2-reminder-bridge-v95.js?v=95';
+      bridge.async = false;
+      bridge.defer = true;
+      bridge.dataset.sever2ReminderBridge = 'v95';
+      document.head.appendChild(bridge);
+    }
+  }
+
+  function installNotesOrganizationRepair() {
+    if (document.querySelector('script[data-sever2-notes-org-repair]')) return;
+    const script = document.createElement('script');
+    script.src = 'sever2-notes-org-repair-v95.js?v=95';
+    script.async = false;
+    script.defer = true;
+    script.dataset.sever2NotesOrgRepair = 'v95';
+    document.head.appendChild(script);
   }
 
   async function retireStalePushSubscription() {
@@ -162,6 +180,7 @@
   }
 
   installReminderLayer();
+  installNotesOrganizationRepair();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleBoot, { once: true });
   else scheduleBoot();
   window.addEventListener('load', scheduleBoot, { once: true });

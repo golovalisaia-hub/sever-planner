@@ -14,14 +14,15 @@ async function boot(page) {
       profile: { name: 'SEVER' },
       appearance: { theme: 'light', animations: 'off', reduceEffects: true },
       focusSessions: [], stats: { focusMs: 0, sessions: 0 },
-      reminders: { enabled: false, time: '19:00', lastDate: '' },
+      reminders: { enabled: true, time: '19:00', lastDate: '2026-09-12' },
+      pushReminders: { enabled: false, dayBefore: true, fifteenMinutes: true, legacyRetired: true },
       security: { protectedNotesAutoLockMinutes: 5, lockInBackground: true }
     }));
     localStorage.setItem('sever-theme', 'light');
     localStorage.setItem('sever-e2e-reminders-guide-seeded-v1', '1');
   });
   await page.goto('/');
-  await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severReminders === 'v82');
+  await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severReminders === 'v82' && document.documentElement.dataset.severReminderBridge === 'v95');
   await page.evaluate(() => window.SeverApp.switchView('settings'));
   await expect(page.locator('#settingsView')).toBeVisible();
 }
@@ -35,6 +36,28 @@ test('Settings guide opens from the real Help row and returns to Settings', asyn
   await page.locator('#tourSkip').click();
   await expect(page.locator('#tourDialog')).toBeHidden();
   await expect(page.locator('#settingsView')).toBeVisible();
+});
+
+test('legacy daily reminder stays retired even when its old persisted flag was enabled', async ({ page }) => {
+  const legacy = await page.evaluate(() => ({
+    enabled: window.SeverApp.getState().reminders.enabled,
+    lastDate: window.SeverApp.getState().reminders.lastDate,
+    masterBridge: document.querySelector('#settingsNotificationToggle').onchange,
+    timeBridge: document.querySelector('#settingsNotificationTime').onchange,
+    testBridge: document.querySelector('#settingsTestNotification').onclick
+  }));
+  expect(legacy.enabled).toBe(false);
+  expect(legacy.lastDate).toBe('');
+  expect(legacy.masterBridge).toBe(null);
+  expect(legacy.timeBridge).toBe(null);
+  expect(legacy.testBridge).toBe(null);
+
+  await page.evaluate(() => {
+    const toggle = document.querySelector('#settingsNotificationToggle');
+    toggle.checked = true;
+    toggle.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await expect.poll(() => page.evaluate(() => window.SeverApp.getState().reminders.enabled)).toBe(false);
 });
 
 test('task reminder settings are readable and responsive on desktop and phone', async ({ page }) => {
