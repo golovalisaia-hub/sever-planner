@@ -1,4 +1,4 @@
-/* SEVER 2 interaction polish v97 — stable state feedback across all three themes. */
+/* SEVER 2 interaction polish v103 — stable state feedback across all three themes. */
 
 /* ---------- Task completion: preserve the original 28px control and lock ✓ to its center ---------- */
 .task .check {
@@ -66,22 +66,36 @@ html[data-theme="black"] .task.done .check::after {
   outline-offset: 3px;
 }
 
-/* ---------- Autumn signature: three soft orange leaves cross the wordmark ---------- */
+/* ---------- Autumn signature v103: three compositor-only leaves cross SEVER ---------- */
 html[data-sever-season="autumn"] .mobile-wordmark,
 html[data-sever-season="autumn"] .desktop-sidebar > .wordmark {
   position: relative;
+  overflow: visible;
 }
-html[data-sever-season="autumn"] .mobile-wordmark .sever-season-mark[data-season="autumn"],
+
+/* The season layer spans the wordmark itself. v101 squeezed this container to
+   11px on phones, while v97 moved children with left/top. Safari then had to
+   relayout and repaint the header on every keyframe. v103 keeps geometry fixed
+   and animates only transform + opacity. */
+html[data-sever-season="autumn"] body .topbar .mobile-wordmark .sever-season-mark[data-season="autumn"],
 html[data-sever-season="autumn"] .desktop-sidebar > .wordmark .sever-season-mark[data-season="autumn"] {
   position: absolute !important;
   z-index: 2;
-  left: -10px !important;
-  right: -12px !important;
+  left: -4px !important;
+  right: -10px !important;
   top: -6px !important;
   bottom: -6px !important;
+  inline-size: auto !important;
+  block-size: auto !important;
   width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
   height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  flex: none !important;
   margin: 0 !important;
+  padding: 0 !important;
   color: #d97932 !important;
   opacity: 1 !important;
   overflow: visible;
@@ -89,26 +103,31 @@ html[data-sever-season="autumn"] .desktop-sidebar > .wordmark .sever-season-mark
   animation: none !important;
   transform: none !important;
   will-change: auto !important;
+  box-sizing: border-box !important;
 }
 html[data-theme="black"][data-sever-season="autumn"] .sever-season-mark[data-season="autumn"] {
   color: #e79a53 !important;
 }
+
 html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"] > svg,
 html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::before,
 html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::after {
   position: absolute;
-  left: -10px;
+  left: 0;
+  top: 50%;
   width: 8px !important;
   height: 8px !important;
-  margin: 0;
+  margin: -4px 0 0;
   opacity: 0;
   pointer-events: none;
-  will-change: left, top, transform, opacity;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"] > svg {
-  top: 22%;
   stroke: currentColor !important;
-  animation: sever-autumn-flight-a 7.2s ease-in-out infinite;
+  animation: sever-autumn-flight-a 8.4s linear infinite;
 }
 html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::before,
 html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::after {
@@ -117,37 +136,39 @@ html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::after
   border-radius: 90% 12% 90% 18%;
 }
 html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::before {
-  top: 52%;
   width: 7px !important;
   height: 5px !important;
-  animation: sever-autumn-flight-b 7.2s ease-in-out .28s infinite;
+  margin-top: -2px;
+  animation: sever-autumn-flight-b 9.2s linear -2.7s infinite;
 }
 html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::after {
-  top: 36%;
   width: 6px !important;
   height: 5px !important;
-  animation: sever-autumn-flight-c 7.2s ease-in-out .56s infinite;
+  margin-top: -3px;
+  animation: sever-autumn-flight-c 10s linear -5.1s infinite;
 }
+
 @keyframes sever-autumn-flight-a {
-  0%, 5% { left: -10px; top: 18%; opacity: 0; transform: rotate(-28deg) scale(.88); }
-  13% { opacity: .42; }
-  42% { top: 52%; opacity: .32; transform: rotate(58deg) scale(1); }
-  73% { top: 28%; opacity: .26; transform: rotate(126deg) scale(.92); }
-  92%, 100% { left: calc(100% + 10px); top: 58%; opacity: 0; transform: rotate(196deg) scale(.82); }
+  0% { opacity: 0; transform: translate3d(-8px, -7px, 0) rotate(-28deg) scale(.86); }
+  12% { opacity: .46; }
+  38% { opacity: .38; transform: translate3d(24px, 4px, 0) rotate(48deg) scale(1); }
+  67% { opacity: .3; transform: translate3d(49px, -2px, 0) rotate(122deg) scale(.92); }
+  88% { opacity: .2; }
+  100% { opacity: 0; transform: translate3d(78px, 5px, 0) rotate(194deg) scale(.8); }
 }
 @keyframes sever-autumn-flight-b {
-  0%, 9% { left: -10px; top: 60%; opacity: 0; transform: rotate(18deg) scale(.9); }
-  17% { opacity: .34; }
-  48% { top: 32%; opacity: .28; transform: rotate(96deg) scale(1); }
-  78% { top: 56%; opacity: .22; transform: rotate(158deg) scale(.88); }
-  94%, 100% { left: calc(100% + 10px); top: 38%; opacity: 0; transform: rotate(226deg) scale(.8); }
+  0% { opacity: 0; transform: translate3d(-7px, 5px, 0) rotate(16deg) scale(.9); }
+  14% { opacity: .34; }
+  42% { opacity: .3; transform: translate3d(26px, -4px, 0) rotate(92deg) scale(.98); }
+  72% { opacity: .24; transform: translate3d(53px, 3px, 0) rotate(158deg) scale(.88); }
+  100% { opacity: 0; transform: translate3d(80px, -2px, 0) rotate(228deg) scale(.78); }
 }
 @keyframes sever-autumn-flight-c {
-  0%, 12% { left: -10px; top: 34%; opacity: 0; transform: rotate(-4deg) scale(.82); }
-  20% { opacity: .3; }
-  52% { top: 62%; opacity: .25; transform: rotate(82deg) scale(.94); }
-  80% { top: 36%; opacity: .2; transform: rotate(144deg) scale(.86); }
-  96%, 100% { left: calc(100% + 10px); top: 54%; opacity: 0; transform: rotate(214deg) scale(.76); }
+  0% { opacity: 0; transform: translate3d(-6px, -1px, 0) rotate(-8deg) scale(.82); }
+  16% { opacity: .3; }
+  46% { opacity: .26; transform: translate3d(28px, 5px, 0) rotate(80deg) scale(.94); }
+  76% { opacity: .2; transform: translate3d(56px, -3px, 0) rotate(146deg) scale(.86); }
+  100% { opacity: 0; transform: translate3d(82px, 4px, 0) rotate(216deg) scale(.76); }
 }
 
 /* ---------- Calendar: today and task presence are two different signals ---------- */
@@ -374,10 +395,8 @@ html[data-theme="black"] #todayView .today-focus-widget .primary::before {
     animation: none !important;
   }
   html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"] > svg {
-    left: calc(100% + 4px);
-    top: 42%;
     opacity: .28;
-    transform: rotate(22deg);
+    transform: translate3d(58px, -2px, 0) rotate(22deg);
   }
   html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::before,
   html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::after {
