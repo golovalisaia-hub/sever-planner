@@ -19,7 +19,9 @@ test('Notes navigation layer is syntax-valid and delegates to existing folder/ta
 });
 
 test('Notes navigation replaces long source rails and keeps search sticky', () => {
-  assert.match(css, /\.notes-navigation-source\s*\{[^}]*display:\s*none\s*!important/s);
+  assert.match(css, /#notesView\s+\.notes-navigation-source,[\s\S]*display:\s*none\s*!important/);
+  assert.match(css, /html\[data-sever-notes-navigation="ready"\]\s+#notesView\s+#folderTabs/);
+  assert.match(css, /html\[data-sever-notes-navigation="ready"\]\s+#notesView\s+#notesOrganizationTags/);
   assert.match(css, /\.notes-navigation-sticky\s*\{[^}]*position:\s*sticky/s);
   assert.match(source, /folders\.classList\.add\('notes-navigation-source'\)/);
   assert.match(source, /tagSource\(\)\?\.classList\.add\('notes-navigation-source'\)/);
