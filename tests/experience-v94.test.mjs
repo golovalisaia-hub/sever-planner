@@ -57,15 +57,17 @@ test('fresh mobile Notes hides organization chrome until there is content', () =
   assert.match(notesCss, /display:\s*none !important/);
 });
 
-test('v101 reliability assets are part of a newly rotated atomic offline release', () => {
-  assert.match(sw, /const CACHE = 'sever-v101-reliability-release-v1'/);
+test('v101 reliability assets remain part of the newly rotated v102 atomic offline release', () => {
+  assert.match(sw, /const CACHE = 'sever-v102-desktop-polish-release-v1'/);
   for (const asset of [
+    './sever2-efficiency.css?v=102',
     './sever2-experience-v94.css?v=101',
     './sever2-experience-v94.js?v=101',
     './sever2-interaction-polish.js?v=101'
   ]) {
     assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   }
+  assert.ok(sw.includes("'/sever2-efficiency.css'"));
   assert.ok(sw.includes("'/sever2-experience-v94.css'"));
   assert.ok(sw.includes("'/sever2-experience-v94.js'"));
 });
