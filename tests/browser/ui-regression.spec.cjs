@@ -14,6 +14,13 @@ async function saveNoteThroughNotes(page,text){
   await page.locator('#notesQuickCaptureInput').press('Enter');
   await expect(page.locator('#noteList')).toContainText(text);
 }
+async function openAI(page){
+  const launcher=page.locator('#severAiOpen');
+  if(await launcher.isVisible()){await launcher.click();return;}
+  await page.locator('#sever2CommandOpen').click();
+  await expect(page.locator('#sever2CommandDialog')).toHaveAttribute('open','');
+  await page.locator('[data-command-id="ai"]').click();
+}
 for(const [width,height] of [[320,568],[360,800],[375,812],[390,844],[393,852],[412,915],[430,932],[768,1024],[1280,720],[1440,900],[1920,1080]]){
   test(`all views and long content fit ${width}x${height}`,async({page})=>{
     await page.setViewportSize({width,height});const errors=await boot(page);
@@ -22,7 +29,7 @@ for(const [width,height] of [[320,568],[360,800],[375,812],[390,844],[393,852],[
       await page.evaluate(v=>window.SeverApp.switchView(v),view);await expect(page.locator('#'+view+'View')).toBeVisible();
       expect(await page.locator('.view').evaluateAll(es=>es.filter(e=>getComputedStyle(e).display!=='none').map(e=>e.id))).toEqual([view+'View']);await check();
     }
-    await page.locator('#severAiOpen').click();await expect(page.locator('#severAiInput')).toBeVisible();await check();await page.locator('#severAiClose').click();await expect(page.locator('#severAiPanel')).toBeHidden();
+    await openAI(page);await expect(page.locator('#severAiInput')).toBeVisible();await check();await page.locator('#severAiClose').click();await expect(page.locator('#severAiPanel')).toBeHidden();
     await page.evaluate(()=>{const a=window.SeverApp,s=a.getState();s.profile.name='Очень длинное имя пользователя без сокращений';const d=new Date().toLocaleDateString('sv-SE');s.tasks=Array.from({length:12},(_,i)=>({id:'visual-'+i,title:'Длинное название задачи с подробностями '.repeat(3),date:d,completed:false,category:'Личное',duration:null}));a.render();a.switchView('today');});await check();
     if(width<=900){
       const geom=await page.evaluate(()=>{const r=s=>document.querySelector(s).getBoundingClientRect().toJSON();return{ai:r('#severAiOpen'),nav:r('.bottom-nav'),circle:r('.mobile-create .nav-icon'),tasks:r('#todayTasks'),summary:r('#todayDashboard'),summaryDisplay:getComputedStyle(document.querySelector('#todayDashboard')).display,theme:document.documentElement.dataset.theme,topbar:r('.topbar')};});
