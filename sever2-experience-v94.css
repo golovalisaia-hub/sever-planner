@@ -9,18 +9,18 @@
   display: none;
 }
 
-/* A tiny seasonal signature belongs only to the SEVER wordmark. The mark is
-   monochrome and intentionally quiet: it should feel branded, not decorative. */
+/* The seasonal signature is part of the SEVER wordmark. It is deliberately
+   compact, but v101 gives it enough scale and contrast to read as intentional. */
 .sever-season-mark {
   display: inline-flex;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   margin-left: 7px;
   align-items: center;
   justify-content: center;
   vertical-align: middle;
   color: currentColor;
-  opacity: .24;
+  opacity: .34;
   pointer-events: none;
   transform-origin: 50% 50%;
   will-change: transform, opacity;
@@ -32,37 +32,37 @@
   height: 100%;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.45;
+  stroke-width: 1.55;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 @keyframes sever-season-winter {
   0%, 12% { opacity: 0; transform: translate3d(0, -5px, 0) rotate(0deg); }
-  30% { opacity: .34; }
-  72% { opacity: .22; transform: translate3d(1px, 4px, 0) rotate(48deg); }
+  30% { opacity: .46; }
+  72% { opacity: .3; transform: translate3d(1px, 4px, 0) rotate(48deg); }
   100% { opacity: 0; transform: translate3d(2px, 8px, 0) rotate(82deg); }
 }
 
 @keyframes sever-season-spring {
-  0%, 18% { opacity: .16; transform: translate3d(0, 2px, 0) rotate(-5deg) scale(.92); }
-  42% { opacity: .32; transform: translate3d(0, -1px, 0) rotate(3deg) scale(1); }
-  72% { opacity: .24; transform: translate3d(1px, 0, 0) rotate(-2deg) scale(.98); }
-  100% { opacity: .16; transform: translate3d(0, 2px, 0) rotate(-5deg) scale(.92); }
+  0%, 18% { opacity: .25; transform: translate3d(0, 2px, 0) rotate(-5deg) scale(.92); }
+  42% { opacity: .46; transform: translate3d(0, -1px, 0) rotate(3deg) scale(1.04); }
+  72% { opacity: .33; transform: translate3d(1px, 0, 0) rotate(-2deg) scale(.98); }
+  100% { opacity: .25; transform: translate3d(0, 2px, 0) rotate(-5deg) scale(.92); }
 }
 
 @keyframes sever-season-summer {
-  0%, 22% { opacity: .18; transform: scale(.92) rotate(0deg); }
-  48% { opacity: .34; transform: scale(1.04) rotate(9deg); }
-  74% { opacity: .22; transform: scale(.97) rotate(16deg); }
-  100% { opacity: .18; transform: scale(.92) rotate(22deg); }
+  0%, 22% { opacity: .26; transform: scale(.92) rotate(0deg); }
+  48% { opacity: .48; transform: scale(1.06) rotate(9deg); }
+  74% { opacity: .32; transform: scale(.97) rotate(16deg); }
+  100% { opacity: .26; transform: scale(.92) rotate(22deg); }
 }
 
 @keyframes sever-season-autumn {
-  0%, 14% { opacity: 0; transform: translate3d(-1px, -5px, 0) rotate(-16deg); }
-  32% { opacity: .34; }
-  70% { opacity: .24; transform: translate3d(2px, 3px, 0) rotate(17deg); }
-  100% { opacity: 0; transform: translate3d(3px, 8px, 0) rotate(42deg); }
+  0%, 14% { opacity: .08; transform: translate3d(-1px, -5px, 0) rotate(-16deg); }
+  32% { opacity: .5; }
+  70% { opacity: .34; transform: translate3d(2px, 3px, 0) rotate(17deg); }
+  100% { opacity: .08; transform: translate3d(3px, 8px, 0) rotate(42deg); }
 }
 
 .sever-season-mark[data-season="winter"] { animation: sever-season-winter 5.8s ease-in-out infinite; }
@@ -70,19 +70,21 @@
 .sever-season-mark[data-season="summer"] { animation: sever-season-summer 6.4s ease-in-out infinite; }
 .sever-season-mark[data-season="autumn"] { animation: sever-season-autumn 6.1s ease-in-out infinite; }
 
+@keyframes sever-sync-pulse {
+  0%, 100% { transform: scale(.82); opacity: .62; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
 @media (max-width: 900px) {
-  /* Sync status and AI are siblings in the same flex row. This removes the
-     fixed-overlay collision completely instead of reserving guessed pixels. */
+  /* The status point and AI launcher have fixed footprints. Cloud state can
+     change as often as it needs without moving the mobile header. */
   .topbar .top-actions {
-    gap: 7px;
+    gap: 9px;
     min-width: 0;
     margin-left: auto;
     flex: 0 1 auto;
   }
 
-  /* Mobile-system has older generic 44px button geometry. Lock the AI launcher
-     to one exact square after it is docked so later presentation rules cannot
-     flatten it or move it back over the sync controls. */
   .topbar .top-actions > .sever-ai-launch[data-sever-header-dock="true"] {
     position: static !important;
     inset: auto !important;
@@ -111,99 +113,93 @@
     flex: 0 0 auto;
   }
 
-  /* Keep the physical transformed footprint below 12px as well, not only the
-     CSS box. Rotation can enlarge getBoundingClientRect(), so the base glyph is
-     deliberately 8px on phones. */
   .mobile-wordmark .sever-season-mark {
     position: absolute;
     left: calc(100% + 7px);
     top: 50%;
-    width: 8px;
-    height: 8px;
+    width: 11px;
+    height: 11px;
     margin: 0;
     transform-origin: 50% 50%;
   }
 
   .sever-sync-indicator {
     display: inline-flex;
-    min-width: 0;
-    min-height: 36px;
-    flex: 0 1 auto;
+    position: relative;
+    width: 14px;
+    min-width: 14px;
+    max-width: 14px;
+    height: 14px;
+    min-height: 14px;
+    flex: 0 0 14px;
     align-items: center;
-    gap: 7px;
-    max-width: min(148px, 39vw);
-    overflow: hidden;
-    padding: 0 9px;
-    border: 1px solid var(--border-subtle, var(--line));
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--surface-1, var(--panel)) 92%, transparent);
-    color: var(--text-secondary, var(--muted));
-    font-size: .7rem;
-    font-weight: 700;
-    line-height: 1;
-    box-shadow: 0 5px 18px rgba(0, 0, 0, .08);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
-  }
-
-  .sever-sync-indicator.hidden {
-    display: none !important;
-  }
-
-  .sever-sync-copy {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .sever-sync-dot {
-    width: 7px;
-    height: 7px;
-    flex: 0 0 auto;
-    border-radius: 50%;
-    background: currentColor;
-    opacity: .8;
-  }
-
-  .sever-sync-indicator[data-state="busy"] {
-    border-color: color-mix(in srgb, var(--accent, #5f7cff) 26%, var(--border-subtle, var(--line)));
-    color: var(--text-primary, var(--text));
-  }
-
-  .sever-sync-indicator[data-state="offline"],
-  .sever-sync-indicator[data-state="attention"],
-  .sever-sync-indicator[data-state="warning"] {
-    border-color: color-mix(in srgb, var(--warning, #d69532) 34%, var(--border-subtle, var(--line)));
-    background: color-mix(in srgb, var(--warning, #d69532) 7%, var(--surface-1, var(--panel)));
-    color: var(--text-primary, var(--text));
-  }
-
-  .sever-sync-retry {
-    display: grid;
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    min-height: 28px;
-    flex: 0 0 28px;
-    place-items: center;
-    margin: 0 -4px 0 0;
+    justify-content: center;
     padding: 0;
+    margin: 0;
+    overflow: visible;
     border: 0;
     border-radius: 50%;
     background: transparent;
-    color: inherit;
-    font: inherit;
-    font-size: 1rem;
-    line-height: 1;
+    box-shadow: none;
+    color: var(--text-secondary, var(--muted));
   }
 
+  .sever-sync-indicator.hidden {
+    display: inline-flex !important;
+  }
+
+  /* Status copy remains available to assistive technology/title without
+     becoming a visual pill in the header. */
+  .sever-sync-copy {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+
+  .sever-sync-dot {
+    width: 9px;
+    height: 9px;
+    flex: 0 0 9px;
+    border-radius: 50%;
+    background: #87919d;
+    opacity: .64;
+    box-shadow: 0 0 0 3px color-mix(in srgb, #87919d 12%, transparent);
+    transition: background-color .18s ease, box-shadow .18s ease, opacity .18s ease, transform .18s ease;
+  }
+
+  .sever-sync-indicator[data-state="ok"] .sever-sync-dot {
+    background: #35a968;
+    opacity: 1;
+    box-shadow: 0 0 0 3px color-mix(in srgb, #35a968 15%, transparent);
+  }
+
+  .sever-sync-indicator[data-state="busy"] .sever-sync-dot,
+  .sever-sync-indicator[data-state="attention"] .sever-sync-dot {
+    background: #d49a37;
+    opacity: .9;
+    box-shadow: 0 0 0 3px color-mix(in srgb, #d49a37 16%, transparent);
+    animation: sever-sync-pulse 1.35s ease-in-out infinite;
+  }
+
+  .sever-sync-indicator[data-state="offline"] .sever-sync-dot,
+  .sever-sync-indicator[data-state="warning"] .sever-sync-dot {
+    background: #d85b5b;
+    opacity: 1;
+    box-shadow: 0 0 0 3px color-mix(in srgb, #d85b5b 15%, transparent);
+  }
+
+  /* Recovery lives in Settings; never expand a retry control over the phone
+     header again. */
+  .sever-sync-retry,
   .sever-sync-retry.hidden {
     display: none !important;
-  }
-
-  .sever-sync-retry:not(:disabled):active {
-    transform: scale(.92);
   }
 
   .settings-mobile-index button {
@@ -260,31 +256,24 @@
 }
 
 @media (max-width: 350px) {
-  .sever-sync-indicator {
-    max-width: min(112px, 35vw);
-    padding-inline: 8px;
-  }
-
-  .sever-sync-indicator[data-state="busy"] .sever-sync-copy {
-    max-width: 76px;
-  }
-
   .mobile-wordmark .sever-season-mark {
     left: calc(100% + 5px);
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .sever-sync-dot,
   .sever-sync-indicator,
   .sever-sync-retry {
+    animation: none !important;
     transition: none !important;
   }
 
   .sever-season-mark {
     animation: none !important;
-    opacity: .2;
+    opacity: .34;
     transform: none !important;
     will-change: auto;
   }
