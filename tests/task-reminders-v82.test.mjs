@@ -6,6 +6,7 @@ const reminders = fs.readFileSync(new URL('../sever2-task-reminders.js', import.
 const bridge = fs.readFileSync(new URL('../sever2-reminder-bridge-v95.js', import.meta.url), 'utf8');
 const notesRepair = fs.readFileSync(new URL('../sever2-notes-org-repair-v95.js', import.meta.url), 'utf8');
 const interaction = fs.readFileSync(new URL('../sever2-interaction-polish.js', import.meta.url), 'utf8');
+const mobileUi = fs.readFileSync(new URL('../mobile-ui.js', import.meta.url), 'utf8');
 const reminderCss = fs.readFileSync(new URL('../sever2-reminders.css', import.meta.url), 'utf8');
 const sw = fs.readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
 const migration = fs.readFileSync(new URL('../supabase/migrations/007_task_push_reminders.sql', import.meta.url), 'utf8');
@@ -33,11 +34,20 @@ test('legacy daily reminder is retired and cannot be re-enabled by old Settings 
   assert.match(bridge, /legacyTime\.onchange = null/);
   assert.match(bridge, /test\.onclick = null/);
   assert.match(bridge, /guide\.onclick = null/);
-  assert.match(bridge, /severReminderBridge = 'v95'/);
+  assert.match(bridge, /severReminderBridge = 'v98'/);
   assert.match(interaction, /sever2-task-reminders\.js\?v=82/);
   assert.match(interaction, /sever2-reminder-bridge-v95\.js\?v=95/);
   assert.match(interaction, /sever2-reminders\.css\?v=82/);
-  assert.match(sw, /sever2-reminder-bridge-v95\.js\?v=95/);
+  assert.match(sw, /sever2-reminder-bridge-v95\.js\?v=98/);
+});
+
+test('v98 reminder bridge neutralizes the retired mobile toggle mirror', () => {
+  assert.match(mobileUi, /targetToggle\.checked = sourceToggle\.checked/);
+  assert.match(bridge, /function isolateLegacyReminderMirror\(master\)/);
+  assert.match(bridge, /Object\.getOwnPropertyDescriptor\(HTMLInputElement\.prototype, 'checked'\)/);
+  assert.match(bridge, /Object\.defineProperty\(legacy, 'checked'/);
+  assert.match(bridge, /descriptor\.get\.call\(master\)/);
+  assert.match(bridge, /legacy\.dataset\.severPushProxy = 'true'/);
 });
 
 test('v95 repairs Notes organization shell if the core summary appears after organization boot', () => {

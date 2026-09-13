@@ -37,9 +37,10 @@ test('SEVER wordmark signature follows all four seasons and stays motion-safe', 
 });
 
 test('installed PWA keeps the guarded atomic cache while later releases refresh individual assets', () => {
-  assert.match(sw, /v97 refreshes the existing atomic cache/);
+  assert.match(sw, /v98 refreshes the reminder compatibility bridge/);
   assert.match(sw, /const CACHE = 'sever-v94-experience-release-v1'/);
   assert.ok(sw.includes("'./sever2-experience-v94.css?v=94'"));
   assert.ok(sw.includes("'./sever2-experience-v94.js?v=94'"));
   assert.ok(sw.includes("'./sever2-interaction-polish.css?v=97'"));
+  assert.ok(sw.includes("'./sever2-reminder-bridge-v95.js?v=98'"));
 });

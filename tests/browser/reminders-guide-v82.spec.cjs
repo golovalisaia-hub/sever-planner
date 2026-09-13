@@ -22,7 +22,7 @@ async function boot(page) {
     localStorage.setItem('sever-e2e-reminders-guide-seeded-v1', '1');
   });
   await page.goto('/');
-  await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severReminders === 'v82' && document.documentElement.dataset.severReminderBridge === 'v95');
+  await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severReminders === 'v82' && document.documentElement.dataset.severReminderBridge === 'v98');
   await page.evaluate(() => window.SeverApp.switchView('settings'));
   await expect(page.locator('#settingsView')).toBeVisible();
 }
@@ -92,13 +92,27 @@ test('task reminder settings are readable and responsive on desktop and phone', 
 });
 
 test('disabled reminder kinds look inactive without losing the saved choices', async ({ page }) => {
+  const master = page.locator('#settingsNotificationToggle');
   const day = page.locator('#severReminderDayBefore');
   const fifteen = page.locator('#severReminderFifteen');
-  await expect(page.locator('#settingsNotificationToggle')).not.toBeChecked();
+  await expect(master).not.toBeChecked();
   await expect(day).toBeDisabled();
   await expect(fifteen).toBeDisabled();
   await expect(day).toBeChecked();
   await expect(fifteen).toBeChecked();
+
+  // Reproduce the old phone race deterministically: the retired legacy renderer
+  // writes `true`, then mobile-ui runs its resize sync. v98 must leave the task
+  // push master authoritative instead of copying that stale legacy value back.
+  await page.evaluate(() => {
+    const legacy = document.querySelector('#notificationToggle');
+    const nativeChecked = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'checked');
+    nativeChecked.set.call(legacy, true);
+    window.dispatchEvent(new Event('resize'));
+  });
+  await expect(master).not.toBeChecked();
+  await expect(day).toBeDisabled();
+  await expect(fifteen).toBeDisabled();
 
   const visual = await page.evaluate(() => {
     const row = document.querySelector('#severReminderDayBefore').closest('.sever-reminder-option');
