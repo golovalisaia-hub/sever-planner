@@ -9,18 +9,130 @@
   display: none;
 }
 
+/* A tiny seasonal signature belongs only to the SEVER wordmark. The mark is
+   monochrome and intentionally quiet: it should feel branded, not decorative. */
+.sever-season-mark {
+  display: inline-flex;
+  width: 12px;
+  height: 12px;
+  margin-left: 7px;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  color: currentColor;
+  opacity: .24;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+}
+
+.sever-season-mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@keyframes sever-season-winter {
+  0%, 12% { opacity: 0; transform: translate3d(0, -5px, 0) rotate(0deg); }
+  30% { opacity: .34; }
+  72% { opacity: .22; transform: translate3d(1px, 4px, 0) rotate(48deg); }
+  100% { opacity: 0; transform: translate3d(2px, 8px, 0) rotate(82deg); }
+}
+
+@keyframes sever-season-spring {
+  0%, 18% { opacity: .16; transform: translate3d(0, 2px, 0) rotate(-5deg) scale(.92); }
+  42% { opacity: .32; transform: translate3d(0, -1px, 0) rotate(3deg) scale(1); }
+  72% { opacity: .24; transform: translate3d(1px, 0, 0) rotate(-2deg) scale(.98); }
+  100% { opacity: .16; transform: translate3d(0, 2px, 0) rotate(-5deg) scale(.92); }
+}
+
+@keyframes sever-season-summer {
+  0%, 22% { opacity: .18; transform: scale(.92) rotate(0deg); }
+  48% { opacity: .34; transform: scale(1.04) rotate(9deg); }
+  74% { opacity: .22; transform: scale(.97) rotate(16deg); }
+  100% { opacity: .18; transform: scale(.92) rotate(22deg); }
+}
+
+@keyframes sever-season-autumn {
+  0%, 14% { opacity: 0; transform: translate3d(-1px, -5px, 0) rotate(-16deg); }
+  32% { opacity: .34; }
+  70% { opacity: .24; transform: translate3d(2px, 3px, 0) rotate(17deg); }
+  100% { opacity: 0; transform: translate3d(3px, 8px, 0) rotate(42deg); }
+}
+
+.sever-season-mark[data-season="winter"] { animation: sever-season-winter 5.8s ease-in-out infinite; }
+.sever-season-mark[data-season="spring"] { animation: sever-season-spring 6.8s ease-in-out infinite; }
+.sever-season-mark[data-season="summer"] { animation: sever-season-summer 6.4s ease-in-out infinite; }
+.sever-season-mark[data-season="autumn"] { animation: sever-season-autumn 6.1s ease-in-out infinite; }
+
 @media (max-width: 900px) {
+  /* Sync status and AI are siblings in the same flex row. This removes the
+     fixed-overlay collision completely instead of reserving guessed pixels. */
   .topbar .top-actions {
     gap: 7px;
+    min-width: 0;
+    margin-left: auto;
+    flex: 0 1 auto;
+  }
+
+  /* Mobile-system has older generic 44px button geometry. Lock the AI launcher
+     to one exact square after it is docked so later presentation rules cannot
+     flatten it or move it back over the sync controls. */
+  .topbar .top-actions > .sever-ai-launch[data-sever-header-dock="true"] {
+    position: static !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    z-index: auto !important;
+    flex: 0 0 48px !important;
+    inline-size: 48px !important;
+    block-size: 48px !important;
+    width: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    align-self: center !important;
+    box-sizing: border-box !important;
+  }
+
+  .mobile-wordmark {
+    position: relative;
+    flex: 0 0 auto;
+  }
+
+  /* Keep the physical transformed footprint below 12px as well, not only the
+     CSS box. Rotation can enlarge getBoundingClientRect(), so the base glyph is
+     deliberately 8px on phones. */
+  .mobile-wordmark .sever-season-mark {
+    position: absolute;
+    left: calc(100% + 7px);
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    margin: 0;
+    transform-origin: 50% 50%;
   }
 
   .sever-sync-indicator {
     display: inline-flex;
     min-width: 0;
     min-height: 36px;
+    flex: 0 1 auto;
     align-items: center;
     gap: 7px;
-    max-width: min(154px, 42vw);
+    max-width: min(148px, 39vw);
+    overflow: hidden;
     padding: 0 9px;
     border: 1px solid var(--border-subtle, var(--line));
     border-radius: 999px;
@@ -73,6 +185,7 @@
     height: 28px;
     min-width: 28px;
     min-height: 28px;
+    flex: 0 0 28px;
     place-items: center;
     margin: 0 -4px 0 0;
     padding: 0;
@@ -93,16 +206,12 @@
     transform: scale(.92);
   }
 
-  /* The fast Settings rail is navigation, not decoration. Keep every target at
-     a comfortable phone size while preserving its compact visual weight. */
   .settings-mobile-index button {
     min-height: 44px !important;
   }
 }
 
 @media (max-width: 700px) {
-  /* Progress used to spend most of the first viewport on four mostly empty
-     cards. The same information now scans as a compact 2×2 dashboard. */
   #progressView .stats {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -139,9 +248,6 @@
     border-radius: 18px !important;
   }
 
-  /* The editor is a fixed-height scrolling flex column. Let the checklist keep
-     its real content height so its rows cannot overflow a flex-shrunk section
-     into the following security or Save controls. The form itself scrolls. */
   #noteDialog .notes-polish-checklist-editor:not(.hidden) {
     flex: 0 0 auto !important;
     padding-bottom: 22px !important;
@@ -155,12 +261,18 @@
 
 @media (max-width: 350px) {
   .sever-sync-indicator {
-    max-width: 122px;
+    max-width: min(112px, 35vw);
     padding-inline: 8px;
   }
 
   .sever-sync-indicator[data-state="busy"] .sever-sync-copy {
-    max-width: 86px;
+    max-width: 76px;
+  }
+
+  .mobile-wordmark .sever-season-mark {
+    left: calc(100% + 5px);
+    width: 8px;
+    height: 8px;
   }
 }
 
@@ -168,5 +280,16 @@
   .sever-sync-indicator,
   .sever-sync-retry {
     transition: none !important;
+  }
+
+  .sever-season-mark {
+    animation: none !important;
+    opacity: .2;
+    transform: none !important;
+    will-change: auto;
+  }
+
+  .mobile-wordmark .sever-season-mark {
+    transform: translateY(-50%) !important;
   }
 }

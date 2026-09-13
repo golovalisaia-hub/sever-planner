@@ -37,6 +37,33 @@ async function setTheme(page, theme) {
   await page.waitForTimeout(50);
 }
 
+async function taskCheckVisual(check) {
+  return check.evaluate(el => {
+    const pseudo = getComputedStyle(el, '::after');
+    return {
+      content: pseudo.content,
+      right: parseFloat(pseudo.borderRightWidth),
+      bottom: parseFloat(pseudo.borderBottomWidth),
+      width: parseFloat(pseudo.width),
+      height: parseFloat(pseudo.height),
+      maskImage: pseudo.maskImage,
+      webkitMaskImage: pseudo.webkitMaskImage,
+      overflow: Math.max(0, document.documentElement.scrollWidth - innerWidth)
+    };
+  });
+}
+
+function expectIntactTaskCheck(visual) {
+  expect(visual.content).not.toBe('none');
+  expect(visual.right).toBeGreaterThan(0);
+  expect(visual.bottom).toBeGreaterThan(0);
+  expect(visual.width).toBeGreaterThanOrEqual(7);
+  expect(visual.height).toBeGreaterThanOrEqual(12);
+  expect(visual.maskImage).toBe('none');
+  if (visual.webkitMaskImage) expect(visual.webkitMaskImage).toBe('none');
+  expect(visual.overflow).toBeLessThanOrEqual(1);
+}
+
 function closeEnough(a, b, tolerance = 1.5) {
   return Math.abs(a - b) <= tolerance;
 }
@@ -55,20 +82,7 @@ test('task completion shows a real checkmark and remains reversible in every the
     await check.click();
     await expect(task).toHaveClass(/\bdone\b/);
     await expect(check).toHaveAttribute('aria-pressed', 'true');
-
-    const completed = await check.evaluate(el => {
-      const pseudo = getComputedStyle(el, '::after');
-      return {
-        content: pseudo.content,
-        right: parseFloat(pseudo.borderRightWidth),
-        bottom: parseFloat(pseudo.borderBottomWidth),
-        overflow: Math.max(0, document.documentElement.scrollWidth - innerWidth)
-      };
-    });
-    expect(completed.content).not.toBe('none');
-    expect(completed.right).toBeGreaterThan(0);
-    expect(completed.bottom).toBeGreaterThan(0);
-    expect(completed.overflow).toBeLessThanOrEqual(1);
+    expectIntactTaskCheck(await taskCheckVisual(check));
 
     await page.waitForTimeout(500);
     await check.click();
@@ -76,6 +90,43 @@ test('task completion shows a real checkmark and remains reversible in every the
     await expect(check).toHaveAttribute('aria-pressed', 'false');
     await page.waitForTimeout(500);
   }
+});
+
+test('task checkmark survives a burst of rapid phone taps without collapsing into a dot', async ({ page }, info) => {
+  if (info.project.name === 'desktop') test.skip();
+  await page.evaluate(() => window.SeverApp.switchView('today'));
+  const task = page.locator('#todayTasks .task').first();
+  const check = task.locator('.check');
+  await expect(check).toBeVisible();
+
+  // The product intentionally guards duplicate taps for 450 ms. Reproduce the
+  // user's burst: the first tap completes, the following burst is ignored, and
+  // the accepted state must keep a full unmasked checkmark throughout.
+  await check.click();
+  await expect(task).toHaveClass(/\bdone\b/);
+  await expect(check).toHaveAttribute('aria-pressed', 'true');
+  expectIntactTaskCheck(await taskCheckVisual(check));
+
+  for (let index = 0; index < 8; index += 1) {
+    await check.click({ force: true });
+    await page.waitForTimeout(20);
+  }
+  await expect(task).toHaveClass(/\bdone\b/);
+  await expect(check).toHaveAttribute('aria-pressed', 'true');
+  expectIntactTaskCheck(await taskCheckVisual(check));
+
+  // Once the guard expires the next intentional tap is accepted normally, and
+  // another accepted tap can complete the task again without corrupting ✓.
+  await page.waitForTimeout(520);
+  await check.click();
+  await expect(task).not.toHaveClass(/\bdone\b/);
+  await expect(check).toHaveAttribute('aria-pressed', 'false');
+
+  await page.waitForTimeout(520);
+  await check.click();
+  await expect(task).toHaveClass(/\bdone\b/);
+  await expect(check).toHaveAttribute('aria-pressed', 'true');
+  expectIntactTaskCheck(await taskCheckVisual(check));
 });
 
 test('habit completion keeps edit button and seven-day geometry stable in every theme', async ({ page }) => {
