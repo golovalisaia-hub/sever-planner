@@ -36,17 +36,19 @@ test('Notes compact layer is mobile-only, touch-safe and progressively discloses
   assert.match(css, /notes-v94-empty-library \.notes-core-summary/);
 });
 
-test('Notes compact layer and v101 experience pack ship atomically offline', () => {
+test('Notes compact layer and v101 experience pack ship inside the v102 desktop polish release', () => {
   assert.match(polish, /sever2-notes-compact-v87\.css\?v=87/);
   assert.match(polish, /sever2-notes-compact-v87\.js\?v=87/);
   assert.match(source, /sever2-experience-v94\.css\?v=94/);
   assert.match(source, /sever2-experience-v94\.js\?v=94/);
-  assert.match(sw, /const CACHE = 'sever-v101-reliability-release-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v102-desktop-polish-release-v1'/);
   for (const asset of [
+    './sever2-efficiency.css?v=102',
     './sever2-notes-compact-v87.css?v=87', './sever2-notes-compact-v87.js?v=87',
     './sever2-experience-v94.css?v=101', './sever2-experience-v94.js?v=101'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   for (const pathValue of [
+    '/sever2-efficiency.css',
     '/sever2-notes-compact-v87.css','/sever2-notes-compact-v87.js',
     '/sever2-experience-v94.css','/sever2-experience-v94.js'
   ]) assert.ok(sw.includes(`'${pathValue}'`), `missing ${pathValue}`);
