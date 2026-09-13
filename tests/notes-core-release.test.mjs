@@ -33,10 +33,11 @@ test('presentation layers load deterministically through cloud recovery v80', as
   assert.ok(home >= 0 && core > home && organization > core && editor > organization && navigation > editor && polish > navigation && money > polish && usability > money && interactions > usability && recovery > interactions);
 });
 
-test('cloud recovery v80 ships atomically inside the complete v101 reliability PWA release', async () => {
+test('cloud recovery v80 ships atomically inside the complete v102 desktop polish PWA release', async () => {
   const source = await read('sw.js');
-  assert.match(source, /const CACHE = 'sever-v101-reliability-release-v1'/);
+  assert.match(source, /const CACHE = 'sever-v102-desktop-polish-release-v1'/);
   for (const asset of [
+    './sever2-efficiency.css?v=102',
     './sever2-home-core.css?v=85','./sever2-home-core.js?v=85',
     './sever2-notes-core.css?v=71','./sever2-notes-core.js?v=71',
     './sever2-notes-organization.css?v=72','./sever2-notes-organization.js?v=72',
@@ -52,6 +53,7 @@ test('cloud recovery v80 ships atomically inside the complete v101 reliability P
     './sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82','./mobile-ui.js?v=92','./js/theme-init.js?v=92'
   ]) assert.ok(source.includes(`'${asset}'`), `missing ${asset}`);
   for (const pathValue of [
+    'sever2-efficiency.css',
     'sever2-home-core.css','sever2-home-core.js',
     'sever2-notes-navigation.css','sever2-notes-navigation.js','sever2-notes-polish.css','sever2-notes-polish.js',
     'sever2-notes-compact-v87.css','sever2-notes-compact-v87.js','sever2-experience-v94.css','sever2-experience-v94.js','sever2-mobile-consistency.css',
