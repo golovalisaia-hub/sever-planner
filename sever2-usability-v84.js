@@ -103,14 +103,22 @@
   function queueScheduleCleanupAfterClose(dialogId, itemId) {
     const dialog = $(dialogId);
     if (!dialog || !itemId) return;
-    dialog.addEventListener('close', () => {
+    let finished = false;
+    let observer = null;
+    const cleanup = () => {
+      if (finished || dialog.open) return;
+      finished = true;
+      observer?.disconnect();
+      const item = itemById(itemId);
+      if (!item || !clearPendingSchedule(item)) return;
       void (async () => {
-        const item = itemById(itemId);
-        if (!item || !clearPendingSchedule(item)) return;
         await persistMoneyCleanup();
         if ($('#moneyView')?.classList.contains('active')) window.SeverMoney?.render?.();
       })();
-    }, { once: true });
+    };
+    observer = new MutationObserver(cleanup);
+    observer.observe(dialog, { attributes: true, attributeFilter: ['open'] });
+    dialog.addEventListener('close', cleanup, { once: true });
   }
 
   async function reconcileSchedules({ persist = true } = {}) {
