@@ -40,12 +40,15 @@ async function setTheme(page, theme) {
 async function taskCheckVisual(check) {
   return check.evaluate(el => {
     const pseudo = getComputedStyle(el, '::after');
+    const button = el.getBoundingClientRect();
     return {
       content: pseudo.content,
-      right: parseFloat(pseudo.borderRightWidth),
+      left: parseFloat(pseudo.borderLeftWidth),
       bottom: parseFloat(pseudo.borderBottomWidth),
       width: parseFloat(pseudo.width),
       height: parseFloat(pseudo.height),
+      buttonWidth: button.width,
+      buttonHeight: button.height,
       maskImage: pseudo.maskImage,
       webkitMaskImage: pseudo.webkitMaskImage,
       overflow: Math.max(0, document.documentElement.scrollWidth - innerWidth)
@@ -55,10 +58,12 @@ async function taskCheckVisual(check) {
 
 function expectIntactTaskCheck(visual) {
   expect(visual.content).not.toBe('none');
-  expect(visual.right).toBeGreaterThan(0);
+  expect(visual.left).toBeGreaterThan(0);
   expect(visual.bottom).toBeGreaterThan(0);
-  expect(visual.width).toBeGreaterThanOrEqual(7);
-  expect(visual.height).toBeGreaterThanOrEqual(12);
+  expect(visual.width).toBeGreaterThanOrEqual(10);
+  expect(visual.height).toBeGreaterThanOrEqual(6);
+  expect(visual.buttonWidth).toBeGreaterThanOrEqual(43);
+  expect(visual.buttonHeight).toBeGreaterThanOrEqual(43);
   expect(visual.maskImage).toBe('none');
   if (visual.webkitMaskImage) expect(visual.webkitMaskImage).toBe('none');
   expect(visual.overflow).toBeLessThanOrEqual(1);
@@ -84,49 +89,30 @@ test('task completion shows a real checkmark and remains reversible in every the
     await expect(check).toHaveAttribute('aria-pressed', 'true');
     expectIntactTaskCheck(await taskCheckVisual(check));
 
-    await page.waitForTimeout(500);
     await check.click();
     await expect(task).not.toHaveClass(/\bdone\b/);
     await expect(check).toHaveAttribute('aria-pressed', 'false');
-    await page.waitForTimeout(500);
   }
 });
 
-test('task checkmark survives a burst of rapid phone taps without collapsing into a dot', async ({ page }, info) => {
+test('every rapid phone tap toggles task completion instead of being debounced', async ({ page }, info) => {
   if (info.project.name === 'desktop') test.skip();
   await page.evaluate(() => window.SeverApp.switchView('today'));
   const task = page.locator('#todayTasks .task').first();
   const check = task.locator('.check');
   await expect(check).toBeVisible();
 
-  // The product intentionally guards duplicate taps for 450 ms. Reproduce the
-  // user's burst: the first tap completes, the following burst is ignored, and
-  // the accepted state must keep a full unmasked checkmark throughout.
-  await check.click();
-  await expect(task).toHaveClass(/\bdone\b/);
-  await expect(check).toHaveAttribute('aria-pressed', 'true');
-  expectIntactTaskCheck(await taskCheckVisual(check));
-
-  for (let index = 0; index < 8; index += 1) {
+  for (let index = 0; index < 10; index += 1) {
+    const expectedDone = index % 2 === 0;
     await check.click({ force: true });
+    await expect(task).toHaveClass(expectedDone ? /\bdone\b/ : /^(?!.*\bdone\b)/);
+    await expect(check).toHaveAttribute('aria-pressed', String(expectedDone));
+    if (expectedDone) expectIntactTaskCheck(await taskCheckVisual(check));
     await page.waitForTimeout(20);
   }
-  await expect(task).toHaveClass(/\bdone\b/);
-  await expect(check).toHaveAttribute('aria-pressed', 'true');
-  expectIntactTaskCheck(await taskCheckVisual(check));
 
-  // Once the guard expires the next intentional tap is accepted normally, and
-  // another accepted tap can complete the task again without corrupting ✓.
-  await page.waitForTimeout(520);
-  await check.click();
   await expect(task).not.toHaveClass(/\bdone\b/);
   await expect(check).toHaveAttribute('aria-pressed', 'false');
-
-  await page.waitForTimeout(520);
-  await check.click();
-  await expect(task).toHaveClass(/\bdone\b/);
-  await expect(check).toHaveAttribute('aria-pressed', 'true');
-  expectIntactTaskCheck(await taskCheckVisual(check));
 });
 
 test('habit completion keeps edit button and seven-day geometry stable in every theme', async ({ page }) => {
