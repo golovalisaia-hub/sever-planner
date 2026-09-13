@@ -18,6 +18,9 @@ async function seed(page) {
   await page.goto('/');
   await page.waitForFunction(() => window.SeverApp && window.SeverNotes && window.SeverNotesOrganization);
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesOrganization)).toBe('ready');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesOrganizationRepair)).toBe('v95');
+  await expect(page.locator('#notesOrganizationTags')).toBeAttached();
+  await expect(page.locator('#notesPinnedSection')).toBeAttached();
   await page.evaluate(() => window.SeverApp.switchView('notes'));
   await expect(page.locator('#notesView')).toBeVisible();
 }
