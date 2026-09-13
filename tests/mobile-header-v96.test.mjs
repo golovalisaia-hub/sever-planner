@@ -39,11 +39,12 @@ test('SEVER keeps all four seasonal signatures but temporarily pins summer', () 
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.sever-season-mark[\s\S]*animation:\s*none !important/);
 });
 
-test('installed PWA keeps the guarded atomic cache while v99 refreshes summer experience JS', () => {
-  assert.match(sw, /v99 temporarily pins the SEVER signature to summer/);
+test('installed PWA keeps v99 summer experience while v100 refreshes Sever AI', () => {
+  assert.match(sw, /v100 refreshes Sever AI/);
   assert.match(sw, /const CACHE = 'sever-v94-experience-release-v1'/);
   assert.ok(sw.includes("'./sever2-experience-v94.css?v=94'"));
   assert.ok(sw.includes("'./sever2-experience-v94.js?v=99'"));
   assert.ok(sw.includes("'./sever2-interaction-polish.css?v=97'"));
   assert.ok(sw.includes("'./sever2-reminder-bridge-v95.js?v=98'"));
+  assert.ok(sw.includes("'./js/sever-ai.js?v=100'"));
 });
