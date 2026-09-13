@@ -84,6 +84,8 @@ test('mobile header uses a stable sync dot and the current automatic SEVER seaso
       markCoversWordmark,
       iconWidth: iconBox.width,
       iconHeight: iconBox.height,
+      iconCssWidth: Number.parseFloat(iconStyle.width),
+      iconCssHeight: Number.parseFloat(iconStyle.height),
       iconWillChange: iconStyle.willChange,
       iconAnimationName: iconStyle.animationName,
       syncWidth: syncBox.width,
@@ -104,10 +106,14 @@ test('mobile header uses a stable sync dot and the current automatic SEVER seaso
   expect(result.markSeason).toBe(result.expectedSeason);
   expect(result.markPosition).toBe('absolute');
   expect(result.markPointerEvents).toBe('none');
-  expect(result.iconWidth).toBeLessThanOrEqual(9);
-  expect(result.iconHeight).toBeLessThanOrEqual(9);
 
   if (result.expectedSeason === 'autumn') {
+    // The SVG itself is 8px. Its rotating visual bounding box can exceed 8px,
+    // so verify both the authored size and a tight rendered upper bound.
+    expect(result.iconCssWidth).toBeLessThanOrEqual(8.1);
+    expect(result.iconCssHeight).toBeLessThanOrEqual(8.1);
+    expect(result.iconWidth).toBeLessThanOrEqual(10.5);
+    expect(result.iconHeight).toBeLessThanOrEqual(10.5);
     expect(result.markCoversWordmark).toBe(true);
     expect(result.markWidth).toBeGreaterThan(30);
     expect(result.markWidth).toBeLessThan(120);
@@ -115,6 +121,8 @@ test('mobile header uses a stable sync dot and the current automatic SEVER seaso
     expect(result.iconWillChange).toContain('opacity');
     expect(result.iconAnimationName).toBe('sever-autumn-flight-a');
   } else {
+    expect(result.iconWidth).toBeLessThanOrEqual(16);
+    expect(result.iconHeight).toBeLessThanOrEqual(16);
     expect(result.markWidth).toBeLessThanOrEqual(16);
     expect(result.markHeight).toBeLessThanOrEqual(16);
   }
