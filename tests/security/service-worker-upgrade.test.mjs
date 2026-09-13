@@ -8,7 +8,7 @@ const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 const RELEASE_CACHE = 'sever-v102-desktop-polish-release-v1';
 
-test('current service worker installs the guarded v104 release assets atomically and removes stale caches', async () => {
+test('current service worker installs the guarded v105 release assets atomically and removes stale caches', async () => {
   const handlers = new Map();
   const deleted = [];
   let cachedAssets = [];
@@ -44,8 +44,9 @@ test('current service worker installs the guarded v104 release assets atomically
     './sever2-experience-v94.css?v=101','./sever2-experience-v94.js?v=101',
     './sever2-money.css?v=83','./sever2-money.js?v=83','./sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84',
     './sever2-interaction-polish.css?v=103','./sever2-interaction-polish.js?v=101','./sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82',
-    './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./js/theme-init.js?v=92','./js/sever-ai.js?v=100'
+    './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./app.js?v=105','./js/theme-init.js?v=92','./js/sever-ai.js?v=100'
   ]) assert.ok(cachedAssets.includes(asset), `missing ${asset}`);
+  assert.ok(!cachedAssets.includes('./app.js?v=51'));
   assert.ok(!cachedAssets.includes('./sever2-efficiency.css?v=67'));
   assert.ok(!cachedAssets.includes('./sever2-experience-v94.css?v=94'));
   assert.ok(!cachedAssets.includes('./sever2-experience-v94.js?v=99'));
@@ -66,7 +67,7 @@ test('current service worker installs the guarded v104 release assets atomically
   assert.equal(skipped, true);
 });
 
-test('installed current release serves v104 Notes responsiveness and core planner assets from one release cache', async () => {
+test('installed current release serves v105 planner core and v104 Notes responsiveness from one release cache', async () => {
   const handlers = new Map();
   const requests = [];
   let network = 0;
@@ -78,7 +79,7 @@ test('installed current release serves v104 Notes responsiveness and core planne
   const caches = {
     open: async name => {
       assert.equal(name, RELEASE_CACHE);
-      return { match: async key => { requests.push(key); return { release: 104, key }; } };
+      return { match: async key => { requests.push(key); return { release: 105, key }; } };
     }
   };
   vm.runInNewContext(source, { self, caches, URL, Response, fetch: async () => { network++; throw Error('network must not update a release'); } });
@@ -113,7 +114,7 @@ test('installed current release serves v104 Notes responsiveness and core planne
     ['sever2-cloud-recovery.js?v=old','cors','./sever2-cloud-recovery.js?v=80'],
     ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=92'],
     ['js/sever-ai.js?v=old','cors','./js/sever-ai.js?v=100'],
-    ['app.js?v=new','cors','./app.js?v=51']
+    ['app.js?v=new','cors','./app.js?v=105']
   ];
   for (const [pathValue, mode, expected] of cases) {
     let response;
