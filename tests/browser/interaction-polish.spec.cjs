@@ -56,14 +56,21 @@ async function taskCheckVisual(check) {
   });
 }
 
-function expectIntactTaskCheck(visual, expectedButtonSize) {
+async function taskCheckBox(check) {
+  return check.evaluate(el => {
+    const box = el.getBoundingClientRect();
+    return { width: box.width, height: box.height };
+  });
+}
+
+function expectIntactTaskCheck(visual, baseline) {
   expect(visual.content).not.toBe('none');
   expect(visual.right).toBeGreaterThan(0);
   expect(visual.bottom).toBeGreaterThan(0);
   expect(visual.width).toBeGreaterThanOrEqual(7);
   expect(visual.height).toBeGreaterThanOrEqual(12);
-  expect(Math.abs(visual.buttonWidth - expectedButtonSize)).toBeLessThanOrEqual(0.5);
-  expect(Math.abs(visual.buttonHeight - expectedButtonSize)).toBeLessThanOrEqual(0.5);
+  expect(Math.abs(visual.buttonWidth - baseline.width)).toBeLessThanOrEqual(0.5);
+  expect(Math.abs(visual.buttonHeight - baseline.height)).toBeLessThanOrEqual(0.5);
   expect(visual.maskImage).toBe('none');
   if (visual.webkitMaskImage) expect(visual.webkitMaskImage).toBe('none');
   expect(visual.overflow).toBeLessThanOrEqual(1);
@@ -75,8 +82,7 @@ function closeEnough(a, b, tolerance = 1.5) {
 
 test.beforeEach(async ({ page }) => { await boot(page); });
 
-test('task completion preserves existing checkbox geometry and remains reversible in every theme', async ({ page }, info) => {
-  const expectedButtonSize = info.project.name === 'desktop' ? 38 : 42;
+test('task completion preserves existing checkbox geometry and remains reversible in every theme', async ({ page }) => {
   await page.evaluate(() => window.SeverApp.switchView('today'));
   const task = page.locator('#todayTasks .task').first();
   const check = task.locator('.check');
@@ -85,14 +91,18 @@ test('task completion preserves existing checkbox geometry and remains reversibl
   for (const theme of ['light', 'motion', 'black']) {
     await setTheme(page, theme);
     await expect(check).toHaveAttribute('aria-pressed', 'false');
+    const baseline = await taskCheckBox(check);
     await check.click();
     await expect(task).toHaveClass(/\bdone\b/);
     await expect(check).toHaveAttribute('aria-pressed', 'true');
-    expectIntactTaskCheck(await taskCheckVisual(check), expectedButtonSize);
+    expectIntactTaskCheck(await taskCheckVisual(check), baseline);
 
     await check.click();
     await expect(task).not.toHaveClass(/\bdone\b/);
     await expect(check).toHaveAttribute('aria-pressed', 'false');
+    const restored = await taskCheckBox(check);
+    expect(closeEnough(restored.width, baseline.width, 0.5)).toBe(true);
+    expect(closeEnough(restored.height, baseline.height, 0.5)).toBe(true);
   }
 });
 
@@ -102,13 +112,19 @@ test('every rapid phone tap toggles task completion instead of being debounced',
   const task = page.locator('#todayTasks .task').first();
   const check = task.locator('.check');
   await expect(check).toBeVisible();
+  const baseline = await taskCheckBox(check);
 
   for (let index = 0; index < 10; index += 1) {
     const expectedDone = index % 2 === 0;
     await check.click({ force: true });
     await expect(task).toHaveClass(expectedDone ? /\bdone\b/ : /^(?!.*\bdone\b)/);
     await expect(check).toHaveAttribute('aria-pressed', String(expectedDone));
-    if (expectedDone) expectIntactTaskCheck(await taskCheckVisual(check), 42);
+    if (expectedDone) expectIntactTaskCheck(await taskCheckVisual(check), baseline);
+    else {
+      const restored = await taskCheckBox(check);
+      expect(closeEnough(restored.width, baseline.width, 0.5)).toBe(true);
+      expect(closeEnough(restored.height, baseline.height, 0.5)).toBe(true);
+    }
   }
 
   await expect(task).not.toHaveClass(/\bdone\b/);
