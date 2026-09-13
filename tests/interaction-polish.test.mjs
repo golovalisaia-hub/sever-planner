@@ -15,6 +15,9 @@ test('interaction polish v78 is syntax-valid and makes completion feedback expli
   const checked = spawnSync(process.execPath, ['--check', path.join(root, 'sever2-interaction-polish.js')]);
   assert.equal(checked.status, 0, checked.stderr.toString());
   assert.match(css, /\.task\.done \.check::after/);
+  assert.match(css, /-webkit-mask:\s*none\s*!important/);
+  assert.match(css, /mask:\s*none\s*!important/);
+  assert.match(css, /background:\s*transparent\s*!important/);
   assert.match(css, /\.task\.done \.task-name/);
   assert.match(source, /check\.setAttribute\('aria-pressed', String\(done\)\)/);
   assert.match(source, /Задача выполнена/);

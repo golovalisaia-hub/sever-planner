@@ -35,9 +35,14 @@
 .task.done .check::after {
   content: "";
   display: block;
+  box-sizing: border-box;
+  flex: 0 0 auto;
   width: 7px;
   height: 12px;
   margin-top: -2px;
+  background: transparent !important;
+  -webkit-mask: none !important;
+  mask: none !important;
   border-right: 2px solid #fff;
   border-bottom: 2px solid #fff;
   transform: rotate(45deg);

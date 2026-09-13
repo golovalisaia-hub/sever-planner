@@ -22,9 +22,15 @@ async function boot(page) {
     body: 'window.SEVER_SUPABASE_CONFIG={};window.SEVER_CLOUD_ENABLED=false;'
   }));
   await page.addInitScript(state => {
-    localStorage.clear();
-    localStorage.setItem('sever-anonymous-state-v1', JSON.stringify(state));
-    localStorage.setItem('sever-theme', 'light');
+    // Seed only the first document in this browser context. page.addInitScript
+    // runs again on reload; clearing localStorage there would erase the Money
+    // record the test is specifically trying to prove survives a reload.
+    if (sessionStorage.getItem('__severStartupSeeded') !== 'true') {
+      localStorage.clear();
+      localStorage.setItem('sever-anonymous-state-v1', JSON.stringify(state));
+      localStorage.setItem('sever-theme', 'light');
+      sessionStorage.setItem('__severStartupSeeded', 'true');
+    }
     window.__severStartupTimeline = { initScript: performance.now(), ready: null, cloudReady: null };
     window.addEventListener('sever:ready', () => {
       let savedAt = 0;
