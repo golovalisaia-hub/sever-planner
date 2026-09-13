@@ -10,7 +10,6 @@
   let habitObserver = null;
   let calendarQueued = false;
   let checksQueued = false;
-  let stalePushChecked = false;
 
   const state = () => window.SeverApp?.getState?.() || { tasks: [] };
   const amount = value => Math.max(0, Number(value) || 0);
@@ -112,24 +111,6 @@
     document.head.appendChild(script);
   }
 
-  async function retireStalePushSubscription() {
-    if (stalePushChecked) return;
-    if (!window.SeverSupabase?.getClient || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
-    stalePushChecked = true;
-    try {
-      const client = await window.SeverSupabase.getClient();
-      const sessionResult = await client.auth.getSession();
-      if (sessionResult.data?.session) return;
-      const registration = await navigator.serviceWorker.getRegistration();
-      const subscription = await registration?.pushManager?.getSubscription();
-      await subscription?.unsubscribe();
-      const current = state();
-      if (current.pushReminders) current.pushReminders.enabled = false;
-    } catch {
-      stalePushChecked = false;
-    }
-  }
-
   function taskSummaryFor(date) {
     const tasks = (state().tasks || []).filter(task => task?.date === date);
     const done = tasks.filter(task => task.completed).length;
@@ -226,7 +207,6 @@
     installObservers();
     scheduleCalendar();
     scheduleChecks();
-    void retireStalePushSubscription();
     document.documentElement.dataset.severInteractionPolish = 'ready';
     return true;
   }
@@ -253,7 +233,5 @@
     scheduleBoot();
     scheduleCalendar();
     scheduleChecks();
-    void retireStalePushSubscription();
   });
-  window.addEventListener('sever:cloud-ready', () => void retireStalePushSubscription());
 })();
