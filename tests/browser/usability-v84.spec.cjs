@@ -67,6 +67,19 @@ test('editing a Money plan keeps completed payment history and removes stale pen
   await page.locator('#moneyItemBudget').fill('7500');
   await page.locator('#moneyItemForm button.primary').click();
   await expect(page.locator('#moneyItemDialog')).toBeHidden();
+  const lifecycleDebug = await page.evaluate(() => {
+    const state = window.SeverApp.getState();
+    const key = window.SeverApp.getStorageScope();
+    let stored = null;
+    try { stored = JSON.parse(localStorage.getItem(key) || 'null'); } catch {}
+    return {
+      memoryItems: state.profile?.money?.items || null,
+      memoryTasks: (state.tasks || []).map(task => ({ id: task.id, title: task.title, completed: task.completed })),
+      storedItems: stored?.profile?.money?.items || null,
+      storedTasks: (stored?.tasks || []).map(task => ({ id: task.id, title: task.title, completed: task.completed }))
+    };
+  });
+  console.log('MONEY_EDIT_DEBUG', JSON.stringify(lifecycleDebug));
   await expect.poll(() => page.evaluate(() => {
     const item = window.SeverApp.getState().profile.money.items.find(row => row.title === 'Ноутбук');
     return item ? { budget: item.monthlyBudget, refs: item.calendarTaskIds.length } : null;
