@@ -4,6 +4,8 @@
   const $ = selector => document.querySelector(selector);
   let installed = false;
   let retryBusy = false;
+  let aiLauncherHome = null;
+  let aiMedia = null;
 
   const seasonIcons = {
     winter: `
@@ -54,6 +56,32 @@
         mark.innerHTML = seasonIcons[season];
       }
     });
+  }
+
+  /* On phones the AI launcher belongs to the real header flex row instead of
+     hovering above it. This makes overlap with sync/retry controls impossible
+     by construction. The comment remembers the launcher's desktop home so a
+     responsive resize restores the original DOM without rebuilding the AI. */
+  function syncAiLauncherPlacement() {
+    const ai = $('#severAiOpen');
+    const actions = $('.topbar .top-actions');
+    if (!ai || !actions) return false;
+
+    if (!aiLauncherHome) {
+      aiLauncherHome = document.createComment('sever-ai-launcher-home');
+      ai.parentNode?.insertBefore(aiLauncherHome, ai);
+    }
+
+    const mobile = (aiMedia || window.matchMedia('(max-width: 900px)')).matches;
+    if (mobile) {
+      if (ai.parentElement !== actions) actions.append(ai);
+      ai.dataset.severHeaderDock = 'true';
+    } else {
+      const home = aiLauncherHome?.parentNode;
+      if (home && ai.parentNode !== home) home.insertBefore(ai, aiLauncherHome.nextSibling);
+      delete ai.dataset.severHeaderDock;
+    }
+    return true;
   }
 
   function ensureIndicator() {
@@ -142,6 +170,7 @@
   function render() {
     ensureSeasonalSignature();
     const root = ensureIndicator();
+    syncAiLauncherPlacement();
     if (!root) return;
     const model = viewModel();
     root.classList.toggle('hidden', Boolean(model.hidden));
@@ -166,8 +195,14 @@
       return;
     }
     installed = true;
+    aiMedia = window.matchMedia('(max-width: 900px)');
     ensureSeasonalSignature();
     ensureIndicator();
+    syncAiLauncherPlacement();
+    aiMedia.addEventListener?.('change', () => {
+      syncAiLauncherPlacement();
+      render();
+    });
     window.addEventListener('sever:cloud-status', render);
     window.addEventListener('sever:cloud-ready', render);
     window.addEventListener('online', render);
