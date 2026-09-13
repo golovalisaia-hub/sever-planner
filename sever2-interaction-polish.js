@@ -13,6 +13,68 @@
   let stalePushChecked = false;
 
   const state = () => window.SeverApp?.getState?.() || { tasks: [] };
+  const amount = value => Math.max(0, Number(value) || 0);
+  const text = value => String(value || '');
+
+  function moneyItemById(id) {
+    const items = state()?.profile?.money?.items;
+    return Array.isArray(items) ? items.find(item => String(item.id) === String(id)) || null : null;
+  }
+
+  function clearPendingMoneySchedule(item) {
+    const current = state();
+    if (!current || !item || !Array.isArray(item.calendarTaskIds) || !item.calendarTaskIds.length) return false;
+    const ids = new Set(item.calendarTaskIds.map(String));
+    const before = Array.isArray(current.tasks) ? current.tasks.length : 0;
+    current.tasks = (current.tasks || []).filter(task => !ids.has(String(task.id)) || task.completed);
+    const changed = current.tasks.length !== before || item.calendarTaskIds.length > 0;
+    item.calendarTaskIds = [];
+    if (changed) item.updatedAt = Date.now();
+    return changed;
+  }
+
+  function moneyPlanningFieldsChanged(item) {
+    if (!item) return false;
+    const type = $('#moneyItemType')?.value === 'goal' ? 'goal' : 'debt';
+    const targetAmount = amount($('#moneyItemTarget')?.value);
+    const currentAmount = Math.min(targetAmount || Infinity, amount($('#moneyItemCurrent')?.value));
+    const title = text($('#moneyItemName')?.value).trim() || (type === 'debt' ? 'Долг' : 'Накопление');
+    const deadline = text($('#moneyItemDeadline')?.value);
+    const monthlyBudget = amount($('#moneyItemBudget')?.value);
+    return item.type !== type
+      || item.title !== title
+      || amount(item.targetAmount) !== targetAmount
+      || amount(item.currentAmount) !== currentAmount
+      || text(item.deadline) !== deadline
+      || amount(item.monthlyBudget) !== monthlyBudget;
+  }
+
+  /* v96.3: Money owns the actual save, but v84 historically retired generated
+     calendar tasks only after the dialog closed. That allowed a second async
+     persistence pass to race the just-saved Money object on fast phones. Retire
+     pending generated tasks synchronously in the capture phase instead; the
+     existing Money submit handler then persists the plan + task cleanup once. */
+  function guardMoneyLifecycleSubmit(event) {
+    if (event.target?.id === 'moneyItemForm') {
+      const item = moneyItemById($('#moneyItemId')?.value);
+      if (item && moneyPlanningFieldsChanged(item)) clearPendingMoneySchedule(item);
+      return;
+    }
+    if (event.target?.id === 'moneyProgressForm') {
+      const item = moneyItemById($('#moneyProgressId')?.value);
+      const delta = amount($('#moneyProgressAmount')?.value);
+      if (item && delta > 0 && amount(item.currentAmount) + delta >= amount(item.targetAmount)) {
+        clearPendingMoneySchedule(item);
+      }
+    }
+  }
+
+  function guardMoneyLifecycleDelete(event) {
+    const button = event.target instanceof Element ? event.target.closest('#moneyItemDelete') : null;
+    if (button?.dataset.confirm !== 'true') return;
+    const item = moneyItemById($('#moneyItemId')?.value);
+    if (item) clearPendingMoneySchedule(item);
+  }
 
   function installReminderLayer() {
     if (!document.querySelector('link[data-sever2-reminders]')) {
@@ -179,6 +241,9 @@
     bootTimer = setTimeout(scheduleBoot, 50);
   }
 
+  document.addEventListener('submit', guardMoneyLifecycleSubmit, true);
+  document.addEventListener('click', guardMoneyLifecycleDelete, true);
+  document.documentElement.dataset.severMoneyLifecycle = 'v96.3';
   installReminderLayer();
   installNotesOrganizationRepair();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleBoot, { once: true });
