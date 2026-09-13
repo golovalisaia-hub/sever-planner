@@ -2,7 +2,7 @@ import { SEVER_MANIFEST } from './manifest.ts';
 import { object,text,day,clock,number,uuid,range,checked,fail,publicRecord } from './validation.ts';
 import { calculatePlan } from './plans.ts';
 import { versionedPatch } from './sync-versions.ts';
-export const needsConfirmation=(name:string)=>['task.delete','note.delete','plan.create','memory.remember'].includes(name);
+export const needsConfirmation=(name:string)=>['task.delete','note.delete','habit.delete','plan.create','memory.remember'].includes(name);
 export async function owned(db:any,table:string,id:string,userId:string) {
   const row=checked(await db.from(table).select('*').eq('id',uuid(id)).eq('user_id',userId).is('deleted_at',null).maybeSingle());
   if(!row)fail('NOT_FOUND','Запись не найдена.',404);
@@ -22,8 +22,10 @@ export async function executeTool(db:any,userId:string,name:string,raw:any,optio
   if(!SEVER_MANIFEST.userTools.includes(name as any))fail('TOOL_DENIED','Инструмент недоступен.',403);
   if(needsConfirmation(name)&&!options.confirmed) {
     if(name==='plan.create')return {preview:calculatePlan(a,options.today)};
-    if(name==='task.delete'||name==='note.delete') {
-      const row=await owned(db,name.startsWith('task')?'tasks':'notes',a.taskId||a.noteId,userId);
+    if(name==='task.delete'||name==='note.delete'||name==='habit.delete') {
+      const table=name.startsWith('task')?'tasks':name.startsWith('note')?'notes':'habits';
+      const recordId=a.taskId||a.noteId||a.habitId;
+      const row=await owned(db,table,recordId,userId);
       if(row.protected)fail('PROTECTED_NOTE','Защищённые заметки доступны только в редакторе.',403);
       return {preview:{title:row.title}};
     }
@@ -88,6 +90,47 @@ export async function executeTool(db:any,userId:string,name:string,raw:any,optio
     let query=db.from('notes').update(versionedPatch('notes',note,patch)).eq('id',note.id).eq('user_id',userId).eq('protected',false);
     if(note.sync_versions?.v===1)query=query.eq('sync_versions',JSON.stringify(note.sync_versions));
     return publicRecord(checked(await query.select().single()));
+  }
+  if(name==='habit.list') {
+    const date=day(a.date||options.today);
+    if(date>options.today)fail('VALIDATION','Нельзя отмечать привычки на будущую дату.');
+    const habits=checked(await db.from('habits').select('id,title,created_at,updated_at').eq('user_id',userId).is('deleted_at',null).order('created_at').limit(201));
+    if(habits.length>200)fail('RANGE_TOO_LARGE','Слишком много привычек.',422);
+    const entries=checked(await db.from('habit_entries').select('habit_id,entry_date,completed').eq('user_id',userId).eq('entry_date',date).is('deleted_at',null).limit(501));
+    const done=new Set(entries.filter((entry:any)=>entry.completed).map((entry:any)=>entry.habit_id));
+    return {date,habits:habits.map((habit:any)=>({...publicRecord(habit),completed:done.has(habit.id)}))};
+  }
+  if(name==='habit.create') {
+    const row={id:options.actionId||crypto.randomUUID(),user_id:userId,title:text(a.title,80),updated_at:now};
+    return publicRecord(checked(await db.from('habits').insert(row).select().single()));
+  }
+  if(name==='habit.update'||name==='habit.delete') {
+    const habit=await owned(db,'habits',a.habitId,userId);
+    const patch:any={updated_at:now};
+    if(name==='habit.update')patch.title=text(a.title,80);
+    if(name==='habit.delete')patch.deleted_at=now;
+    let query=db.from('habits').update(versionedPatch('habits',habit,patch)).eq('id',habit.id).eq('user_id',userId).is('deleted_at',null);
+    if(habit.sync_versions?.v===1)query=query.eq('sync_versions',JSON.stringify(habit.sync_versions));
+    return publicRecord(checked(await query.select().single()));
+  }
+  if(name==='habit.check') {
+    const habitId=uuid(a.habitId),date=day(a.date||options.today);
+    if(typeof a.completed!=='boolean')fail('VALIDATION','Нужно указать состояние привычки.');
+    if(date>options.today)fail('VALIDATION','Нельзя отмечать привычки на будущую дату.');
+    await owned(db,'habits',habitId,userId);
+    const entry=checked(await db.from('habit_entries').select('*').eq('user_id',userId).eq('habit_id',habitId).eq('entry_date',date).maybeSingle());
+    if(!entry&&!a.completed)return {habitId,date,completed:false};
+    if(!entry) {
+      const row={id:crypto.randomUUID(),user_id:userId,habit_id:habitId,entry_date:date,completed:true,updated_at:now};
+      const created=checked(await db.from('habit_entries').insert(row).select().single());
+      return {habitId,date,completed:Boolean(created.completed)};
+    }
+    if(entry.deleted_at&&!a.completed)return {habitId,date,completed:false};
+    const patch:any=a.completed?{completed:true,deleted_at:null,updated_at:now}:{completed:false,deleted_at:now,updated_at:now};
+    let query=db.from('habit_entries').update(versionedPatch('habit_entries',entry,patch)).eq('id',entry.id).eq('user_id',userId).eq('habit_id',habitId).eq('entry_date',date);
+    if(entry.sync_versions?.v===1)query=query.eq('sync_versions',JSON.stringify(entry.sync_versions));
+    const saved=checked(await query.select().single());
+    return {habitId,date,completed:!saved.deleted_at&&Boolean(saved.completed)};
   }
   if(name==='plan.get')return publicRecord(await owned(db,'ai_plans',a.planId,userId));
   if(name==='plan.create') {

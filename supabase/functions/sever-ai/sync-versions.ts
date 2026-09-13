@@ -7,8 +7,15 @@ export function versionedPatch(table:string,row:any,patch:any,now:number=Date.no
   const stamp=[clock,crypto.randomUUID()];
   const groups:any=table==='tasks'
     ? {title:['title'],date:['scheduled_for'],time:['scheduled_time'],duration:['duration_minutes'],category:['category'],priority:['priority'],challenge:['challenge'],completion:['completed','completed_at']}
-    : {folder:['folder_id'],content:['title','body','kind','items','done','protected','secure']};
+    : table==='habits'
+      ? {title:['title']}
+      : table==='habit_entries'
+        ? {completion:['completed']}
+        : {folder:['folder_id'],content:['title','body','kind','items','done','protected','secure']};
   for(const [key,fields] of Object.entries(groups))if((fields as string[]).some(k=>k in patch&&JSON.stringify(row[k])!==JSON.stringify(patch[k])))meta.fields[key]=stamp;
-  if(patch.deleted_at)meta.life={...meta.life,deleted:true,stamp};
+  if(Object.hasOwn(patch,'deleted_at')) {
+    if(patch.deleted_at)meta.life={...meta.life,deleted:true,stamp};
+    else if(row.deleted_at)meta.life={generation:(Number(meta.life.generation)||0)+1,deleted:false,stamp};
+  }
   return {...patch,updated_at:new Date(clock).toISOString(),sync_versions:meta};
 }

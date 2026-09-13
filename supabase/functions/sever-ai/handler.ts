@@ -121,11 +121,12 @@ export function createHandler({createClient,env,providerFactory=providerFromEnv}
 }
 
 export function resultMessage(tool:string,result:any):string {
-  const messages:Record<string,string>={'task.create':'Задача добавлена.','task.update':'Задача изменена.','task.move':'Задача перенесена.','task.complete':'Задача выполнена.','task.delete':'Задача удалена.','note.create':'Заметка создана.','note.update':'Заметка изменена.','note.delete':'Заметка удалена.','plan.create':'План и задачи созданы.','memory.remember':'Сохранено в памяти.','navigation.open':'Открываю раздел.','guide.highlight':'Показываю нужный элемент.','timer.start':'Запускаю таймер на этом устройстве.','timer.stop':'Останавливаю таймер на этом устройстве.','timer.get':'Состояние таймера на этом устройстве:'};
+  const messages:Record<string,string>={'task.create':'Задача добавлена.','task.update':'Задача изменена.','task.move':'Задача перенесена.','task.complete':'Задача выполнена.','task.delete':'Задача удалена.','note.create':'Заметка создана.','note.update':'Заметка изменена.','note.delete':'Заметка удалена.','habit.create':'Привычка добавлена.','habit.update':'Привычка изменена.','habit.check':'Отметка привычки обновлена.','habit.delete':'Привычка удалена.','plan.create':'План и задачи созданы.','memory.remember':'Сохранено в памяти.','navigation.open':'Открываю раздел.','guide.highlight':'Показываю нужный элемент.','timer.start':'Запускаю таймер на этом устройстве.','timer.stop':'Останавливаю таймер на этом устройстве.','timer.get':'Состояние таймера на этом устройстве:'};
   if(messages[tool])return messages[tool];
   if(tool==='calendar.get')return result.tasks.length?result.tasks.map((t:any)=>`${t.completed?'✓':'○'} ${t.scheduled_for}${t.scheduled_time?' '+t.scheduled_time.slice(0,5):''} — ${t.title}`).join('\n'):'В этом периоде задач нет.';
   if(tool==='progress.get')return `Выполнено ${result.completed} из ${result.total} задач (${result.percent}%).`;
   if(tool==='task.get')return `${result.title} · ${result.scheduled_for}${result.scheduled_time?' '+result.scheduled_time.slice(0,5):''}`;
   if(tool==='note.get')return `${result.title}\n${result.body||''}`;
+  if(tool==='habit.list')return result.habits.length?`${result.date}\n`+result.habits.map((habit:any)=>`${habit.completed?'✓':'○'} ${habit.title}`).join('\n'):'Привычек пока нет.';
   return JSON.stringify(result,null,2);
 }

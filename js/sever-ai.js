@@ -4,11 +4,21 @@
   const panel = $('#severAiPanel');
   if (!panel) return;
   let controller = null, pending = null, generation = 0, returnFocus = null;
+  const conversation = [];
+  const MAX_HISTORY = 6;
   const settings = () => ({enabled:true,guide:true,memory:false,...window.SeverApp?.getState?.().aiSettings});
   const sessionId = () => window.SeverCloud?.user?.id || '';
   const current = (id, version) => id === sessionId() && version === generation;
   const assertCurrent = (id, version) => { if (!current(id, version)) throw new DOMException('Account changed','AbortError'); };
   // Drafts and conversation stay in this tab, never in shared localStorage.
+  function rememberConversation(role, value) {
+    if(!['user','assistant'].includes(role))return;
+    const content=String(value||'').trim().slice(0,2000);
+    if(!content)return;
+    conversation.push({role,content});
+    while(conversation.length>MAX_HISTORY)conversation.shift();
+  }
+  function historySnapshot() { return conversation.slice(-MAX_HISTORY).map(item=>({...item})); }
   function addMessage(role, value) {
     const row=document.createElement('div'), bubble=document.createElement('p');
     row.className='sever-ai-message '+role; bubble.textContent=value;
@@ -29,7 +39,7 @@
     if(returnFocus?.isConnected)returnFocus.focus();
   }
   function resetAccount() {
-    generation++;controller?.abort();controller=null;pending=null;
+    generation++;controller?.abort();controller=null;pending=null;conversation.length=0;
     $('#severAiMessages').replaceChildren();$('#severAiInput').value='';
     $('#severAiMemoryList').replaceChildren();$('#severAiMemoryDialog').close();
     $('#severAiConfirm').classList.add('hidden');busy(false);close();
@@ -132,7 +142,7 @@
     if(action?.name==='timer.start')window.SeverApp.startTimer(action.arguments);
     if(action?.name==='timer.stop')window.SeverApp.stopTimer();
     if(action?.name==='timer.get')data.message=window.SeverApp.getTimerStatus();
-    if(/^(task|note|plan)\.(create|update|move|complete|delete)$/.test(data.tool||'')&&data.result) {
+    if(/^(task|note|plan|habit)\.(create|update|move|complete|check|delete)$/.test(data.tool||'')&&data.result) {
       await window.SeverCloud.pull();assertCurrent(id,version);
       if(window.SeverCloud.lastErrorCode)data.message+='\nСохранено на сервере; обновление устройства ожидает синхронизации.';
     }
@@ -145,7 +155,7 @@
     event?.preventDefault();if(controller)return;
     const input=$('#severAiInput'),message=input.value.trim();
     if(!confirmationToken&&!message)return;
-    const id=sessionId(),version=generation;
+    const id=sessionId(),version=generation,history=historySnapshot();
     // The assistant must remain usable during an app-module reload.  Context
     // is advisory only and the server still validates every selected object.
     const capturedContext=typeof window.SeverApp?.getContext==='function'
@@ -162,11 +172,12 @@
       cloud.capture();await cloud.flush();assertCurrent(id,version);
       if(cloud.running||cloud.queued.length)throw new Error('Сначала дождитесь отправки изменений в облако.');
       const response=await api('POST',{requestId:crypto.randomUUID(),message,context:capturedContext,
-        memoryEnabled:settings().memory,...(confirmationToken?{confirmationToken}:{})},
+        history,memoryEnabled:settings().memory,...(confirmationToken?{confirmationToken}:{})},
         {signal:requestController.signal,stream:!confirmationToken,id,version});
       const data=await readStream(response,text=>{if(current(id,version))status.textContent='Подготавливаю действие…\n'+text;});
       assertCurrent(id,version);
-      status.textContent=await applyResult(data,id,version);
+      const finalText=await applyResult(data,id,version);status.textContent=finalText;
+      if(!confirmationToken){rememberConversation('user',message);rememberConversation('assistant',finalText);}
     }catch(error) {
       if(current(id,version)){
         status.textContent=error.name==='AbortError'?'Запрос остановлен. Если действие уже началось, оно могло сохраниться — проверьте календарь перед повтором.':error.message;
