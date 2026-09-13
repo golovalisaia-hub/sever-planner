@@ -15,8 +15,10 @@ const sw = read('sw.js');
 test('interaction polish keeps the original task checkbox size and centered completion mark', () => {
   const checked = spawnSync(process.execPath, ['--check', path.join(root, 'sever2-interaction-polish.js')]);
   assert.equal(checked.status, 0, checked.stderr.toString());
-  assert.match(css, /\.task \.check \{[\s\S]*width:\s*28px[\s\S]*height:\s*28px/);
-  assert.doesNotMatch(css, /\.task \.check \{[\s\S]*width:\s*44px/);
+  const taskCheckRule = css.match(/\.task \.check \{[^}]*\}/)?.[0] || '';
+  assert.match(taskCheckRule, /width:\s*28px/);
+  assert.match(taskCheckRule, /height:\s*28px/);
+  assert.doesNotMatch(taskCheckRule, /44px/);
   assert.match(css, /\.task\.done \.check::after \{[\s\S]*position:\s*absolute[\s\S]*left:\s*50%[\s\S]*top:\s*50%/);
   assert.match(css, /width:\s*7px[\s\S]*height:\s*12px/);
   assert.match(css, /transform:\s*translate\(-50%, -58%\) rotate\(45deg\) !important/);
