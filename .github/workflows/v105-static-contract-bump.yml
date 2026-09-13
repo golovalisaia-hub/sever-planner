@@ -1,0 +1,50 @@
+name: v105 one-shot static contract bump
+
+on:
+  push:
+    paths:
+      - .github/workflows/v105-static-contract-bump.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: perf/task-responsiveness-v105
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Update static app asset contract
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const file = 'tests/qa_static.mjs';
+          let source = fs.readFileSync(file, 'utf8');
+          const from = "['app.js', 51]";
+          const count = source.split(from).length - 1;
+          if (count !== 1) throw new Error(`expected exactly one static app version contract, got ${count}`);
+          source = source.replace(from, "['app.js', 105]");
+          fs.writeFileSync(file, source);
+          NODE
+          node tests/qa_static.mjs
+      - name: Guard against stale active app version contracts
+        run: |
+          if git grep -n -F 'app.js?v=51' -- tests ':!tests/task-responsiveness-v105.test.mjs'; then
+            echo 'Stale app.js?v=51 contract remains under tests'; exit 1
+          fi
+          if git grep -n -F "['app.js', 51]" -- tests; then
+            echo 'Stale qa_static app version remains'; exit 1
+          fi
+      - name: Remove one-shot workflow and commit test contract
+        run: |
+          rm .github/workflows/v105-static-contract-bump.yml
+          git config user.name "SEVER CI"
+          git config user.email "actions@users.noreply.github.com"
+          git add tests/qa_static.mjs .github/workflows/v105-static-contract-bump.yml
+          git diff --cached --check
+          git commit -m "test(v105): align static planner core version"
+          git push origin HEAD:perf/task-responsiveness-v105
