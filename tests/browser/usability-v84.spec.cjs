@@ -23,12 +23,20 @@ async function boot(page) {
     && document.documentElement.dataset.severReminders === 'v82');
 }
 
+async function settleDialogAutofocus(page) {
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+}
+
 async function createPlan(page, { type = 'goal', name = 'План', target = '30000', budget = '10000' } = {}) {
   await page.evaluate(() => window.SeverApp.switchView('money'));
   await page.locator(`[data-money-create="${type}"]`).click();
+  await expect(page.locator('#moneyItemDialog')).toBeVisible();
+  await settleDialogAutofocus(page);
   await page.locator('#moneyItemName').fill(name);
   await page.locator('#moneyItemTarget').fill(target);
   await page.locator('#moneyItemBudget').fill(budget);
+  await expect(page.locator('#moneyItemName')).toHaveValue(name);
+  await expect(page.locator('#moneyItemBudget')).toHaveValue(budget);
   await page.locator('#moneyItemForm button.primary').click();
   await expect(page.locator('#moneyItemDialog')).toBeHidden();
   await expect(page.locator('.money-card').filter({ hasText: name })).toBeVisible();
@@ -64,22 +72,13 @@ test('editing a Money plan keeps completed payment history and removes stale pen
   const card = page.locator('.money-card').filter({ hasText: 'Ноутбук' });
   await card.locator('.money-icon-action').click();
   await expect(page.locator('#moneyItemDialog')).toBeVisible();
+  await settleDialogAutofocus(page);
+  await expect(page.locator('#moneyItemName')).toHaveValue('Ноутбук');
   await page.locator('#moneyItemBudget').fill('7500');
+  await expect(page.locator('#moneyItemName')).toHaveValue('Ноутбук');
+  await expect(page.locator('#moneyItemBudget')).toHaveValue('7500');
   await page.locator('#moneyItemForm button.primary').click();
   await expect(page.locator('#moneyItemDialog')).toBeHidden();
-  const lifecycleDebug = await page.evaluate(() => {
-    const state = window.SeverApp.getState();
-    const key = window.SeverApp.getStorageScope();
-    let stored = null;
-    try { stored = JSON.parse(localStorage.getItem(key) || 'null'); } catch {}
-    return {
-      memoryItems: state.profile?.money?.items || null,
-      memoryTasks: (state.tasks || []).map(task => ({ id: task.id, title: task.title, completed: task.completed })),
-      storedItems: stored?.profile?.money?.items || null,
-      storedTasks: (stored?.tasks || []).map(task => ({ id: task.id, title: task.title, completed: task.completed }))
-    };
-  });
-  console.log('MONEY_EDIT_DEBUG', JSON.stringify(lifecycleDebug));
   await expect.poll(() => page.evaluate(() => {
     const item = window.SeverApp.getState().profile.money.items.find(row => row.title === 'Ноутбук');
     return item ? { budget: item.monthlyBudget, refs: item.calendarTaskIds.length } : null;
