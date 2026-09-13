@@ -71,7 +71,7 @@
 .sever-season-mark[data-season="autumn"] { animation: sever-season-autumn 6.1s ease-in-out infinite; }
 
 @media (max-width: 900px) {
-  /* Sync status and AI are now siblings in the same flex row. This removes the
+  /* Sync status and AI are siblings in the same flex row. This removes the
      fixed-overlay collision completely instead of reserving guessed pixels. */
   .topbar .top-actions {
     gap: 7px;
@@ -80,6 +80,9 @@
     flex: 0 1 auto;
   }
 
+  /* Mobile-system has older generic 44px button geometry. Lock the AI launcher
+     to one exact square after it is docked so later presentation rules cannot
+     flatten it or move it back over the sync controls. */
   .topbar .top-actions > .sever-ai-launch[data-sever-header-dock="true"] {
     position: static !important;
     inset: auto !important;
@@ -87,12 +90,20 @@
     right: auto !important;
     bottom: auto !important;
     left: auto !important;
-    z-index: auto;
-    flex: 0 0 48px;
-    width: 48px;
-    min-width: 48px;
-    height: 48px;
-    min-height: 48px;
+    z-index: auto !important;
+    flex: 0 0 48px !important;
+    inline-size: 48px !important;
+    block-size: 48px !important;
+    width: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    align-self: center !important;
+    box-sizing: border-box !important;
   }
 
   .mobile-wordmark {
@@ -100,14 +111,15 @@
     flex: 0 0 auto;
   }
 
-  /* On phones the seasonal mark floats immediately after SEVER and therefore
-     never changes header geometry or pushes the sync status sideways. */
+  /* Keep the physical transformed footprint below 12px as well, not only the
+     CSS box. Rotation can enlarge getBoundingClientRect(), so the base glyph is
+     deliberately 8px on phones. */
   .mobile-wordmark .sever-season-mark {
     position: absolute;
     left: calc(100% + 7px);
     top: 50%;
-    width: 11px;
-    height: 11px;
+    width: 8px;
+    height: 8px;
     margin: 0;
     transform-origin: 50% 50%;
   }
@@ -259,8 +271,8 @@
 
   .mobile-wordmark .sever-season-mark {
     left: calc(100% + 5px);
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
   }
 }
 
