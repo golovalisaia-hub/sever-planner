@@ -92,29 +92,38 @@ test('task completion shows a real checkmark and remains reversible in every the
   }
 });
 
-test('task checkmark survives rapid repeated phone taps without collapsing into a dot', async ({ page }, info) => {
+test('task checkmark survives a burst of rapid phone taps without collapsing into a dot', async ({ page }, info) => {
   if (info.project.name === 'desktop') test.skip();
   await page.evaluate(() => window.SeverApp.switchView('today'));
   const task = page.locator('#todayTasks .task').first();
   const check = task.locator('.check');
   await expect(check).toBeVisible();
 
-  const box = await check.boundingBox();
-  expect(box).not.toBeNull();
-  const x = box.x + box.width / 2;
-  const y = box.y + box.height / 2;
+  // The product intentionally guards duplicate taps for 450 ms. Reproduce the
+  // user's burst: the first tap completes, the following burst is ignored, and
+  // the accepted state must keep a full unmasked checkmark throughout.
+  await check.click();
+  await expect(task).toHaveClass(/\bdone\b/);
+  await expect(check).toHaveAttribute('aria-pressed', 'true');
+  expectIntactTaskCheck(await taskCheckVisual(check));
 
-  // Reproduce the user's recording: hammer the same completion target while
-  // the task is repeatedly rebuilt by render(). An even number must return to
-  // pending, then the final tap must leave one full, unmasked checkmark.
-  for (let index = 0; index < 12; index += 1) {
-    await page.mouse.click(x, y);
+  for (let index = 0; index < 8; index += 1) {
+    await check.click({ force: true });
     await page.waitForTimeout(20);
   }
+  await expect(task).toHaveClass(/\bdone\b/);
+  await expect(check).toHaveAttribute('aria-pressed', 'true');
+  expectIntactTaskCheck(await taskCheckVisual(check));
+
+  // Once the guard expires the next intentional tap is accepted normally, and
+  // another accepted tap can complete the task again without corrupting ✓.
+  await page.waitForTimeout(520);
+  await check.click();
   await expect(task).not.toHaveClass(/\bdone\b/);
   await expect(check).toHaveAttribute('aria-pressed', 'false');
 
-  await page.mouse.click(x, y);
+  await page.waitForTimeout(520);
+  await check.click();
   await expect(task).toHaveClass(/\bdone\b/);
   await expect(check).toHaveAttribute('aria-pressed', 'true');
   expectIntactTaskCheck(await taskCheckVisual(check));
