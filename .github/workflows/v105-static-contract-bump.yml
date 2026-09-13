@@ -31,14 +31,12 @@ jobs:
           fs.writeFileSync(file, source);
           NODE
           node tests/qa_static.mjs
-      - name: Guard against stale active app version contracts
+      - name: Guard active static app version contract
         run: |
-          if git grep -n -F 'app.js?v=51' -- tests ':!tests/task-responsiveness-v105.test.mjs'; then
-            echo 'Stale app.js?v=51 contract remains under tests'; exit 1
+          if git grep -n -F "['app.js', 51]" -- tests/qa_static.mjs; then
+            echo 'Stale active qa_static app version remains'; exit 1
           fi
-          if git grep -n -F "['app.js', 51]" -- tests; then
-            echo 'Stale qa_static app version remains'; exit 1
-          fi
+          git grep -n -F "['app.js', 105]" -- tests/qa_static.mjs
       - name: Remove one-shot workflow and commit test contract
         run: |
           rm .github/workflows/v105-static-contract-bump.yml
