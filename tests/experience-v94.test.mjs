@@ -45,6 +45,7 @@ test('v101 keeps phone controls touch-safe and makes progress scannable above th
   assert.match(css, /#noteDialog \.notes-polish-checklist-editor:not\(\.hidden\)[\s\S]*flex:\s*0 0 auto\s*!important/);
   assert.match(css, /#noteDialog \.notes-polish-checklist-editor:not\(\.hidden\)[\s\S]*padding-bottom:\s*22px\s*!important/);
   assert.match(css, /#noteDialog \.note-security,[\s\S]*#noteDialog \.notes-polish-editor-actions[\s\S]*flex:\s*0 0 auto\s*!important/);
+  assert.match(css, /\.mobile-wordmark \.sever-season-mark[\s\S]*max-width:\s*11px\s*!important/);
 });
 
 test('fresh mobile Notes hides organization chrome until there is content', () => {
@@ -56,8 +57,8 @@ test('fresh mobile Notes hides organization chrome until there is content', () =
   assert.match(notesCss, /display:\s*none !important/);
 });
 
-test('v101 reliability assets are part of the atomic offline release', () => {
-  assert.match(sw, /const CACHE = 'sever-v94-experience-release-v1'/);
+test('v101 reliability assets are part of a newly rotated atomic offline release', () => {
+  assert.match(sw, /const CACHE = 'sever-v101-reliability-release-v1'/);
   for (const asset of [
     './sever2-experience-v94.css?v=101',
     './sever2-experience-v94.js?v=101',
