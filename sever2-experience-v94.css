@@ -9,9 +9,53 @@
   display: none;
 }
 
+@keyframes sever-wordmark-snow {
+  0%, 14% {
+    opacity: 0;
+    transform: translate3d(0, -7px, 0) rotate(0deg);
+  }
+  28% { opacity: .38; }
+  72% {
+    opacity: .24;
+    transform: translate3d(2px, 6px, 0) rotate(58deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(3px, 11px, 0) rotate(92deg);
+  }
+}
+
 @media (max-width: 900px) {
+  /* The AI launcher is a fixed 48px control at the right edge. Reserve a real
+     layout lane for it so the sync pill can never slide underneath it. */
   .topbar .top-actions {
     gap: 7px;
+    padding-right: 60px;
+    min-width: 0;
+  }
+
+  .mobile-wordmark {
+    position: relative;
+  }
+
+  /* One tiny flake gives SEVER a northern signature without turning the header
+     into a seasonal animation. It is absolutely positioned, so it never moves
+     the wordmark or changes header geometry. */
+  .mobile-wordmark::after {
+    content: "❄";
+    position: absolute;
+    left: calc(100% + 7px);
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+    color: currentColor;
+    font-size: 9px;
+    font-weight: 400;
+    line-height: 1;
+    opacity: 0;
+    transform-origin: 50% 50%;
+    animation: sever-wordmark-snow 5.8s ease-in-out infinite;
   }
 
   .sever-sync-indicator {
@@ -20,7 +64,7 @@
     min-height: 36px;
     align-items: center;
     gap: 7px;
-    max-width: min(154px, 42vw);
+    max-width: min(148px, 39vw);
     padding: 0 9px;
     border: 1px solid var(--border-subtle, var(--line));
     border-radius: 999px;
@@ -93,16 +137,12 @@
     transform: scale(.92);
   }
 
-  /* The fast Settings rail is navigation, not decoration. Keep every target at
-     a comfortable phone size while preserving its compact visual weight. */
   .settings-mobile-index button {
     min-height: 44px !important;
   }
 }
 
 @media (max-width: 700px) {
-  /* Progress used to spend most of the first viewport on four mostly empty
-     cards. The same information now scans as a compact 2×2 dashboard. */
   #progressView .stats {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -139,9 +179,6 @@
     border-radius: 18px !important;
   }
 
-  /* The editor is a fixed-height scrolling flex column. Let the checklist keep
-     its real content height so its rows cannot overflow a flex-shrunk section
-     into the following security or Save controls. The form itself scrolls. */
   #noteDialog .notes-polish-checklist-editor:not(.hidden) {
     flex: 0 0 auto !important;
     padding-bottom: 22px !important;
@@ -154,13 +191,22 @@
 }
 
 @media (max-width: 350px) {
+  .topbar .top-actions {
+    padding-right: 56px;
+  }
+
   .sever-sync-indicator {
-    max-width: 122px;
+    max-width: min(112px, 35vw);
     padding-inline: 8px;
   }
 
   .sever-sync-indicator[data-state="busy"] .sever-sync-copy {
-    max-width: 86px;
+    max-width: 76px;
+  }
+
+  .mobile-wordmark::after {
+    left: calc(100% + 5px);
+    font-size: 8px;
   }
 }
 
@@ -168,5 +214,11 @@
   .sever-sync-indicator,
   .sever-sync-retry {
     transition: none !important;
+  }
+
+  .mobile-wordmark::after {
+    animation: none !important;
+    opacity: .18;
+    transform: translateY(-50%);
   }
 }
