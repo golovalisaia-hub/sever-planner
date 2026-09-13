@@ -30,6 +30,14 @@
       script.dataset.sever2Reminders = 'v82';
       document.head.appendChild(script);
     }
+    if (!document.querySelector('script[data-sever2-reminder-bridge]')) {
+      const bridge = document.createElement('script');
+      bridge.src = 'sever2-reminder-bridge-v95.js?v=95';
+      bridge.async = false;
+      bridge.defer = true;
+      bridge.dataset.sever2ReminderBridge = 'v95';
+      document.head.appendChild(bridge);
+    }
   }
 
   async function retireStalePushSubscription() {
