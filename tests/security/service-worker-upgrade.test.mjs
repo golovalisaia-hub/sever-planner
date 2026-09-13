@@ -43,7 +43,7 @@ test('current service worker installs the guarded v102 release atomically and re
     './sever2-mobile-consistency.css?v=76','./sever2-notes-compact-v87.css?v=87','./sever2-notes-compact-v87.js?v=87',
     './sever2-experience-v94.css?v=101','./sever2-experience-v94.js?v=101',
     './sever2-money.css?v=83','./sever2-money.js?v=83','./sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84',
-    './sever2-interaction-polish.css?v=97','./sever2-interaction-polish.js?v=101','./sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82',
+    './sever2-interaction-polish.css?v=103','./sever2-interaction-polish.js?v=101','./sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./js/theme-init.js?v=92','./js/sever-ai.js?v=100'
   ]) assert.ok(cachedAssets.includes(asset), `missing ${asset}`);
   assert.ok(!cachedAssets.includes('./sever2-efficiency.css?v=67'));
@@ -104,7 +104,7 @@ test('installed current release serves v102 desktop polish and core planner asse
     ['sever2-money.js?v=old','cors','./sever2-money.js?v=83'],
     ['sever2-usability-v84.css?v=old','cors','./sever2-usability-v84.css?v=93'],
     ['sever2-usability-v84.js?v=old','cors','./sever2-usability-v84.js?v=84'],
-    ['sever2-interaction-polish.css?v=old','cors','./sever2-interaction-polish.css?v=97'],
+    ['sever2-interaction-polish.css?v=old','cors','./sever2-interaction-polish.css?v=103'],
     ['sever2-interaction-polish.js?v=old','cors','./sever2-interaction-polish.js?v=101'],
     ['sever2-reminders.css?v=old','cors','./sever2-reminders.css?v=86'],
     ['sever2-task-reminders.js?v=old','cors','./sever2-task-reminders.js?v=82'],
