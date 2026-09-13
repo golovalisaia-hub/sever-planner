@@ -40,6 +40,16 @@
     }
   }
 
+  function installNotesOrganizationRepair() {
+    if (document.querySelector('script[data-sever2-notes-org-repair]')) return;
+    const script = document.createElement('script');
+    script.src = 'sever2-notes-org-repair-v95.js?v=95';
+    script.async = false;
+    script.defer = true;
+    script.dataset.sever2NotesOrgRepair = 'v95';
+    document.head.appendChild(script);
+  }
+
   async function retireStalePushSubscription() {
     if (stalePushChecked) return;
     if (!window.SeverSupabase?.getClient || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
@@ -170,6 +180,7 @@
   }
 
   installReminderLayer();
+  installNotesOrganizationRepair();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleBoot, { once: true });
   else scheduleBoot();
   window.addEventListener('load', scheduleBoot, { once: true });
