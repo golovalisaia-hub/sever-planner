@@ -31,10 +31,6 @@
       </svg>`
   };
 
-  // Temporary product choice: keep the automatic four-season system intact,
-  // but show the restrained summer signature until the override is removed.
-  const SEVER_SEASON_OVERRIDE = 'summer';
-
   function seasonForMonth(month) {
     if (month === 11 || month <= 1) return 'winter';
     if (month <= 4) return 'spring';
@@ -43,9 +39,9 @@
   }
 
   function ensureSeasonalSignature() {
-    const season = SEVER_SEASON_OVERRIDE || seasonForMonth(new Date().getMonth());
+    const season = seasonForMonth(new Date().getMonth());
     document.documentElement.dataset.severSeason = season;
-    document.documentElement.dataset.severSeasonSignature = 'v99';
+    document.documentElement.dataset.severSeasonSignature = 'v101';
 
     document.querySelectorAll('.mobile-wordmark, .desktop-sidebar > .wordmark').forEach(wordmark => {
       let mark = wordmark.querySelector('.sever-season-mark');
@@ -63,8 +59,8 @@
   }
 
   /* On phones the AI launcher belongs to the real header flex row instead of
-     hovering above it. This makes overlap with sync/retry controls impossible
-     by construction. The comment remembers the launcher's desktop home so a
+     hovering above it. This makes overlap with sync controls impossible by
+     construction. The comment remembers the launcher's desktop home so a
      responsive resize restores the original DOM without rebuilding the AI. */
   function syncAiLauncherPlacement() {
     const ai = $('#severAiOpen');
@@ -96,7 +92,7 @@
 
     root = document.createElement('div');
     root.id = 'severMobileSyncIndicator';
-    root.className = 'sever-sync-indicator hidden';
+    root.className = 'sever-sync-indicator';
     root.setAttribute('role', 'status');
     root.setAttribute('aria-live', 'polite');
     root.innerHTML = `
@@ -125,12 +121,18 @@
   function viewModel() {
     const cloud = window.SeverCloud;
     const health = cloud?.health?.();
-    if (!cloud || !health || !cloud.configured || health.session !== 'signed-in') return { hidden: true };
+    if (!cloud || !health || !cloud.configured) {
+      return { state: 'neutral', short: 'Локально', full: 'Локальный режим. Облачная синхронизация не активна.', retry: false };
+    }
+    if (health.session !== 'signed-in') {
+      return { state: 'neutral', short: 'Локально', full: 'Войдите в аккаунт, чтобы синхронизировать данные.', retry: false };
+    }
 
     const status = health.status || cloud.status || 'local';
     const error = health.lastErrorCode || cloud.lastErrorCode || '';
-    if (status === 'synced' || status === 'local' || status === 'signed-out') return { hidden: true };
-
+    if (status === 'synced') {
+      return { state: 'ok', short: 'Готово', full: 'SEVER синхронизирован.', retry: false };
+    }
     if (!navigator.onLine || status === 'offline') {
       return {
         state: 'offline',
@@ -142,7 +144,7 @@
     if (retryBusy || status === 'syncing') {
       return {
         state: 'busy',
-        short: 'Синхронизация…',
+        short: 'Синхронизация',
         full: 'SEVER синхронизирует изменения.',
         retry: false
       };
@@ -158,14 +160,14 @@
     if (error || status === 'unavailable') {
       return {
         state: 'warning',
-        short: 'Связь с облаком',
-        full: 'Есть проблема с облаком. Локальные изменения сохранены.',
+        short: 'Ошибка',
+        full: 'Есть проблема с облаком. Локальные изменения сохранены; подробности доступны в Настройках.',
         retry: true
       };
     }
     return {
       state: 'busy',
-      short: 'Сохраняем…',
+      short: 'Сохраняем',
       full: 'Есть изменения, которые ещё отправляются в облако.',
       retry: false
     };
@@ -177,11 +179,6 @@
     syncAiLauncherPlacement();
     if (!root) return;
     const model = viewModel();
-    root.classList.toggle('hidden', Boolean(model.hidden));
-    if (model.hidden) {
-      delete root.dataset.state;
-      return;
-    }
     root.dataset.state = model.state;
     root.setAttribute('aria-label', model.full);
     root.title = model.full;
