@@ -80,7 +80,7 @@ test('habit completion cannot restyle the whole card and Focus play stays center
   assert.match(css, /border-left:\s*11px solid currentColor/);
 });
 
-test('v97 interaction polish remains inside the atomic v101 reliability PWA release', () => {
+test('v97 interaction polish remains inside the atomic v102 desktop polish PWA release', () => {
   const home = themeInit.indexOf('sever2-home-core-script');
   const money = themeInit.indexOf('sever2-money-script');
   const usabilityIndex = themeInit.indexOf('sever2-usability-v84-script');
@@ -94,8 +94,9 @@ test('v97 interaction polish remains inside the atomic v101 reliability PWA rele
   assert.match(themeInit, /sever2-interaction-polish\.js\?v=78/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v101-reliability-release-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v102-desktop-polish-release-v1'/);
   for (const asset of [
+    './sever2-efficiency.css?v=102',
     './sever2-home-core.js?v=85',
     './sever2-notes-polish.css?v=92','./sever2-notes-polish.js?v=93',
     './sever2-notes-compact-v87.css?v=87','./sever2-notes-compact-v87.js?v=87',
@@ -108,7 +109,7 @@ test('v97 interaction polish remains inside the atomic v101 reliability PWA rele
     './js/theme-init.js?v=92'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   for (const pathValue of [
-    'sever2-home-core.js','sever2-usability-v84.css','sever2-usability-v84.js',
+    'sever2-efficiency.css','sever2-home-core.js','sever2-usability-v84.css','sever2-usability-v84.js',
     'sever2-interaction-polish.css','sever2-interaction-polish.js','sever2-cloud-recovery.js',
     'sever2-reminders.css','sever2-task-reminders.js','sever2-experience-v94.css','sever2-experience-v94.js'
   ]) assert.match(sw, new RegExp(`'/${pathValue.replaceAll('.', '\\.').replaceAll('-', '\\-')}'`));
