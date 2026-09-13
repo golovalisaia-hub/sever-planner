@@ -23,6 +23,23 @@
     return note.protected ? null : note;
   }
 
+  function installCompactNotesLayer() {
+    if (!document.querySelector('link[data-sever2-notes-compact-v87-pack]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'sever2-notes-compact-v87.css?v=87';
+      link.setAttribute('data-sever2-notes-compact-v87-pack', 'v87');
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[data-sever2-notes-compact-v87-script]')) {
+      const script = document.createElement('script');
+      script.src = 'sever2-notes-compact-v87.js?v=87';
+      script.async = false;
+      script.setAttribute('data-sever2-notes-compact-v87-script', 'v87');
+      document.head.appendChild(script);
+    }
+  }
+
   function icon(name) {
     if (name === 'more') return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
     if (name === 'less') return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>';
@@ -59,11 +76,15 @@
     }
 
     const remaining = Math.max(0, items.length - 3);
+    const renderKey = `${expanded ? 'expanded' : 'collapsed'}:${remaining}`;
     control.dataset.noteId = note.id;
     control.dataset.notesCompactOpen = 'true';
     control.setAttribute('aria-expanded', String(expanded));
     control.setAttribute('aria-label', expanded ? 'Свернуть чек-лист' : `Показать ещё ${remaining} пунктов`);
-    control.innerHTML = `<span>${expanded ? 'Свернуть' : `Ещё ${remaining}`}</span>${icon(expanded ? 'less' : 'more')}`;
+    if (control.dataset.notesPolishRender !== renderKey) {
+      control.innerHTML = `<span>${expanded ? 'Свернуть' : `Ещё ${remaining}`}</span>${icon(expanded ? 'less' : 'more')}`;
+      control.dataset.notesPolishRender = renderKey;
+    }
     control.onclick = event => {
       event.preventDefault();
       event.stopPropagation();
@@ -92,10 +113,14 @@
       body?.after(toggle);
     }
     const expanded = expandedBodies.has(note.id);
+    const renderKey = expanded ? 'expanded' : 'collapsed';
     card.classList.toggle('notes-polish-body-expanded', expanded);
     toggle.setAttribute('aria-expanded', String(expanded));
     toggle.setAttribute('aria-label', expanded ? 'Свернуть текст заметки' : 'Показать больше текста заметки');
-    toggle.innerHTML = `<span>${expanded ? 'Свернуть' : 'Ещё'}</span>${icon(expanded ? 'less' : 'more')}`;
+    if (toggle.dataset.notesPolishRender !== renderKey) {
+      toggle.innerHTML = `<span>${expanded ? 'Свернуть' : 'Ещё'}</span>${icon(expanded ? 'less' : 'more')}`;
+      toggle.dataset.notesPolishRender = renderKey;
+    }
     toggle.onclick = event => {
       event.preventDefault();
       event.stopPropagation();
@@ -111,9 +136,13 @@
     if (!button) return;
     const items = Array.isArray(data?.items) ? data.items : [];
     const allDone = items.length > 0 && items.every(item => item.done);
+    const renderKey = allDone ? 'all-done' : 'pending';
     button.classList.add('notes-polish-bulk-action');
     button.setAttribute('aria-label', allDone ? 'Снять отметки со всех пунктов' : 'Отметить все пункты выполненными');
-    button.innerHTML = `${icon('check')}<span>${allDone ? 'Снять отметки' : 'Выполнить все'}</span>`;
+    if (button.dataset.notesPolishRender !== renderKey) {
+      button.innerHTML = `${icon('check')}<span>${allDone ? 'Снять отметки' : 'Выполнить все'}</span>`;
+      button.dataset.notesPolishRender = renderKey;
+    }
   }
 
   function decorateCard(card, note) {
@@ -151,9 +180,9 @@
     if (actionDialog) {
       actionDialog.classList.add('notes-polish-action-dialog');
       const hint = actionDialog.querySelector('#notesActionHint');
-      if (hint) hint.textContent = 'Что сделать с этой заметкой?';
+      if (hint && hint.textContent !== 'Что сделать с этой заметкой?') hint.textContent = 'Что сделать с этой заметкой?';
       const edit = actionDialog.querySelector('[data-notes-action="edit"]');
-      if (edit) edit.textContent = 'Изменить заметку';
+      if (edit && edit.textContent !== 'Изменить заметку') edit.textContent = 'Изменить заметку';
     }
   }
 
@@ -170,6 +199,7 @@
       return;
     }
     booted = true;
+    installCompactNotesLayer();
     const root = document.querySelector('#notesView');
     observer = new MutationObserver(schedule);
     observer.observe(root, { childList: true, subtree: true });

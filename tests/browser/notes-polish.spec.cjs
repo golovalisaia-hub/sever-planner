@@ -80,6 +80,23 @@ test('long text preview expands inline with More and never opens the editor', as
   await expect(page.locator('#noteDialog')).toBeHidden();
 });
 
+test('phone Notes keeps the compact v94 type selector instead of four permanent filter buttons', async ({ page }, info) => {
+  test.skip(info.project.name === 'desktop');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesCompact)).toBe('v94');
+  const select = page.locator('#notesCompactType');
+  await expect(select).toBeVisible();
+  await expect(page.locator('#notesView .notes-core-filters')).toBeHidden();
+  const height = await select.evaluate(el => el.getBoundingClientRect().height);
+  expect(height).toBeGreaterThanOrEqual(44);
+
+  await select.selectOption('checklist');
+  await expect(page.locator('#noteList .note-card').filter({ hasText: 'Большой чек-лист' })).toBeVisible();
+  await expect(page.locator('#noteList .note-card').filter({ hasText: 'Длинная заметка' })).toHaveCount(0);
+
+  await select.selectOption('all');
+  await expect(page.locator('#noteList .note-card')).toHaveCount(2);
+});
+
 test('mobile checklist editor uses one scroll flow and actions never cover checklist rows', async ({ page }, info) => {
   test.skip(info.project.name === 'desktop');
   const card = page.locator('#noteList .note-card').filter({ hasText: 'Большой чек-лист' });

@@ -1,0 +1,172 @@
+/* SEVER experience v94 — confidence, progressive disclosure and touch ergonomics. */
+
+:where(button, a[href], input, select, textarea, summary):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent, #5f7cff) 78%, white 8%);
+  outline-offset: 2px;
+}
+
+.sever-sync-indicator {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .topbar .top-actions {
+    gap: 7px;
+  }
+
+  .sever-sync-indicator {
+    display: inline-flex;
+    min-width: 0;
+    min-height: 36px;
+    align-items: center;
+    gap: 7px;
+    max-width: min(154px, 42vw);
+    padding: 0 9px;
+    border: 1px solid var(--border-subtle, var(--line));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface-1, var(--panel)) 92%, transparent);
+    color: var(--text-secondary, var(--muted));
+    font-size: .7rem;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, .08);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+
+  .sever-sync-indicator.hidden {
+    display: none !important;
+  }
+
+  .sever-sync-copy {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sever-sync-dot {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .8;
+  }
+
+  .sever-sync-indicator[data-state="busy"] {
+    border-color: color-mix(in srgb, var(--accent, #5f7cff) 26%, var(--border-subtle, var(--line)));
+    color: var(--text-primary, var(--text));
+  }
+
+  .sever-sync-indicator[data-state="offline"],
+  .sever-sync-indicator[data-state="attention"],
+  .sever-sync-indicator[data-state="warning"] {
+    border-color: color-mix(in srgb, var(--warning, #d69532) 34%, var(--border-subtle, var(--line)));
+    background: color-mix(in srgb, var(--warning, #d69532) 7%, var(--surface-1, var(--panel)));
+    color: var(--text-primary, var(--text));
+  }
+
+  .sever-sync-retry {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    place-items: center;
+    margin: 0 -4px 0 0;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .sever-sync-retry.hidden {
+    display: none !important;
+  }
+
+  .sever-sync-retry:not(:disabled):active {
+    transform: scale(.92);
+  }
+
+  /* The fast Settings rail is navigation, not decoration. Keep every target at
+     a comfortable phone size while preserving its compact visual weight. */
+  .settings-mobile-index button {
+    min-height: 44px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  /* Progress used to spend most of the first viewport on four mostly empty
+     cards. The same information now scans as a compact 2×2 dashboard. */
+  #progressView .stats {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  #progressView .stats > article {
+    min-width: 0;
+    min-height: 92px !important;
+    padding: 13px 14px !important;
+    border-radius: 16px !important;
+  }
+
+  #progressView .stats > article span {
+    font-size: .7rem;
+    line-height: 1.25;
+  }
+
+  #progressView .stats > article b {
+    margin-top: 7px;
+    font-size: clamp(1.08rem, 5vw, 1.45rem) !important;
+    line-height: 1.05;
+  }
+
+  #progressView .stats > article small {
+    margin-top: 4px;
+    font-size: .64rem;
+    line-height: 1.25;
+  }
+
+  #progressView .heat-card,
+  #progressView .review {
+    border-radius: 18px !important;
+  }
+
+  /* The editor is a fixed-height scrolling flex column. Let the checklist keep
+     its real content height so its rows cannot overflow a flex-shrunk section
+     into the following security or Save controls. The form itself scrolls. */
+  #noteDialog .notes-polish-checklist-editor:not(.hidden) {
+    flex: 0 0 auto !important;
+    padding-bottom: 22px !important;
+  }
+
+  #noteDialog .note-security,
+  #noteDialog .notes-polish-editor-actions {
+    flex: 0 0 auto !important;
+  }
+}
+
+@media (max-width: 350px) {
+  .sever-sync-indicator {
+    max-width: 122px;
+    padding-inline: 8px;
+  }
+
+  .sever-sync-indicator[data-state="busy"] .sever-sync-copy {
+    max-width: 86px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sever-sync-indicator,
+  .sever-sync-retry {
+    transition: none !important;
+  }
+}
