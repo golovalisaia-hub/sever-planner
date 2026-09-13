@@ -4,6 +4,7 @@ import fs from 'node:fs';
 
 const reminders = fs.readFileSync(new URL('../sever2-task-reminders.js', import.meta.url), 'utf8');
 const bridge = fs.readFileSync(new URL('../sever2-reminder-bridge-v95.js', import.meta.url), 'utf8');
+const notesRepair = fs.readFileSync(new URL('../sever2-notes-org-repair-v95.js', import.meta.url), 'utf8');
 const interaction = fs.readFileSync(new URL('../sever2-interaction-polish.js', import.meta.url), 'utf8');
 const reminderCss = fs.readFileSync(new URL('../sever2-reminders.css', import.meta.url), 'utf8');
 const sw = fs.readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
@@ -37,6 +38,15 @@ test('legacy daily reminder is retired and cannot be re-enabled by old Settings 
   assert.match(interaction, /sever2-reminder-bridge-v95\.js\?v=95/);
   assert.match(interaction, /sever2-reminders\.css\?v=82/);
   assert.match(sw, /sever2-reminder-bridge-v95\.js\?v=95/);
+});
+
+test('v95 repairs Notes organization shell if the core summary appears after organization boot', () => {
+  assert.match(notesRepair, /#notesCoreSummary/);
+  assert.match(notesRepair, /#notesOrganizationTags/);
+  assert.match(notesRepair, /#notesPinnedSection/);
+  assert.match(notesRepair, /severNotesOrganizationRepair = 'v95'/);
+  assert.match(interaction, /sever2-notes-org-repair-v95\.js\?v=95/);
+  assert.match(sw, /sever2-notes-org-repair-v95\.js\?v=95/);
 });
 
 test('signed-out startup retires a stale device push subscription on both desktop and mobile', () => {
