@@ -1,39 +1,22 @@
 /* SEVER 2 interaction polish v97 — stable state feedback across all three themes. */
 
-/* ---------- Task completion: stable geometry + a real phone-sized hit target ---------- */
+/* ---------- Task completion: preserve the original 28px control and lock ✓ to its center ---------- */
 .task .check {
   position: relative;
   display: grid !important;
-  width: 44px;
-  min-width: 44px;
-  height: 44px;
-  min-height: 44px;
-  margin-inline: -8px;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
   place-items: center;
   padding: 0 !important;
-  overflow: visible;
-  border-color: transparent !important;
+  overflow: hidden;
+  border-color: var(--border-strong, var(--line)) !important;
   background: transparent !important;
   color: transparent !important;
-  box-shadow: none !important;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   transform: none !important;
-}
-.task .check::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 28px;
-  height: 28px;
-  box-sizing: border-box;
-  border: 1px solid var(--border-strong, var(--line));
-  border-radius: var(--radius-control, 9px);
-  background: transparent;
-  box-shadow: none;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
 }
 .task.done {
   opacity: 1 !important;
@@ -48,11 +31,6 @@
   opacity: .72;
 }
 .task.done .check {
-  border-color: transparent !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-.task.done .check::before {
   border-color: var(--accent, var(--sever-blue)) !important;
   background: var(--accent, var(--sever-blue)) !important;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, var(--sever-blue)) 10%, transparent);
@@ -64,15 +42,15 @@
   top: 50%;
   display: block;
   box-sizing: border-box;
-  width: 12px;
-  height: 7px;
+  width: 7px;
+  height: 12px;
   margin: 0;
   background: transparent !important;
   -webkit-mask: none !important;
   mask: none !important;
-  border-left: 2px solid #fff;
+  border-right: 2px solid #fff;
   border-bottom: 2px solid #fff;
-  transform: translate(-50%, -58%) rotate(-45deg) !important;
+  transform: translate(-50%, -58%) rotate(45deg) !important;
   transform-origin: center;
   pointer-events: none;
 }
@@ -85,7 +63,7 @@ html[data-theme="black"] .task.done .check::after {
 }
 .task .check:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent, var(--sever-blue)) 78%, transparent);
-  outline-offset: -2px;
+  outline-offset: 3px;
 }
 
 /* ---------- Autumn signature: three soft orange leaves cross the wordmark ---------- */
