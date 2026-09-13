@@ -70,7 +70,7 @@ test('phone Settings section index keeps 44px touch targets', async ({ page }, i
   for (const height of heights) expect(height).toBeGreaterThanOrEqual(44);
 });
 
-test('phone cloud warning exposes a working recovery action without opening a modal', async ({ page }, info) => {
+test('phone cloud warning stays a fixed status point and never expands into a retry chip', async ({ page }, info) => {
   test.skip(info.project.name === 'desktop');
   await page.evaluate(() => {
     const cloud = window.SeverCloud;
@@ -83,24 +83,20 @@ test('phone cloud warning exposes a working recovery action without opening a mo
       status: 'pending',
       lastErrorCode: cloud.lastErrorCode
     });
-    window.__severV94RecoverCount = 0;
-    cloud.recoverNow = async () => {
-      window.__severV94RecoverCount += 1;
-      cloud.lastErrorCode = null;
-      cloud.status = 'synced';
-      cloud.health = () => ({ configured: true, session: 'signed-in', status: 'synced', lastErrorCode: null });
-      window.dispatchEvent(new CustomEvent('sever:cloud-status', { detail: cloud.health() }));
-      return { signedIn: true, syncPending: false };
-    };
     window.dispatchEvent(new CustomEvent('sever:cloud-status', { detail: cloud.health() }));
   });
 
   const indicator = page.locator('#severMobileSyncIndicator');
   await expect(indicator).toBeVisible();
-  await expect(indicator.locator('.sever-sync-copy')).toHaveText('Связь с облаком');
-  await expect(indicator.locator('.sever-sync-retry')).toBeVisible();
-  await indicator.locator('.sever-sync-retry').click();
-  await expect.poll(() => page.evaluate(() => window.__severV94RecoverCount)).toBe(1);
-  await expect(indicator).toBeHidden();
+  await expect(indicator).toHaveAttribute('data-state', 'warning');
+  await expect(indicator).toHaveAttribute('aria-label', /проблема с облаком/i);
+  await expect(indicator.locator('.sever-sync-copy')).toHaveText('Ошибка');
+  await expect(indicator.locator('.sever-sync-retry')).toBeHidden();
+  const footprint = await indicator.evaluate(node => {
+    const box = node.getBoundingClientRect();
+    return { width: box.width, height: box.height };
+  });
+  expect(footprint.width).toBeLessThanOrEqual(16);
+  expect(footprint.height).toBeLessThanOrEqual(16);
   await expect(page.locator('#accountDialog')).not.toHaveAttribute('open', '');
 });
