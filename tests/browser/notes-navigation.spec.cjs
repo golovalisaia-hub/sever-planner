@@ -61,6 +61,18 @@ test('folder and tag sheets replace long rails without changing filtering behavi
   await expect(page.locator('#noteList')).toContainText('Личное');
 });
 
+test('late recreated tag source stays hidden after compact navigation is ready', async ({ page }) => {
+  await page.evaluate(() => {
+    const source = document.querySelector('#notesOrganizationTags');
+    if (!source) throw new Error('tag source missing');
+    const replacement = source.cloneNode(true);
+    replacement.classList.remove('notes-navigation-source');
+    source.replaceWith(replacement);
+  });
+  await expect(page.locator('#notesOrganizationTags')).toBeHidden();
+  await expect(page.locator('#notesNavigationScopes')).toBeVisible();
+});
+
 test('folder sheet keeps creation and management on the existing Notes core', async ({ page }) => {
   await page.locator('[data-notes-scope="folder"]').click();
   await page.locator('#notesNavigatorFooter button', { hasText: 'Новая папка' }).click();
