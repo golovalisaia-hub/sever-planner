@@ -1,0 +1,67 @@
+name: v105 one-shot PWA core bump
+
+on:
+  push:
+    paths:
+      - .github/workflows/v105-pwa-bump.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: perf/task-responsiveness-v105
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Guard and bump app core release
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const exactReplace = (text, from, to, label) => {
+            const count = text.split(from).length - 1;
+            if (count !== 1) throw new Error(`${label}: expected exactly one match, got ${count}`);
+            return text.replace(from, to);
+          };
+
+          let html = fs.readFileSync('index.html', 'utf8');
+          html = exactReplace(
+            html,
+            '<script src="app.js?v=51" defer></script>',
+            '<script src="app.js?v=105" defer></script>',
+            'index app version'
+          );
+          fs.writeFileSync('index.html', html);
+
+          let sw = fs.readFileSync('sw.js', 'utf8');
+          sw = exactReplace(
+            sw,
+            '// v104 makes ordinary checklist-note interactions paint before persistence and avoids full Notes rerenders.',
+            '// v104 makes ordinary checklist-note interactions paint before persistence and avoids full Notes rerenders.\n// v105 scopes hot task mutations to task/focus rendering and refreshes the cached planner core.',
+            'v105 release lineage'
+          );
+          sw = exactReplace(sw, "'./app.js?v=51'", "'./app.js?v=105'", 'service worker app version');
+          fs.writeFileSync('sw.js', sw);
+
+          const testPath = 'tests/task-responsiveness-v105.test.mjs';
+          let test = fs.readFileSync(testPath, 'utf8');
+          const marker = "test('v105 PWA ships the refreshed planner core atomically'";
+          if (test.includes(marker)) throw new Error('v105 PWA test already exists');
+          test += `\n\ntest('v105 PWA ships the refreshed planner core atomically', () => {\n  const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');\n  const sw = fs.readFileSync(new URL('../sw.js', import.meta.url), 'utf8');\n  assert.match(html, /<script src=\\"app\\.js\\?v=105\\" defer><\\/script>/);\n  assert.doesNotMatch(html, /app\\.js\\?v=51/);\n  assert.match(sw, /'\\.\\/app\\.js\\?v=105'/);\n  assert.doesNotMatch(sw, /'\\.\\/app\\.js\\?v=51'/);\n  assert.match(sw, /v105 scopes hot task mutations to task\\/focus rendering/);\n});\n`;
+          fs.writeFileSync(testPath, test);
+          NODE
+          node --check app.js
+          node --test tests/task-responsiveness-v105.test.mjs
+      - name: Remove one-shot workflow and commit release bump
+        run: |
+          rm .github/workflows/v105-pwa-bump.yml
+          git config user.name "SEVER CI"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html sw.js tests/task-responsiveness-v105.test.mjs .github/workflows/v105-pwa-bump.yml
+          git diff --cached --check
+          git commit -m "release(v105): refresh cached planner core"
+          git push origin HEAD:perf/task-responsiveness-v105
