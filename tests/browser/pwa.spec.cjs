@@ -22,7 +22,7 @@ test('installed release reloads offline with one complete active asset set', asy
       try {
         releaseCache = await page.evaluate(async () => {
           const names = await caches.keys();
-          const releaseNames = names.filter(name => name.startsWith('sever-v108-'));
+          const releaseNames = names.filter(name => name.startsWith('sever-v109-'));
           const name = releaseNames.at(-1) || '';
           if (!name) return { name: '', entries: [], releaseNames };
           const cache = await caches.open(name);
@@ -52,7 +52,9 @@ test('installed release reloads offline with one complete active asset set', asy
           && cached.includes('/sever2-usability-v84.js?v=84')
           && cached.includes('/sever2-interaction-polish.css?v=103')
           && cached.includes('/sever2-missed-tasks-v106.css?v=106')
-          && cached.includes('/sever2-interaction-polish.js?v=108')
+          && cached.includes('/sever2-interaction-polish.js?v=109')
+          && cached.includes('/sever2-progress-habits-v109.css?v=109')
+          && cached.includes('/sever2-progress-habits-v109.js?v=109')
           && cached.includes('/sever2-reminders.css?v=86')
           && cached.includes('/sever2-task-reminders.js?v=82')
           && cached.includes('/sever2-cloud-recovery.js?v=80')
@@ -63,7 +65,7 @@ test('installed release reloads offline with one complete active asset set', asy
       } catch { return false; }
     }).toBe(true);
 
-    expect(releaseCache.name).toBe('sever-v108-observer-batching-release-v1');
+    expect(releaseCache.name).toBe('sever-v109-progress-habits-release-v1');
     const cached = releaseCache.entries;
     for (const asset of [
       '/mobile-home.css?v=52','/desktop-system.css?v=60','/themes.css?v=60','/sever2-ui.css?v=61','/sever2-qa.css?v=61',
@@ -75,7 +77,9 @@ test('installed release reloads offline with one complete active asset set', asy
       '/sever2-mobile-consistency.css?v=76','/sever2-notes-compact-v87.css?v=87','/sever2-notes-compact-v87.js?v=87',
       '/sever2-experience-v94.css?v=101','/sever2-experience-v94.js?v=101',
       '/sever2-money.css?v=83','/sever2-money.js?v=83','/sever2-usability-v84.css?v=93','/sever2-usability-v84.js?v=84',
-      '/sever2-interaction-polish.css?v=103','/sever2-missed-tasks-v106.css?v=106','/sever2-interaction-polish.js?v=108','/sever2-reminders.css?v=86','/sever2-task-reminders.js?v=82',
+      '/sever2-interaction-polish.css?v=103','/sever2-missed-tasks-v106.css?v=106','/sever2-interaction-polish.js?v=109',
+      '/sever2-progress-habits-v109.css?v=109','/sever2-progress-habits-v109.js?v=109',
+      '/sever2-reminders.css?v=86','/sever2-task-reminders.js?v=82',
       '/sever2-cloud-recovery.css?v=80','/sever2-cloud-recovery.js?v=80','/mobile-ui.js?v=92','/js/theme-init.js?v=92','/app.js?v=106','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55','/js/sever-ai.js?v=100'
     ]) expect(cached).toContain(asset);
     expect(cached).not.toContain('/app.js?v=51');
@@ -86,15 +90,17 @@ test('installed release reloads offline with one complete active asset set', asy
     expect(cached).not.toContain('/sever2-interaction-polish.js?v=78');
     expect(cached).not.toContain('/sever2-interaction-polish.js?v=101');
     expect(cached).not.toContain('/sever2-interaction-polish.js?v=107');
+    expect(cached).not.toContain('/sever2-interaction-polish.js?v=108');
     expect(cached).not.toContain('/desktop-home.css?v=60');
 
     await context.setOffline(true);
     await page.reload();
     await expect(page.locator('#todayView')).toBeVisible();
-    for (const key of ['severProductivity','severFocusFlow','severEfficiency','severCalendarClarity','severCreateFlow','severHomeCore','severNotesCore','severNotesOrganization','severNotesEditorFlow','severNotesNavigation','severNotesPolish','severMoney','severInteractionPolish','severCloudRecovery']) {
+    for (const key of ['severProductivity','severFocusFlow','severEfficiency','severCalendarClarity','severCreateFlow','severHomeCore','severNotesCore','severNotesOrganization','severNotesEditorFlow','severNotesNavigation','severNotesPolish','severMoney','severInteractionPolish','severProgressHabits','severCloudRecovery']) {
       await expect.poll(() => page.evaluate(name => document.documentElement.dataset[name], key)).toBe('ready');
     }
-    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severInteractionPolishVersion)).toBe('v108');
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severInteractionPolishVersion)).toBe('v109');
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severProgressHabitsVersion)).toBe('v109');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesCompact)).toBe('v94');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severExperience)).toBe('v94');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severSeasonSignature)).toBe('v101');
@@ -116,6 +122,8 @@ test('installed release reloads offline with one complete active asset set', asy
     await expect(page.locator('link[data-sever2-money-pack]')).toHaveAttribute('href', /sever2-money\.css\?v=77$/);
     await expect(page.locator('link[data-sever2-usability-v84-pack]')).toHaveAttribute('href', /sever2-usability-v84\.css\?v=84$/);
     await expect(page.locator('link[data-sever2-interaction-polish-pack]')).toHaveAttribute('href', /sever2-interaction-polish\.css\?v=78$/);
+    await expect(page.locator('link[data-sever-progress-habits-v109]')).toHaveAttribute('href', /sever2-progress-habits-v109\.css\?v=109$/);
+    await expect(page.locator('script[data-sever-progress-habits-v109]')).toHaveAttribute('src', /sever2-progress-habits-v109\.js\?v=109$/);
     await expect(page.locator('link[data-sever2-cloud-recovery-pack]')).toHaveAttribute('href', /sever2-cloud-recovery\.css\?v=80$/);
     await expect(page.locator('#sever2HomeCore')).toBeVisible();
     await page.locator('.bottom-nav [data-view="calendar"]').click();

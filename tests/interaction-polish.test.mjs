@@ -41,7 +41,7 @@ test('v108 observers batch changed task and habit nodes without rescanning whole
   assert.match(source, /requestAnimationFrame\(syncHabitChecks\)/);
   assert.match(source, /new MutationObserver\(syncHabitMutationRecords\)/);
   assert.match(source, /dataset\.severInteractionPolish = 'ready'/);
-  assert.match(source, /dataset\.severInteractionPolishVersion = 'v108'/);
+  assert.match(source, /dataset\.severInteractionPolishVersion = 'v109'/);
   assert.doesNotMatch(source, /\$\$\('\.task'\)\.forEach/);
   assert.doesNotMatch(source, /document\.querySelectorAll\('\.habit-week \.habit-day'\)\.forEach/);
 });
@@ -111,7 +111,7 @@ test('habit completion cannot restyle the whole card and Focus play stays center
   assert.match(css, /border-left:\s*11px solid currentColor/);
 });
 
-test('v103+ interaction polish remains inside the current atomic PWA release', () => {
+test('v109 interaction polish remains inside the current atomic PWA release', () => {
   const home = themeInit.indexOf('sever2-home-core-script');
   const money = themeInit.indexOf('sever2-money-script');
   const usabilityIndex = themeInit.indexOf('sever2-usability-v84-script');
@@ -126,10 +126,14 @@ test('v103+ interaction polish remains inside the current atomic PWA release', (
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
   const release = sw.match(/const CACHE = 'sever-v(\d+)-[^']+'/);
-  assert.ok(release && Number(release[1]) >= 108, 'current atomic cache must preserve v108 interaction performance');
+  assert.ok(release && Number(release[1]) >= 109, 'current atomic cache must preserve v109 progress and habit history');
   assert.match(sw, /v103 refreshes the autumn wordmark animation/);
   assert.match(sw, /v107 scopes task\/habit MutationObserver work/);
   assert.match(sw, /v108 batches habit mutation work per frame/);
+  assert.match(sw, /v109 makes missed state honest/);
+  assert.match(source, /function installProgressHabitsV109Layer\(\)/);
+  assert.match(source, /sever2-progress-habits-v109\.css\?v=109/);
+  assert.match(source, /sever2-progress-habits-v109\.js\?v=109/);
   for (const asset of [
     './sever2-efficiency.css?v=102',
     './sever2-home-core.js?v=85',
@@ -138,14 +142,15 @@ test('v103+ interaction polish remains inside the current atomic PWA release', (
     './sever2-experience-v94.css?v=101','./sever2-experience-v94.js?v=101',
     './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84',
-    './sever2-interaction-polish.css?v=103','./sever2-interaction-polish.js?v=108',
+    './sever2-interaction-polish.css?v=103','./sever2-interaction-polish.js?v=109',
+    './sever2-progress-habits-v109.css?v=109','./sever2-progress-habits-v109.js?v=109',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80',
     './sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82',
     './js/theme-init.js?v=92'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   for (const pathValue of [
     'sever2-efficiency.css','sever2-home-core.js','sever2-usability-v84.css','sever2-usability-v84.js',
-    'sever2-interaction-polish.css','sever2-interaction-polish.js','sever2-cloud-recovery.js',
+    'sever2-interaction-polish.css','sever2-interaction-polish.js','sever2-progress-habits-v109.css','sever2-progress-habits-v109.js','sever2-cloud-recovery.js',
     'sever2-reminders.css','sever2-task-reminders.js','sever2-experience-v94.css','sever2-experience-v94.js'
   ]) assert.match(sw, new RegExp(`'/${pathValue.replaceAll('.', '\\.').replaceAll('-', '\\-')}'`));
 });

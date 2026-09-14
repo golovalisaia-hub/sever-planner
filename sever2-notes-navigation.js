@@ -213,7 +213,7 @@
     scopeBar.querySelector('[data-notes-scope-reset]').addEventListener('click', clearScopes);
 
     const sourceNodes = [folders, tagSource()].filter(Boolean);
-    sourceObserver = new MutationObserver(() => requestAnimationFrame(updateScopeBar));
+    sourceObserver = new MutationObserver(updateScopeBar);
     sourceNodes.forEach(node => sourceObserver.observe(node, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] }));
     updateScopeBar();
   }

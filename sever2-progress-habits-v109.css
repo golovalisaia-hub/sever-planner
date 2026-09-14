@@ -1,0 +1,414 @@
+/* SEVER v109 — honest missed states, useful habit history and denser progress. */
+
+/* ---------- Missed tasks: an empty control means pending, never completed ---------- */
+#missedTasksBlock .missed-check {
+  position: relative;
+  display: grid;
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  place-items: center;
+  padding: 0 !important;
+  border: 1.5px solid var(--border-strong, var(--line)) !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  color: transparent !important;
+  box-shadow: none !important;
+  font-size: 0 !important;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+#missedTasksBlock .missed-check::after {
+  content: "";
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted, var(--muted));
+  opacity: .34;
+  transform: scale(.72);
+  transition: opacity .16s ease, transform .16s ease, background .16s ease;
+}
+#missedTasksBlock .missed-check:hover::after,
+#missedTasksBlock .missed-check:focus-visible::after {
+  background: var(--accent, var(--sever-blue));
+  opacity: .78;
+  transform: scale(1);
+}
+#missedTasksBlock .missed-check:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent, var(--sever-blue)) 62%, transparent);
+  outline-offset: 3px;
+}
+#missedTasksBlock .missed-head-copy small::after {
+  content: " · НЕ ВЫПОЛНЕНО";
+  color: var(--text-muted, var(--muted));
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+/* ---------- Habit history navigation ---------- */
+.sever109-habit-history-bar {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px auto;
+  align-items: center;
+  gap: 8px;
+  margin: -8px 0 14px;
+  padding: 10px;
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: 15px;
+  background: var(--surface-1, var(--panel));
+}
+.sever109-habit-history-bar > button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: 11px;
+  background: var(--surface-2, var(--panel2));
+  color: var(--text-primary, var(--text));
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.sever109-habit-history-bar > button:disabled {
+  opacity: .32;
+  cursor: default;
+}
+.sever109-habit-history-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.sever109-habit-history-copy small {
+  color: var(--text-muted, var(--muted));
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .11em;
+}
+.sever109-habit-history-copy b {
+  overflow: hidden;
+  color: var(--text-primary, var(--text));
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sever109-habit-current {
+  width: auto !important;
+  padding: 0 12px !important;
+  font-size: 11px !important;
+}
+.sever109-history-week .habit-day {
+  cursor: default !important;
+}
+.sever109-history-week .habit-day:not(.done) {
+  opacity: .7;
+}
+/* Past weeks are read-only, but they are history, not unavailable UI. Override
+   the core future-day disabled fade so completed and missed days remain legible. */
+.sever109-history-week .habit-day:disabled {
+  opacity: .72 !important;
+}
+.sever109-history-week .habit-day.done:disabled {
+  opacity: 1 !important;
+}
+.sever109-history-week .habit-day.today {
+  box-shadow: none !important;
+}
+
+.sever109-habit-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 11px 0 0;
+}
+.sever109-habit-metric {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: 999px;
+  background: var(--surface-2, var(--panel2));
+  color: var(--text-secondary, var(--muted));
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+.sever109-habit-metric b {
+  color: var(--text-primary, var(--text));
+  font-size: 11px;
+}
+.sever109-habit-metric.streak::before {
+  content: "🔥";
+  font-size: 11px;
+  line-height: 1;
+}
+.sever109-habit-metric.history::before {
+  content: "30д";
+  color: var(--accent, var(--sever-blue));
+  font-size: 9px;
+  font-weight: 900;
+}
+
+/* ---------- Progress v109 ---------- */
+.sever109-progress-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+.sever109-progress-card {
+  display: grid;
+  min-height: 112px;
+  align-content: space-between;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: 16px;
+  background: var(--surface-1, var(--panel));
+}
+.sever109-progress-card > span {
+  color: var(--text-muted, var(--muted));
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.sever109-progress-card > b {
+  color: var(--text-primary, var(--text));
+  font-size: clamp(23px, 2.4vw, 32px);
+  letter-spacing: -.035em;
+  line-height: 1;
+}
+.sever109-progress-card > small {
+  min-height: 28px;
+  color: var(--text-secondary, var(--muted));
+  font-size: 10px;
+  line-height: 1.35;
+}
+.sever109-progress-card[data-tone="strong"] {
+  border-color: color-mix(in srgb, var(--accent, var(--sever-blue)) 32%, var(--border-subtle, var(--line)));
+  background: color-mix(in srgb, var(--accent-soft, var(--surface-2)) 52%, var(--surface-1, var(--panel)));
+}
+
+.sever109-habit-progress {
+  display: grid;
+  gap: 12px;
+  margin-top: 15px;
+  padding: 18px;
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: 17px;
+  background: var(--surface-1, var(--panel));
+}
+.sever109-habit-progress-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.sever109-habit-progress-head div {
+  display: grid;
+  gap: 3px;
+}
+.sever109-habit-progress-head small {
+  color: var(--text-muted, var(--muted));
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .11em;
+}
+.sever109-habit-progress-head h2 {
+  margin: 0;
+  color: var(--text-primary, var(--text));
+  font-size: 19px;
+}
+.sever109-habit-progress-head > span {
+  color: var(--text-secondary, var(--muted));
+  font-size: 11px;
+  text-align: right;
+}
+.sever109-habit-progress-list {
+  display: grid;
+  gap: 8px;
+}
+.sever109-habit-progress-row {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(180px, 1.4fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 11px 0;
+  border-top: 1px solid var(--border-subtle, var(--line));
+}
+.sever109-habit-progress-row:first-child {
+  border-top: 0;
+}
+.sever109-habit-progress-name {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.sever109-habit-progress-name b {
+  overflow: hidden;
+  color: var(--text-primary, var(--text));
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sever109-habit-progress-name small {
+  color: var(--text-muted, var(--muted));
+  font-size: 10px;
+}
+.sever109-habit-dots {
+  display: grid;
+  grid-template-columns: repeat(30, minmax(3px, 1fr));
+  gap: 2px;
+}
+.sever109-habit-dot {
+  aspect-ratio: 1;
+  min-width: 3px;
+  max-width: 10px;
+  border-radius: 3px;
+  background: var(--surface-2, var(--panel2));
+  box-shadow: inset 0 0 0 1px var(--border-subtle, var(--line));
+}
+.sever109-habit-dot.done {
+  background: var(--accent, var(--sever-blue));
+  box-shadow: none;
+}
+.sever109-habit-dot.before-start {
+  opacity: .18;
+}
+.sever109-habit-progress-score {
+  min-width: 58px;
+  color: var(--text-primary, var(--text));
+  font-size: 13px;
+  font-weight: 850;
+  text-align: right;
+}
+.sever109-progress-empty {
+  padding: 18px 4px 4px;
+  color: var(--text-muted, var(--muted));
+  font-size: 12px;
+}
+
+/* ---------- Desktop wordmark: desktop should look intentionally desktop ---------- */
+@media (min-width: 901px) {
+  .desktop-sidebar > .wordmark {
+    font-size: 44px !important;
+    letter-spacing: -2.4px !important;
+  }
+  .desktop-sidebar > .wordmark::after {
+    width: 90px !important;
+    bottom: -6px !important;
+  }
+  html[data-sever-season="autumn"] .desktop-sidebar > .wordmark .sever-season-mark[data-season="autumn"] > svg {
+    width: 10px !important;
+    height: 10px !important;
+    margin-top: -5px !important;
+    animation: sever109-autumn-desktop-a 8.8s linear infinite !important;
+  }
+  html[data-sever-season="autumn"] .desktop-sidebar > .wordmark .sever-season-mark[data-season="autumn"]::before {
+    width: 9px !important;
+    height: 7px !important;
+    margin-top: -3px !important;
+    animation: sever109-autumn-desktop-b 9.6s linear -2.8s infinite !important;
+  }
+  html[data-sever-season="autumn"] .desktop-sidebar > .wordmark .sever-season-mark[data-season="autumn"]::after {
+    width: 8px !important;
+    height: 6px !important;
+    margin-top: -3px !important;
+    animation: sever109-autumn-desktop-c 10.4s linear -5.3s infinite !important;
+  }
+}
+
+@keyframes sever109-autumn-desktop-a {
+  0% { opacity: 0; transform: translate3d(-10px,-8px,0) rotate(-28deg) scale(.9); }
+  12% { opacity: .48; }
+  38% { opacity: .4; transform: translate3d(32px,5px,0) rotate(48deg) scale(1.08); }
+  68% { opacity: .31; transform: translate3d(67px,-3px,0) rotate(124deg) scale(1); }
+  88% { opacity: .2; }
+  100% { opacity: 0; transform: translate3d(102px,6px,0) rotate(198deg) scale(.86); }
+}
+@keyframes sever109-autumn-desktop-b {
+  0% { opacity: 0; transform: translate3d(-9px,6px,0) rotate(16deg) scale(.92); }
+  14% { opacity: .36; }
+  43% { opacity: .31; transform: translate3d(35px,-5px,0) rotate(94deg) scale(1.04); }
+  73% { opacity: .24; transform: translate3d(71px,4px,0) rotate(162deg) scale(.96); }
+  100% { opacity: 0; transform: translate3d(104px,-3px,0) rotate(232deg) scale(.82); }
+}
+@keyframes sever109-autumn-desktop-c {
+  0% { opacity: 0; transform: translate3d(-8px,-2px,0) rotate(-8deg) scale(.86); }
+  16% { opacity: .32; }
+  46% { opacity: .27; transform: translate3d(37px,6px,0) rotate(82deg) scale(1); }
+  76% { opacity: .21; transform: translate3d(75px,-4px,0) rotate(150deg) scale(.92); }
+  100% { opacity: 0; transform: translate3d(106px,5px,0) rotate(220deg) scale(.8); }
+}
+
+@media (max-width: 900px) {
+  .sever109-progress-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .sever109-progress-card {
+    min-height: 104px;
+    padding: 14px;
+  }
+  .sever109-habit-progress-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 10px;
+  }
+  .sever109-habit-dots {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .sever109-habit-progress-score {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 430px) {
+  .sever109-habit-history-bar {
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+  }
+  .sever109-habit-current {
+    grid-column: 1 / -1;
+    width: 100% !important;
+    min-height: 38px !important;
+  }
+  .sever109-progress-summary {
+    gap: 7px;
+  }
+  .sever109-progress-card {
+    min-height: 96px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+  .sever109-progress-card > b {
+    font-size: 24px;
+  }
+  .sever109-habit-progress {
+    padding: 14px;
+  }
+  .sever109-habit-progress-head {
+    align-items: start;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .sever109-habit-progress-head > span {
+    text-align: left;
+  }
+  .sever109-habit-dots {
+    gap: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #missedTasksBlock .missed-check::after,
+  html[data-sever-season="autumn"] .desktop-sidebar > .wordmark .sever-season-mark[data-season="autumn"] > svg,
+  html[data-sever-season="autumn"] .desktop-sidebar > .wordmark .sever-season-mark[data-season="autumn"]::before,
+  html[data-sever-season="autumn"] .desktop-sidebar > .wordmark .sever-season-mark[data-season="autumn"]::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
