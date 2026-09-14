@@ -42,6 +42,8 @@
   let guideObserver = null;
   let todayObserver = null;
   let finalActionArmed = false;
+  let dayRefreshTimer = 0;
+  let dayRefreshFrame = 0;
 
   function replaceCoreSlides() {
     try {
@@ -168,6 +170,36 @@
     if (button && button.textContent !== EMPTY_TODAY_ACTION) button.textContent = EMPTY_TODAY_ACTION;
   }
 
+  function refreshOpenHistoricalDay(date) {
+    dayRefreshFrame = 0;
+    const dialog = $('#dayDialog');
+    if (!dialog?.open || !date) return;
+    const cell = $(`#calendar > .day[data-sever-date="${date}"]`);
+    if (!cell) return;
+    dialog.close();
+    cell.click();
+  }
+
+  function scheduleHistoricalDayRefresh(date) {
+    clearTimeout(dayRefreshTimer);
+    if (dayRefreshFrame) cancelAnimationFrame(dayRefreshFrame);
+    dayRefreshTimer = setTimeout(() => {
+      dayRefreshTimer = 0;
+      dayRefreshFrame = requestAnimationFrame(() => refreshOpenHistoricalDay(date));
+    }, 0);
+  }
+
+  function installHistoricalDayRepair() {
+    document.addEventListener('click', event => {
+      const dialog = $('#dayDialog');
+      if (!dialog?.open) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target?.closest('#dayTaskList .check, #toast button')) return;
+      const date = window.SeverApp?.getContext?.().selectedDate || '';
+      scheduleHistoricalDayRefresh(date);
+    }, true);
+  }
+
   function installObservers() {
     const dialog = $('#tourDialog');
     if (dialog && !guideObserver) {
@@ -207,6 +239,7 @@
     installed = true;
     replaceCoreSlides();
     polishHelpLabels();
+    installHistoricalDayRepair();
     installObservers();
     installLocalFirstRunFallback();
     syncGuideChrome();
