@@ -31,6 +31,7 @@ jobs:
             echo "--- tail ---"
             tail -n 180 /tmp/v106-tests.log
           } > tests/v106-regression-output.txt
+          sed -i 's/[[:space:]]*$//' tests/v106-regression-output.txt
       - name: Commit diagnostic and remove workflow
         run: |
           rm .github/workflows/v106-regression-diagnostic.yml
