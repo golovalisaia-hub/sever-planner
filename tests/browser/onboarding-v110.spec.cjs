@@ -75,14 +75,31 @@ async function expectStableGuideContrast(page) {
   expect(visual.cardBlend).toBe('normal');
 }
 
-async function expectUntargetedSpotlightClosed(page) {
+async function expectUntargetedBackdropStable(page) {
   await expect(page.locator('#tourDialog')).toHaveAttribute('data-has-target', 'false');
-  const rect = await page.locator('#guideSpotlight').evaluate(element => {
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const visual = await page.locator('#guideSpotlight').evaluate(element => {
     const box = element.getBoundingClientRect();
-    return { width: box.width, height: box.height };
+    const style = getComputedStyle(element);
+    return {
+      x: box.x,
+      y: box.y,
+      width: box.width,
+      height: box.height,
+      viewportWidth: innerWidth,
+      viewportHeight: innerHeight,
+      boxShadow: style.boxShadow,
+      backgroundColor: style.backgroundColor,
+      transitionDuration: style.transitionDuration
+    };
   });
-  expect(rect.width).toBeLessThanOrEqual(1);
-  expect(rect.height).toBeLessThanOrEqual(1);
+  expect(Math.abs(visual.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visual.y)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visual.width - visual.viewportWidth)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visual.height - visual.viewportHeight)).toBeLessThanOrEqual(1);
+  expect(visual.boxShadow).toBe('none');
+  expect(visual.backgroundColor).toBe('rgba(26, 26, 30, 0.47)');
+  expect(visual.transitionDuration).toBe('0s');
 }
 
 test('fresh local user gets automatic quick orientation without manually firing cloud-ready', async ({ page }, info) => {
@@ -97,7 +114,7 @@ test('fresh local user gets automatic quick orientation without manually firing 
   await expect(page.locator('#sever110GuideStep')).toHaveText('1 / 5');
   await expect(page.locator('#tourSkip')).toHaveText('Пропустить');
   await expectStableGuideContrast(page);
-  await expectUntargetedSpotlightClosed(page);
+  await expectUntargetedBackdropStable(page);
   await shot(page, info.project.name, 'welcome');
 });
 
@@ -113,7 +130,7 @@ test('quick orientation ends by opening creation of the first real task', async 
   await expect(page.locator('#tourText')).toContainText('Деньги');
   await expect(page.locator('#tourNext')).toHaveText('Добавить первую задачу');
   await expectStableGuideContrast(page);
-  await expectUntargetedSpotlightClosed(page);
+  await expectUntargetedBackdropStable(page);
   await shot(page, info.project.name, 'finish');
   await page.locator('#tourNext').click();
 
