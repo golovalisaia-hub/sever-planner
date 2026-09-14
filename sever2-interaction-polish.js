@@ -275,7 +275,8 @@
     if (!window.SeverApp?.getState || !$('#calendar') || !$('#todayTasks') || !$('#habitList')) return false;
     installObservers();
     scheduleCalendar();
-    document.documentElement.dataset.severInteractionPolish = 'v107';
+    document.documentElement.dataset.severInteractionPolish = 'ready';
+    document.documentElement.dataset.severInteractionPolishVersion = 'v107';
     return true;
   }
 
