@@ -65,7 +65,7 @@ test('v101 startup never destroys a push subscription before auth has settled', 
   assert.doesNotMatch(interaction, /subscription\?\.unsubscribe\(\)/);
   assert.match(reminders, /event === 'SIGNED_OUT'/);
   assert.match(reminders, /pushSubscription\(\)\.then\(subscription => subscription\?\.unsubscribe\(\)\)/);
-  assert.match(sw, /sever2-interaction-polish\.js\?v=101/);
+  assert.match(sw, /sever2-interaction-polish\.js\?v=107/);
 });
 
 test('reminder settings have dedicated wide desktop and compact mobile layouts', () => {
