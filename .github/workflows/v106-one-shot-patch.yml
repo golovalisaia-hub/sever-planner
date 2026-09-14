@@ -33,31 +33,12 @@ jobs:
           app = replaceOnce(app, oldRollover, "function rollover(){return missedTasks().length}", 'rollover');
 
           const marker = 'function renderToday(){';
-          const helpers = String.raw`
-function missedTasks(){return state.tasks.filter(task=>!task.challenge&&!task.completed&&task.date<TODAY)}
-function moveMissedTask(task,date,label){if(!task||!date)return;const before={date:task.date};task.date=date;task.updatedAt=Date.now();saveAndRender(['tasks']);toast(label,{type:'task-state',id:task.id,before})}
-function missedTaskRow(task){
-  const row=document.createElement('article');row.className='missed-task';row.dataset.taskId=task.id;
-  row.innerHTML='<button class="missed-check" type="button" aria-label="Выполнить пропущенную задачу">✓</button><button class="missed-copy" type="button"><b></b><span></span></button><div class="missed-actions"><button type="button" data-missed-action="today">Сегодня</button><button type="button" data-missed-action="tomorrow">Завтра</button></div>';
-  row.querySelector('.missed-copy b').textContent=task.title;
-  const meta=[`План: ${pretty(task.date,false)}`];if(task.duration)meta.push(`${task.duration} мин`);row.querySelector('.missed-copy span').textContent=meta.join(' · ');
-  row.querySelector('.missed-check').onclick=()=>completeTask(task);
-  row.querySelector('.missed-copy').onclick=()=>openTaskAction(task);
-  row.querySelector('[data-missed-action="today"]').onclick=()=>moveMissedTask(task,TODAY,'Перенесено на сегодня');
-  row.querySelector('[data-missed-action="tomorrow"]').onclick=()=>moveMissedTask(task,addDays(TODAY,1),'Перенесено на завтра');
-  return row;
-}
-function renderMissedTasks(){
-  const anchor=document.querySelector('.today-list-head');if(!anchor)return;
-  let section=$('#missedTasksBlock');if(!section){section=document.createElement('section');section.id='missedTasksBlock';section.setAttribute('aria-label','Пропущенные задачи');anchor.before(section)}
-  const items=missedTasks().sort((a,b)=>b.date.localeCompare(a.date)||Number(b.priority)-Number(a.priority));
-  section.hidden=!items.length;section.textContent='';if(!items.length){section.dataset.expanded='false';return}
-  const expanded=section.dataset.expanded==='true',visible=expanded?items:items.slice(0,3);
-  const head=document.createElement('div');head.className='missed-head';head.innerHTML='<div class="missed-head-copy"><small>ПРОПУЩЕНО</small><p>Осталось с предыдущих дней</p></div><b class="missed-count"></b>';head.querySelector('.missed-count').textContent=String(items.length);section.appendChild(head);
-  const list=document.createElement('div');list.className='missed-list';visible.forEach(task=>list.appendChild(missedTaskRow(task)));section.appendChild(list);
-  if(items.length>3){const more=document.createElement('button');more.type='button';more.className='missed-more';more.textContent=expanded?'Свернуть':`Показать ещё ${items.length-3}`;more.onclick=()=>{section.dataset.expanded=String(!expanded);renderMissedTasks()};section.appendChild(more)}
-}
-`;
+          const helpers = [
+            "function missedTasks(){return state.tasks.filter(task=>!task.challenge&&!task.completed&&task.date<TODAY)}",
+            "function moveMissedTask(task,date,label){if(!task||!date)return;const before={date:task.date};task.date=date;task.updatedAt=Date.now();saveAndRender(['tasks']);toast(label,{type:'task-state',id:task.id,before})}",
+            "function missedTaskRow(task){const row=document.createElement('article');row.className='missed-task';row.dataset.taskId=task.id;row.innerHTML='<button class=\"missed-check\" type=\"button\" aria-label=\"Выполнить пропущенную задачу\">✓</button><button class=\"missed-copy\" type=\"button\"><b></b><span></span></button><div class=\"missed-actions\"><button type=\"button\" data-missed-action=\"today\">Сегодня</button><button type=\"button\" data-missed-action=\"tomorrow\">Завтра</button></div>';row.querySelector('.missed-copy b').textContent=task.title;const meta=[`План: ${pretty(task.date,false)}`];if(task.duration)meta.push(`${task.duration} мин`);row.querySelector('.missed-copy span').textContent=meta.join(' · ');row.querySelector('.missed-check').onclick=()=>completeTask(task);row.querySelector('.missed-copy').onclick=()=>openTaskAction(task);row.querySelector('[data-missed-action=\"today\"]').onclick=()=>moveMissedTask(task,TODAY,'Перенесено на сегодня');row.querySelector('[data-missed-action=\"tomorrow\"]').onclick=()=>moveMissedTask(task,addDays(TODAY,1),'Перенесено на завтра');return row}",
+            "function renderMissedTasks(){const anchor=document.querySelector('.today-list-head');if(!anchor)return;let section=$('#missedTasksBlock');if(!section){section=document.createElement('section');section.id='missedTasksBlock';section.setAttribute('aria-label','Пропущенные задачи');anchor.before(section)}const items=missedTasks().sort((a,b)=>b.date.localeCompare(a.date)||Number(b.priority)-Number(a.priority));section.hidden=!items.length;section.textContent='';if(!items.length){section.dataset.expanded='false';return}const expanded=section.dataset.expanded==='true',visible=expanded?items:items.slice(0,3);const head=document.createElement('div');head.className='missed-head';head.innerHTML='<div class=\"missed-head-copy\"><small>ПРОПУЩЕНО</small><p>Осталось с предыдущих дней</p></div><b class=\"missed-count\"></b>';head.querySelector('.missed-count').textContent=String(items.length);section.appendChild(head);const list=document.createElement('div');list.className='missed-list';visible.forEach(task=>list.appendChild(missedTaskRow(task)));section.appendChild(list);if(items.length>3){const more=document.createElement('button');more.type='button';more.className='missed-more';more.textContent=expanded?'Свернуть':`Показать ещё ${items.length-3}`;more.onclick=()=>{section.dataset.expanded=String(!expanded);renderMissedTasks()};section.appendChild(more)}}"
+          ].join('\n');
           app = replaceOnce(app, marker, helpers + "\nfunction renderToday(){renderMissedTasks();", 'renderToday hook');
           fs.writeFileSync('app.js', app);
 
