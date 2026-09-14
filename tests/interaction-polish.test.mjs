@@ -32,13 +32,16 @@ test('interaction polish keeps the original task checkbox size and centered comp
   assert.doesNotMatch(usability, /closest\('\.task \.check, \.habit-day/);
 });
 
-test('v107 observers update only changed task and habit nodes instead of rescanning whole lists', () => {
+test('v108 observers batch changed task and habit nodes without rescanning whole lists', () => {
   assert.match(source, /const pendingTaskCards = new Set\(\)/);
+  assert.match(source, /const pendingHabitButtons = new Set\(\)/);
   assert.match(source, /record\.addedNodes\.forEach\(queueTaskCard\)/);
+  assert.match(source, /record\.addedNodes\.forEach\(queueHabitButton\)/);
+  assert.match(source, /requestAnimationFrame\(syncTaskChecks\)/);
+  assert.match(source, /requestAnimationFrame\(syncHabitChecks\)/);
   assert.match(source, /new MutationObserver\(syncHabitMutationRecords\)/);
-  assert.match(source, /node\.querySelectorAll\?\.\('\.habit-day'\)\.forEach\(syncHabitButton\)/);
   assert.match(source, /dataset\.severInteractionPolish = 'ready'/);
-  assert.match(source, /dataset\.severInteractionPolishVersion = 'v107'/);
+  assert.match(source, /dataset\.severInteractionPolishVersion = 'v108'/);
   assert.doesNotMatch(source, /\$\$\('\.task'\)\.forEach/);
   assert.doesNotMatch(source, /document\.querySelectorAll\('\.habit-week \.habit-day'\)\.forEach/);
 });
@@ -84,12 +87,14 @@ test('calendar task status no longer becomes a second today badge', () => {
   assert.match(css, /\.sever2-v78-status\.all-done/);
 });
 
-test('calendar polish recovers when a later presentation layer replaces a day status', () => {
+test('v108 calendar polish reuses status DOM and only mutates changed state', () => {
   assert.match(source, /function calendarNeedsPolish\(\)/);
-  assert.match(source, /cell\.querySelector\(':scope > \.sever2-v78-status'\)/);
+  assert.match(source, /let status = cell\.querySelector\(':scope > \.sever2-day-status'\)/);
+  assert.match(source, /if \(!status\) \{/);
+  assert.match(source, /count\.textContent !== String\(summary\.total\)/);
   assert.match(source, /calendarObserver\.observe\(calendar, \{ childList: true, subtree: true \}\)/);
   assert.match(source, /if \(rebuilt \|\| calendarNeedsPolish\(\)\) scheduleCalendar\(\)/);
-  assert.match(source, /querySelectorAll\(':scope > \.sever2-day-status'\)\.forEach/);
+  assert.doesNotMatch(source, /querySelectorAll\(':scope > \.sever2-day-status'\)\.forEach\(status => status\.remove\(\)\)/);
 });
 
 test('habit completion cannot restyle the whole card and Focus play stays centered', () => {
@@ -101,7 +106,7 @@ test('habit completion cannot restyle the whole card and Focus play stays center
   assert.match(css, /border-left:\s*11px solid currentColor/);
 });
 
-test('v103 interaction polish remains inside the current atomic PWA release', () => {
+test('v103+ interaction polish remains inside the current atomic PWA release', () => {
   const home = themeInit.indexOf('sever2-home-core-script');
   const money = themeInit.indexOf('sever2-money-script');
   const usabilityIndex = themeInit.indexOf('sever2-usability-v84-script');
@@ -116,9 +121,10 @@ test('v103 interaction polish remains inside the current atomic PWA release', ()
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
   const release = sw.match(/const CACHE = 'sever-v(\d+)-[^']+'/);
-  assert.ok(release && Number(release[1]) >= 103, 'current atomic cache must preserve v103 interaction polish');
+  assert.ok(release && Number(release[1]) >= 108, 'current atomic cache must preserve v108 interaction performance');
   assert.match(sw, /v103 refreshes the autumn wordmark animation/);
   assert.match(sw, /v107 scopes task\/habit MutationObserver work/);
+  assert.match(sw, /v108 batches habit mutation work per frame/);
   for (const asset of [
     './sever2-efficiency.css?v=102',
     './sever2-home-core.js?v=85',
@@ -127,7 +133,7 @@ test('v103 interaction polish remains inside the current atomic PWA release', ()
     './sever2-experience-v94.css?v=101','./sever2-experience-v94.js?v=101',
     './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84',
-    './sever2-interaction-polish.css?v=103','./sever2-interaction-polish.js?v=107',
+    './sever2-interaction-polish.css?v=103','./sever2-interaction-polish.js?v=108',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80',
     './sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82',
     './js/theme-init.js?v=92'
