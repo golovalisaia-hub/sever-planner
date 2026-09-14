@@ -10,7 +10,9 @@
   let habitObserver = null;
   let calendarQueued = false;
   let checksQueued = false;
+  let habitChecksQueued = false;
   const pendingTaskCards = new Set();
+  const pendingHabitButtons = new Set();
 
   const state = () => window.SeverApp?.getState?.() || { tasks: [] };
   const amount = value => Math.max(0, Number(value) || 0);
@@ -154,26 +156,46 @@
     return { total: tasks.length, done, pending: tasks.length - done };
   }
 
+  function validCalendarStatus(status) {
+    return status instanceof HTMLElement
+      && status.matches('div.sever2-day-status.sever2-v78-status')
+      && Boolean(status.querySelector(':scope > .sever2-v78-task-dot'))
+      && Boolean(status.querySelector(':scope > b'));
+  }
+
   function polishCalendar() {
     calendarQueued = false;
     $$('#calendar > .day').forEach(cell => {
       const date = cell.dataset.severDate;
       if (!date) return;
       const summary = taskSummaryFor(date);
-      cell.querySelectorAll(':scope > .sever2-day-status').forEach(status => status.remove());
-      if (!summary.total) return;
+      const statuses = [...cell.querySelectorAll(':scope > .sever2-day-status')];
 
-      const status = document.createElement('div');
+      if (!summary.total) {
+        statuses.forEach(status => status.remove());
+        return;
+      }
+
+      let status = statuses.find(validCalendarStatus) || null;
+      statuses.forEach(candidate => {
+        if (candidate !== status) candidate.remove();
+      });
+
+      if (!status) {
+        status = document.createElement('div');
+        status.setAttribute('aria-hidden', 'true');
+        const dot = document.createElement('i');
+        dot.className = 'sever2-v78-task-dot';
+        const count = document.createElement('b');
+        status.append(dot, count);
+        cell.appendChild(status);
+      }
+
       status.className = `sever2-day-status sever2-v78-status${summary.pending ? '' : ' all-done'}`;
       status.setAttribute('aria-hidden', 'true');
       status.title = `${summary.total} ${summary.total === 1 ? 'задача' : summary.total < 5 ? 'задачи' : 'задач'}`;
-
-      const dot = document.createElement('i');
-      dot.className = 'sever2-v78-task-dot';
-      const count = document.createElement('b');
-      count.textContent = String(summary.total);
-      status.append(dot, count);
-      cell.appendChild(status);
+      const count = status.querySelector(':scope > b');
+      if (count && count.textContent !== String(summary.total)) count.textContent = String(summary.total);
     });
   }
 
@@ -182,8 +204,15 @@
       const date = cell.dataset.severDate;
       if (!date) return false;
       const summary = taskSummaryFor(date);
-      const status = cell.querySelector(':scope > .sever2-v78-status');
-      return summary.total > 0 ? !status : Boolean(status);
+      const statuses = [...cell.querySelectorAll(':scope > .sever2-day-status')];
+      if (!summary.total) return statuses.length > 0;
+      if (statuses.length !== 1 || !validCalendarStatus(statuses[0])) return true;
+      const status = statuses[0];
+      const count = status.querySelector(':scope > b');
+      const allDone = !summary.pending;
+      return status.classList.contains('all-done') !== allDone
+        || count?.textContent !== String(summary.total)
+        || status.title !== `${summary.total} ${summary.total === 1 ? 'задача' : summary.total < 5 ? 'задачи' : 'задач'}`;
     });
   }
 
@@ -222,21 +251,37 @@
     requestAnimationFrame(syncTaskChecks);
   }
 
+  function queueHabitButton(node) {
+    if (!(node instanceof Element)) return;
+    if (node.matches('.habit-day')) pendingHabitButtons.add(node);
+    node.querySelectorAll?.('.habit-day').forEach(button => pendingHabitButtons.add(button));
+  }
+
   function syncHabitButton(button) {
-    if (!(button instanceof Element) || !button.matches('.habit-day')) return;
+    if (!(button instanceof Element) || !button.matches('.habit-day') || !button.isConnected) return;
     const done = button.classList.contains('done');
     button.setAttribute('aria-pressed', String(done));
   }
 
+  function syncHabitChecks() {
+    habitChecksQueued = false;
+    const buttons = [...pendingHabitButtons];
+    pendingHabitButtons.clear();
+    buttons.forEach(syncHabitButton);
+  }
+
+  function scheduleHabitChecks() {
+    if (habitChecksQueued || !pendingHabitButtons.size) return;
+    habitChecksQueued = true;
+    requestAnimationFrame(syncHabitChecks);
+  }
+
   function syncHabitMutationRecords(records) {
     records.forEach(record => {
-      if (record.type === 'attributes') syncHabitButton(record.target);
-      record.addedNodes.forEach(node => {
-        if (!(node instanceof Element)) return;
-        syncHabitButton(node);
-        node.querySelectorAll?.('.habit-day').forEach(syncHabitButton);
-      });
+      if (record.type === 'attributes') queueHabitButton(record.target);
+      record.addedNodes.forEach(queueHabitButton);
     });
+    scheduleHabitChecks();
   }
 
   function installObservers() {
@@ -267,7 +312,8 @@
     if (habits && !habitObserver) {
       habitObserver = new MutationObserver(syncHabitMutationRecords);
       habitObserver.observe(habits, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
-      habits.querySelectorAll('.habit-day').forEach(syncHabitButton);
+      habits.querySelectorAll('.habit-day').forEach(button => pendingHabitButtons.add(button));
+      scheduleHabitChecks();
     }
   }
 
@@ -276,7 +322,7 @@
     installObservers();
     scheduleCalendar();
     document.documentElement.dataset.severInteractionPolish = 'ready';
-    document.documentElement.dataset.severInteractionPolishVersion = 'v107';
+    document.documentElement.dataset.severInteractionPolishVersion = 'v108';
     return true;
   }
 
@@ -304,5 +350,7 @@
     scheduleCalendar();
     $('#todayTasks')?.querySelectorAll('.task').forEach(card => pendingTaskCards.add(card));
     scheduleChecks();
+    $('#habitList')?.querySelectorAll('.habit-day').forEach(button => pendingHabitButtons.add(button));
+    scheduleHabitChecks();
   });
 })();
