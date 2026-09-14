@@ -53,7 +53,10 @@ test('pinning, tags and tag filters stay synchronized with planner state', async
   await expect(page.locator('#notesPinnedList')).toContainText('#Проект');
   await expect(page.locator('#notesOrganizationTags')).toContainText('#Проект');
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesNavigation)).toBe('ready');
-  await page.locator('[data-notes-scope="tag"]').click();
+  const tagScope = page.locator('[data-notes-scope="tag"]');
+  await expect(tagScope).toBeEnabled();
+  await expect(tagScope).toContainText('2 доступно');
+  await tagScope.click();
   await page.locator('.notes-navigation-option', { hasText: '#Проект' }).click();
   await expect(page.locator('#notesPinnedList')).toContainText('Идея для SEVER');
   await expect(page.locator('#noteList .note-card').filter({ hasText: 'Купить продукты' })).toBeHidden();
