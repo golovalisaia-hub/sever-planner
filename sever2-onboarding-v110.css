@@ -1,31 +1,32 @@
 /* SEVER v110 — fast, optional first-run orientation with an actionable finish. */
-#tourDialog .guide-card{--sever110-guide-text:#f7f4ef;--sever110-guide-muted:rgba(247,244,239,.82);--sever110-guide-soft:rgba(247,244,239,.7)}
-#tourDialog .guide-card-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px}
-#tourDialog .guide-kicker{white-space:nowrap;color:var(--sever110-guide-soft);opacity:1}
-#tourDialog .sever110-guide-step{justify-self:start;color:var(--sever110-guide-soft);font-size:.7rem;font-weight:800;letter-spacing:.06em;opacity:1}
-#tourDialog .guide-copy h2{color:var(--sever110-guide-text);text-wrap:balance}
-#tourDialog .guide-copy p{max-width:46ch;color:var(--sever110-guide-muted)}
-#tourDialog .guide-skip,#tourDialog .guide-back{color:var(--sever110-guide-soft)}
-#tourDialog .guide-skip:hover,#tourDialog .guide-back:hover{color:var(--sever110-guide-text)}
-#tourDialog .guide-dots i{background:rgba(247,244,239,.16)}
-#tourDialog .guide-dots i.active{background:rgba(247,244,239,.72)}
+#tourDialog.guide-dialog .guide-card{--sever110-guide-text:#f7f4ef;--sever110-guide-muted:rgba(247,244,239,.82);--sever110-guide-soft:rgba(247,244,239,.7);background:rgba(13,17,25,.96)!important;color:var(--sever110-guide-text)!important;opacity:1!important;filter:none!important;mix-blend-mode:normal!important}
+#tourDialog.guide-dialog .guide-card-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px}
+#tourDialog.guide-dialog .guide-kicker{white-space:nowrap;color:var(--sever110-guide-soft)!important;-webkit-text-fill-color:var(--sever110-guide-soft)!important;opacity:1!important}
+#tourDialog.guide-dialog .sever110-guide-step{justify-self:start;color:var(--sever110-guide-soft)!important;-webkit-text-fill-color:var(--sever110-guide-soft)!important;font-size:.7rem;font-weight:800;letter-spacing:.06em;opacity:1!important}
+#tourDialog.guide-dialog .guide-copy{opacity:1!important;filter:none!important;mix-blend-mode:normal!important}
+#tourDialog.guide-dialog .guide-copy h2{color:var(--sever110-guide-text)!important;-webkit-text-fill-color:var(--sever110-guide-text)!important;opacity:1!important;text-wrap:balance}
+#tourDialog.guide-dialog .guide-copy p{max-width:46ch;color:var(--sever110-guide-muted)!important;-webkit-text-fill-color:var(--sever110-guide-muted)!important;opacity:1!important}
+#tourDialog.guide-dialog .guide-skip,#tourDialog.guide-dialog .guide-back{color:var(--sever110-guide-soft)!important;-webkit-text-fill-color:var(--sever110-guide-soft)!important}
+#tourDialog.guide-dialog .guide-skip:hover,#tourDialog.guide-dialog .guide-back:hover{color:var(--sever110-guide-text)!important;-webkit-text-fill-color:var(--sever110-guide-text)!important}
+#tourDialog.guide-dialog .guide-dots i{background:rgba(247,244,239,.16)!important;opacity:1!important}
+#tourDialog.guide-dialog .guide-dots i.active{background:rgba(247,244,239,.72)!important}
 #todayTasks .empty p{max-width:46ch;margin-inline:auto}
 #todayTasks .empty .today-add-task{min-height:44px}
 @media(max-width:900px){
-  #tourDialog .guide-card{padding-top:15px}
-  #tourDialog .guide-copy{min-height:112px;padding-top:14px}
-  #tourDialog .guide-copy p{font-size:.9rem;line-height:1.5}
-  #tourDialog .guide-actions .primary{max-width:min(62vw,230px);white-space:normal;line-height:1.15;padding-block:9px}
+  #tourDialog.guide-dialog .guide-card{padding-top:15px}
+  #tourDialog.guide-dialog .guide-copy{min-height:112px;padding-top:14px}
+  #tourDialog.guide-dialog .guide-copy p{font-size:.9rem;line-height:1.5}
+  #tourDialog.guide-dialog .guide-actions .primary{max-width:min(62vw,230px);white-space:normal;line-height:1.15;padding-block:9px}
 }
 @media(max-width:350px){
-  #tourDialog .guide-card{padding-left:16px;padding-right:16px}
-  #tourDialog .guide-card-head{grid-template-columns:minmax(0,1fr) auto;gap:6px}
-  #tourDialog .guide-kicker{overflow:hidden;text-overflow:ellipsis}
-  #tourDialog .sever110-guide-step{grid-column:1;grid-row:2;font-size:.66rem}
-  #tourDialog .guide-skip{grid-column:2;grid-row:1 / span 2}
-  #tourDialog .guide-copy h2{font-size:1.34rem}
-  #tourDialog .guide-copy p{font-size:.86rem}
-  #tourDialog .guide-actions{gap:8px}
-  #tourDialog .guide-actions .primary{min-width:0;max-width:64vw;padding-inline:13px}
+  #tourDialog.guide-dialog .guide-card{padding-left:16px;padding-right:16px}
+  #tourDialog.guide-dialog .guide-card-head{grid-template-columns:minmax(0,1fr) auto;gap:6px}
+  #tourDialog.guide-dialog .guide-kicker{overflow:hidden;text-overflow:ellipsis}
+  #tourDialog.guide-dialog .sever110-guide-step{grid-column:1;grid-row:2;font-size:.66rem}
+  #tourDialog.guide-dialog .guide-skip{grid-column:2;grid-row:1 / span 2}
+  #tourDialog.guide-dialog .guide-copy h2{font-size:1.34rem}
+  #tourDialog.guide-dialog .guide-copy p{font-size:.86rem}
+  #tourDialog.guide-dialog .guide-actions{gap:8px}
+  #tourDialog.guide-dialog .guide-actions .primary{min-width:0;max-width:64vw;padding-inline:13px}
 }
-@media(prefers-reduced-motion:reduce){#tourDialog .guide-card,#tourDialog .guide-copy{animation:none!important}}
+@media(prefers-reduced-motion:reduce){#tourDialog.guide-dialog .guide-card,#tourDialog.guide-dialog .guide-copy{animation:none!important}}
