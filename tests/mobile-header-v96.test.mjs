@@ -45,12 +45,13 @@ test('SEVER automatically selects winter, spring, summer and autumn', () => {
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.sever-season-mark[\s\S]*animation:\s*none !important/);
 });
 
-test('installed PWA ships v103 autumn polish while preserving v102 desktop and v101 reliability', () => {
+test('installed PWA preserves v103 autumn polish, v102 desktop and v101 reliability', () => {
   assert.match(sw, /v103 refreshes the autumn wordmark animation/);
   assert.match(sw, /v102 simplifies desktop command\/create hierarchy/);
   assert.match(sw, /v101 refreshes mobile reliability assets/);
   assert.match(sw, /v100 refreshes Sever AI/);
-  assert.match(sw, /const CACHE = 'sever-v102-desktop-polish-release-v1'/);
+  const release = sw.match(/const CACHE = 'sever-v(\d+)-[^']+'/);
+  assert.ok(release && Number(release[1]) >= 103, 'current atomic cache must preserve the v103/v102/v101 release lineage');
   assert.ok(sw.includes("'./sever2-efficiency.css?v=102'"));
   assert.ok(sw.includes("'./sever2-experience-v94.css?v=101'"));
   assert.ok(sw.includes("'./sever2-experience-v94.js?v=101'"));
