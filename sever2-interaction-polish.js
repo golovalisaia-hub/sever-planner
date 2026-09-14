@@ -156,17 +156,30 @@
     return { total: tasks.length, done, pending: tasks.length - done };
   }
 
+  function validCalendarStatus(status) {
+    return status instanceof HTMLElement
+      && status.matches('div.sever2-day-status.sever2-v78-status')
+      && Boolean(status.querySelector(':scope > .sever2-v78-task-dot'))
+      && Boolean(status.querySelector(':scope > b'));
+  }
+
   function polishCalendar() {
     calendarQueued = false;
     $$('#calendar > .day').forEach(cell => {
       const date = cell.dataset.severDate;
       if (!date) return;
       const summary = taskSummaryFor(date);
-      let status = cell.querySelector(':scope > .sever2-day-status');
+      const statuses = [...cell.querySelectorAll(':scope > .sever2-day-status')];
+
       if (!summary.total) {
-        status?.remove();
+        statuses.forEach(status => status.remove());
         return;
       }
+
+      let status = statuses.find(validCalendarStatus) || null;
+      statuses.forEach(candidate => {
+        if (candidate !== status) candidate.remove();
+      });
 
       if (!status) {
         status = document.createElement('div');
@@ -179,8 +192,9 @@
       }
 
       status.className = `sever2-day-status sever2-v78-status${summary.pending ? '' : ' all-done'}`;
+      status.setAttribute('aria-hidden', 'true');
       status.title = `${summary.total} ${summary.total === 1 ? 'задача' : summary.total < 5 ? 'задачи' : 'задач'}`;
-      const count = status.querySelector('b');
+      const count = status.querySelector(':scope > b');
       if (count && count.textContent !== String(summary.total)) count.textContent = String(summary.total);
     });
   }
@@ -190,12 +204,15 @@
       const date = cell.dataset.severDate;
       if (!date) return false;
       const summary = taskSummaryFor(date);
-      const status = cell.querySelector(':scope > .sever2-v78-status');
-      if (!summary.total) return Boolean(status);
-      if (!status) return true;
-      const count = status.querySelector('b');
+      const statuses = [...cell.querySelectorAll(':scope > .sever2-day-status')];
+      if (!summary.total) return statuses.length > 0;
+      if (statuses.length !== 1 || !validCalendarStatus(statuses[0])) return true;
+      const status = statuses[0];
+      const count = status.querySelector(':scope > b');
       const allDone = !summary.pending;
-      return status.classList.contains('all-done') !== allDone || count?.textContent !== String(summary.total);
+      return status.classList.contains('all-done') !== allDone
+        || count?.textContent !== String(summary.total)
+        || status.title !== `${summary.total} ${summary.total === 1 ? 'задача' : summary.total < 5 ? 'задачи' : 'задач'}`;
     });
   }
 
