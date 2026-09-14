@@ -29,9 +29,11 @@ test('v110 teaches the smallest useful mental model instead of every feature', (
   assert.match(js, /Главная — это сегодняшний день/);
   assert.match(js, /Добавь одно дело/);
   assert.match(js, /включи фокус/);
+  assert.match(js, /Всё под рукой/);
   assert.match(js, /Остальное — по мере надобности/);
   assert.match(js, /Календарь хранит планы и историю/);
   assert.match(js, /Заметки — мысли и чек-листы/);
+  assert.match(js, /Деньги помогают держать финансовые планы рядом/);
   assert.match(js, /всегда можно открыть снова в Настройках/);
 });
 
@@ -39,8 +41,11 @@ test('v110 finishes with a real first action and keeps contextual empty-state he
   assert.match(js, /Добавить первую задачу/);
   assert.match(js, /function openFirstTask\(\)/);
   assert.match(js, /typeof openTask === 'function'/);
+  assert.match(js, /function focusTaskTitle\(\)/);
+  assert.match(js, /input\.focus/);
   assert.match(js, /После создания открой задачу/);
   assert.match(js, /Быстрое знакомство/);
+  assert.match(js, /state\(\)\?\.onboarded \? 'Закрыть' : 'Пропустить'/);
 });
 
 test('v110 DOM observers are idempotent and cannot self-trigger forever', () => {
@@ -57,9 +62,10 @@ test('v110 cloud fallback is bounded to local mode and never bypasses configured
   assert.match(js, /state\(\)\?\.onboarded/);
 });
 
-test('v110 onboarding stays phone-safe and is part of the atomic offline release', () => {
+test('v110 onboarding stays phone-safe, visually legible and part of the atomic offline release', () => {
   assert.match(css, /@media\(max-width:350px\)/);
   assert.match(css, /max-width:64vw/);
+  assert.match(css, /color-mix\(in srgb,var\(--text-primary\) 82%,var\(--text-secondary\) 18%\)/);
   assert.match(sw, /const CACHE = 'sever-v110-first-run-onboarding-release-v1'/);
   for (const asset of [
     './sever2-onboarding-v110.css?v=110',
