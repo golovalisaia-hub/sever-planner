@@ -1,4 +1,16 @@
 const { test, expect } = require('@playwright/test');
+const fs = require('node:fs');
+const path = require('node:path');
+
+function safeName(value) {
+  return String(value || 'project').replace(/[^a-z0-9_-]+/gi, '-');
+}
+
+async function shot(page, projectName, label) {
+  const out = path.resolve('visual-review/sever2-v109');
+  fs.mkdirSync(out, { recursive: true });
+  await page.screenshot({ path: path.join(out, `${safeName(projectName)}-v110-${label}.png`), fullPage: true });
+}
 
 async function seed(page, { onboarded = false, withTask = false } = {}) {
   await page.route('**/supabase-config.js*', route => route.fulfill({ contentType: 'text/javascript', body: 'window.SEVER_SUPABASE_CONFIG={};' }));
@@ -24,7 +36,7 @@ async function waitV110(page) {
   await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severOnboarding === 'v110');
 }
 
-test('fresh local user gets automatic quick orientation without manually firing cloud-ready', async ({ page }) => {
+test('fresh local user gets automatic quick orientation without manually firing cloud-ready', async ({ page }, info) => {
   await seed(page);
   await page.goto('/');
   await waitV110(page);
@@ -34,9 +46,10 @@ test('fresh local user gets automatic quick orientation without manually firing 
   await expect(page.locator('#tourText')).toContainText('достаточно одного дела');
   await expect(page.locator('.guide-kicker')).toHaveText('БЫСТРОЕ ЗНАКОМСТВО');
   await expect(page.locator('#sever110GuideStep')).toHaveText('1 / 5');
+  await shot(page, info.project.name, 'welcome');
 });
 
-test('quick orientation ends by opening creation of the first real task', async ({ page }) => {
+test('quick orientation ends by opening creation of the first real task', async ({ page }, info) => {
   await seed(page);
   await page.goto('/');
   await waitV110(page);
@@ -46,6 +59,7 @@ test('quick orientation ends by opening creation of the first real task', async 
   await expect(page.locator('#sever110GuideStep')).toHaveText('5 / 5');
   await expect(page.locator('#tourTitle')).toHaveText('Остальное — по мере надобности');
   await expect(page.locator('#tourNext')).toHaveText('Добавить первую задачу');
+  await shot(page, info.project.name, 'finish');
   await page.locator('#tourNext').click();
 
   await expect(page.locator('#tourDialog')).toBeHidden();
