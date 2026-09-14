@@ -53,6 +53,8 @@ test('v110 DOM observers are idempotent and cannot self-trigger forever', () => 
   assert.match(js, /if \(copy && copy\.textContent !== EMPTY_TODAY_COPY\) copy\.textContent = EMPTY_TODAY_COPY/);
   assert.match(js, /if \(button && button\.textContent !== EMPTY_TODAY_ACTION\) button\.textContent = EMPTY_TODAY_ACTION/);
   assert.match(js, /todayObserver\.observe\(tasks, \{ childList: true, subtree: true \}\)/);
+  assert.match(js, /if \(dialog\.dataset\.hasTarget !== 'false'\) dialog\.dataset\.hasTarget = 'false'/);
+  assert.match(js, /attributeFilter: \['open', 'data-step', 'data-has-target'\]/);
   assert.doesNotMatch(js, /if \(copy\) copy\.textContent = 'Начни с одного дела/);
 });
 
@@ -74,8 +76,8 @@ test('v110 historical day refresh waits beyond task mutation scheduling', () => 
 
 test('v110 untargeted slides use a deterministic backdrop instead of stale spotlight geometry', () => {
   assert.match(js, /function syncGuideSpotlight\(\)/);
-  assert.match(js, /dialog\.dataset\.hasTarget = 'false'/);
-  assert.match(js, /spot\.removeAttribute\('style'\)/);
+  assert.match(js, /if \(dialog\.dataset\.hasTarget !== 'false'\) dialog\.dataset\.hasTarget = 'false'/);
+  assert.match(js, /if \(spot\.hasAttribute\('style'\)\) spot\.removeAttribute\('style'\)/);
   assert.match(css, /data-has-target="false"\] #guideSpotlight\{[^}]*width:100vw!important;[^}]*height:100dvh!important/);
   assert.match(css, /data-has-target="false"\] #guideSpotlight\{[^}]*box-shadow:none!important/);
   assert.match(css, /data-has-target="false"\] #guideSpotlight\{[^}]*transition:none!important/);
