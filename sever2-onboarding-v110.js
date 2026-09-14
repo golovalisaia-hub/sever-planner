@@ -94,14 +94,27 @@
     if (copy && copy.textContent !== slide.text) copy.textContent = slide.text;
   }
 
+  function resetGuideSpotlightNode(spot, step) {
+    if (!spot?.isConnected) return null;
+    const fresh = document.createElement('div');
+    fresh.id = 'guideSpotlight';
+    fresh.className = 'guide-spotlight';
+    fresh.setAttribute('aria-hidden', 'true');
+    fresh.dataset.severResetStep = String(step);
+    spot.replaceWith(fresh);
+    return fresh;
+  }
+
   function syncGuideSpotlight() {
     const dialog = $('#tourDialog');
     const spot = $('#guideSpotlight');
     if (!dialog?.open || !spot) return;
     const slide = V110_SLIDES[guideStep() - 1];
     if (slide?.target) return;
+    const step = guideStep();
     if (dialog.dataset.hasTarget !== 'false') dialog.dataset.hasTarget = 'false';
     if (spot.hasAttribute('style')) spot.removeAttribute('style');
+    if (spot.dataset.severResetStep !== String(step)) resetGuideSpotlightNode(spot, step);
   }
 
   function syncGuideChrome() {
