@@ -48,7 +48,7 @@ test('habit history exposes previous weeks plus current, best and 30-day regular
   assert.match(js, /data-week="current"/);
   assert.match(js, /Прошлая неделя · история сохранена/);
   assert.match(js, /sever109-habit-metric streak/);
-  assert.match(js, /30д/);
+  assert.match(css, /\.sever109-habit-metric\.history::before[\s\S]*content:\s*"30д"/);
 });
 
 test('progress tab gets dense 30-day task, habit, streak and weekly focus signals', () => {
