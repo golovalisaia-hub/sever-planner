@@ -1,0 +1,113 @@
+name: v106 one-shot missed tasks patch
+
+on:
+  push:
+    paths:
+      - .github/workflows/v106-one-shot-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/missed-tasks-v106
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply v106 core and PWA patch
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const replaceOnce = (source, from, to, label) => {
+            const count = source.split(from).length - 1;
+            if (count !== 1) throw new Error(`${label}: expected exactly one match, got ${count}`);
+            return source.replace(from, to);
+          };
+
+          let app = fs.readFileSync('app.js', 'utf8');
+          const oldRollover = "function rollover(){let moved=0;state.tasks.forEach(t=>{if(!t.challenge&&!t.completed&&t.date<TODAY){t.date=TODAY;moved++}});if(moved){save();setTimeout(()=>toast(`Перенесено на сегодня: ${moved}`),300)}}";
+          app = replaceOnce(app, oldRollover, "function rollover(){return missedTasks().length}", 'rollover');
+
+          const marker = 'function renderToday(){';
+          const helpers = String.raw`
+function missedTasks(){return state.tasks.filter(task=>!task.challenge&&!task.completed&&task.date<TODAY)}
+function moveMissedTask(task,date,label){if(!task||!date)return;const before={date:task.date};task.date=date;task.updatedAt=Date.now();saveAndRender(['tasks']);toast(label,{type:'task-state',id:task.id,before})}
+function missedTaskRow(task){
+  const row=document.createElement('article');row.className='missed-task';row.dataset.taskId=task.id;
+  row.innerHTML='<button class="missed-check" type="button" aria-label="Выполнить пропущенную задачу">✓</button><button class="missed-copy" type="button"><b></b><span></span></button><div class="missed-actions"><button type="button" data-missed-action="today">Сегодня</button><button type="button" data-missed-action="tomorrow">Завтра</button></div>';
+  row.querySelector('.missed-copy b').textContent=task.title;
+  const meta=[`План: ${pretty(task.date,false)}`];if(task.duration)meta.push(`${task.duration} мин`);row.querySelector('.missed-copy span').textContent=meta.join(' · ');
+  row.querySelector('.missed-check').onclick=()=>completeTask(task);
+  row.querySelector('.missed-copy').onclick=()=>openTaskAction(task);
+  row.querySelector('[data-missed-action="today"]').onclick=()=>moveMissedTask(task,TODAY,'Перенесено на сегодня');
+  row.querySelector('[data-missed-action="tomorrow"]').onclick=()=>moveMissedTask(task,addDays(TODAY,1),'Перенесено на завтра');
+  return row;
+}
+function renderMissedTasks(){
+  const anchor=document.querySelector('.today-list-head');if(!anchor)return;
+  let section=$('#missedTasksBlock');if(!section){section=document.createElement('section');section.id='missedTasksBlock';section.setAttribute('aria-label','Пропущенные задачи');anchor.before(section)}
+  const items=missedTasks().sort((a,b)=>b.date.localeCompare(a.date)||Number(b.priority)-Number(a.priority));
+  section.hidden=!items.length;section.textContent='';if(!items.length){section.dataset.expanded='false';return}
+  const expanded=section.dataset.expanded==='true',visible=expanded?items:items.slice(0,3);
+  const head=document.createElement('div');head.className='missed-head';head.innerHTML='<div class="missed-head-copy"><small>ПРОПУЩЕНО</small><p>Осталось с предыдущих дней</p></div><b class="missed-count"></b>';head.querySelector('.missed-count').textContent=String(items.length);section.appendChild(head);
+  const list=document.createElement('div');list.className='missed-list';visible.forEach(task=>list.appendChild(missedTaskRow(task)));section.appendChild(list);
+  if(items.length>3){const more=document.createElement('button');more.type='button';more.className='missed-more';more.textContent=expanded?'Свернуть':`Показать ещё ${items.length-3}`;more.onclick=()=>{section.dataset.expanded=String(!expanded);renderMissedTasks()};section.appendChild(more)}
+}
+`;
+          app = replaceOnce(app, marker, helpers + "\nfunction renderToday(){renderMissedTasks();", 'renderToday hook');
+          fs.writeFileSync('app.js', app);
+
+          let html = fs.readFileSync('index.html', 'utf8');
+          if (!html.includes('sever2-missed-tasks-v106.css?v=106')) {
+            html = replaceOnce(html, '<link rel="stylesheet" href="mobile-home.css?v=52">', '<link rel="stylesheet" href="mobile-home.css?v=52">\n  <link rel="stylesheet" href="sever2-missed-tasks-v106.css?v=106">', 'v106 css link');
+          }
+          html = replaceOnce(html, 'app.js?v=105', 'app.js?v=106', 'index app version');
+          fs.writeFileSync('index.html', html);
+
+          let sw = fs.readFileSync('sw.js', 'utf8');
+          sw = replaceOnce(sw, '// v105 scopes hot task mutations to task/focus rendering and refreshes the cached planner core.', '// v105 scopes hot task mutations to task/focus rendering and refreshes the cached planner core.\n// v106 preserves overdue task dates and adds explicit missed-task triage.', 'sw comment');
+          sw = replaceOnce(sw, "const CACHE = 'sever-v102-desktop-polish-release-v1';", "const CACHE = 'sever-v106-missed-tasks-release-v1';", 'cache name');
+          sw = replaceOnce(sw, "'./sever2-interaction-polish.css?v=103','./sever2-interaction-polish.js?v=101'", "'./sever2-interaction-polish.css?v=103','./sever2-missed-tasks-v106.css?v=106','./sever2-interaction-polish.js?v=101'", 'css asset');
+          sw = replaceOnce(sw, "'./app.js?v=105'", "'./app.js?v=106'", 'sw app version');
+          sw = replaceOnce(sw, "'/sever2-interaction-polish.css','/sever2-interaction-polish.js'", "'/sever2-interaction-polish.css','/sever2-missed-tasks-v106.css','/sever2-interaction-polish.js'", 'core path');
+          fs.writeFileSync('sw.js', sw);
+
+          let qa = fs.readFileSync('tests/qa_static.mjs', 'utf8');
+          qa = replaceOnce(qa, "['app.js', 105]", "['app.js', 106]", 'qa app version');
+          fs.writeFileSync('tests/qa_static.mjs', qa);
+
+          let pwa = fs.readFileSync('tests/browser/pwa.spec.cjs', 'utf8');
+          pwa = replaceOnce(pwa, "name.startsWith('sever-v102-')", "name.startsWith('sever-v106-')", 'pwa cache prefix');
+          pwa = pwa.replaceAll('/app.js?v=105','/app.js?v=106');
+          pwa = replaceOnce(pwa, "expect(releaseCache.name).toBe('sever-v102-desktop-polish-release-v1');", "expect(releaseCache.name).toBe('sever-v106-missed-tasks-release-v1');", 'pwa cache name');
+          pwa = replaceOnce(pwa, "&& cached.includes('/sever2-interaction-polish.css?v=103')", "&& cached.includes('/sever2-interaction-polish.css?v=103')\n          && cached.includes('/sever2-missed-tasks-v106.css?v=106')", 'pwa css probe');
+          pwa = replaceOnce(pwa, "'/sever2-interaction-polish.css?v=103','/sever2-interaction-polish.js?v=101'", "'/sever2-interaction-polish.css?v=103','/sever2-missed-tasks-v106.css?v=106','/sever2-interaction-polish.js?v=101'", 'pwa css list');
+          fs.writeFileSync('tests/browser/pwa.spec.cjs', pwa);
+
+          let sec = fs.readFileSync('tests/security/service-worker-upgrade.test.mjs', 'utf8');
+          sec = replaceOnce(sec, "const RELEASE_CACHE = 'sever-v102-desktop-polish-release-v1';", "const RELEASE_CACHE = 'sever-v106-missed-tasks-release-v1';", 'security cache');
+          sec = sec.replaceAll('v105 release assets','v106 release assets').replaceAll('v105 planner core','v106 planner core').replaceAll('release: 105','release: 106');
+          sec = sec.replaceAll('./app.js?v=105','./app.js?v=106');
+          sec = replaceOnce(sec, "'./sever2-interaction-polish.css?v=103','./sever2-interaction-polish.js?v=101'", "'./sever2-interaction-polish.css?v=103','./sever2-missed-tasks-v106.css?v=106','./sever2-interaction-polish.js?v=101'", 'security css install');
+          sec = replaceOnce(sec, "['sever2-interaction-polish.css?v=old','cors','./sever2-interaction-polish.css?v=103']", "['sever2-interaction-polish.css?v=old','cors','./sever2-interaction-polish.css?v=103'],\n    ['sever2-missed-tasks-v106.css?v=old','cors','./sever2-missed-tasks-v106.css?v=106']", 'security css routing');
+          sec = replaceOnce(sec, "'sever-v101-reliability-release-v1',\n      RELEASE_CACHE", "'sever-v101-reliability-release-v1',\n      'sever-v102-desktop-polish-release-v1',\n      RELEASE_CACHE", 'security stale cache setup');
+          sec = replaceOnce(sec, "'sever-v101-reliability-release-v1'\n  ])", "'sever-v101-reliability-release-v1',\n    'sever-v102-desktop-polish-release-v1'\n  ])", 'security stale cache assertion');
+          fs.writeFileSync('tests/security/service-worker-upgrade.test.mjs', sec);
+          NODE
+          node --check app.js
+          node --test tests/missed-tasks-v106.test.mjs
+          node tests/qa_static.mjs
+          node --test tests/security/service-worker-upgrade.test.mjs
+      - name: Commit v106 patch and remove one-shot workflow
+        run: |
+          rm .github/workflows/v106-one-shot-patch.yml
+          git config user.name "SEVER CI"
+          git config user.email "actions@users.noreply.github.com"
+          git add app.js index.html sw.js tests/qa_static.mjs tests/browser/pwa.spec.cjs tests/security/service-worker-upgrade.test.mjs .github/workflows/v106-one-shot-patch.yml
+          git diff --cached --check
+          git commit -m "SEVER v106: preserve missed tasks and add daily triage"
+          git push origin HEAD:feat/missed-tasks-v106
