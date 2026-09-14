@@ -29,8 +29,8 @@
       target: 'timer'
     },
     {
-      title: 'Остальное — по мере надобности',
-      text: 'Календарь хранит планы и историю, Заметки — мысли и чек-листы, Привычки и Прогресс показывают ритм. Это знакомство всегда можно открыть снова в Настройках.',
+      title: 'Всё под рукой',
+      text: 'Остальное — по мере надобности: Календарь хранит планы и историю, Заметки — мысли и чек-листы, Привычки и Прогресс показывают ритм, Деньги помогают держать финансовые планы рядом. Это знакомство всегда можно открыть снова в Настройках.',
       view: 'today',
       target: null
     }
@@ -105,7 +105,15 @@
       : 'Далее';
     if (next && next.textContent !== nextText) next.textContent = nextText;
     const skip = $('#tourSkip');
-    if (skip && skip.textContent !== 'Пропустить') skip.textContent = 'Пропустить';
+    const skipText = state()?.onboarded ? 'Закрыть' : 'Пропустить';
+    if (skip && skip.textContent !== skipText) skip.textContent = skipText;
+  }
+
+  function focusTaskTitle() {
+    const input = $('#taskTitle');
+    if (!input || !$('#taskDialog')?.open) return;
+    try { input.focus({ preventScroll: true }); }
+    catch { input.focus(); }
   }
 
   function openFirstTask() {
@@ -113,11 +121,13 @@
     try {
       if (typeof openTask === 'function') {
         openTask();
+        focusTaskTitle();
         return;
       }
     } catch {}
     const direct = $('#courseAction') || $('.today-add-task') || $('#globalAddBtn') || $('#mobileCreateBtn');
     direct?.click();
+    focusTaskTitle();
   }
 
   function handleNextCapture() {
@@ -128,9 +138,13 @@
   function handleNextComplete() {
     if (!finalActionArmed) return;
     finalActionArmed = false;
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (!$('#tourDialog')?.open) {
+      openFirstTask();
+      return;
+    }
+    queueMicrotask(() => {
       if (!$('#tourDialog')?.open) openFirstTask();
-    }));
+    });
   }
 
   function polishHelpLabels() {
