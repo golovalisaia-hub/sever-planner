@@ -1,6 +1,8 @@
 /* SEVER v110 — fast, optional first-run orientation with an actionable finish. */
 #tourDialog.guide-dialog .guide-card{--sever110-guide-text:#f7f4ef;--sever110-guide-muted:rgba(247,244,239,.82);--sever110-guide-soft:rgba(247,244,239,.7);background:rgba(13,17,25,.96)!important;color:var(--sever110-guide-text)!important;opacity:1!important;filter:none!important;mix-blend-mode:normal!important}
-#tourDialog.guide-dialog[data-has-target="false"] #guideSpotlight{left:50vw!important;top:44dvh!important;width:0!important;height:0!important;border-width:0!important;border-radius:18px!important}
+#tourDialog.guide-dialog[data-has-target="false"] #guideSpotlight{left:0!important;top:0!important;width:100vw!important;height:100dvh!important;border:0!important;border-radius:0!important;background:rgba(3,3,5,.72)!important;box-shadow:none!important;transition:none!important}
+html[data-theme="light"] #tourDialog.guide-dialog[data-has-target="false"] #guideSpotlight,html[data-theme="motion"] #tourDialog.guide-dialog[data-has-target="false"] #guideSpotlight{background:rgba(26,26,30,.47)!important}
+#tourDialog.guide-dialog[data-has-target="true"] #guideSpotlight{background:transparent!important}
 #tourDialog.guide-dialog .guide-card-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px}
 #tourDialog.guide-dialog .guide-kicker{white-space:nowrap;color:var(--sever110-guide-soft)!important;-webkit-text-fill-color:var(--sever110-guide-soft)!important;opacity:1!important}
 #tourDialog.guide-dialog .sever110-guide-step{justify-self:start;color:var(--sever110-guide-soft)!important;-webkit-text-fill-color:var(--sever110-guide-soft)!important;font-size:.7rem;font-weight:800;letter-spacing:.06em;opacity:1!important}
