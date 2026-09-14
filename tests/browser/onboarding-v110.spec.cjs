@@ -15,6 +15,7 @@ async function shot(page, projectName, label) {
 async function seed(page, { onboarded = false, withTask = false } = {}) {
   await page.route('**/supabase-config.js*', route => route.fulfill({ contentType: 'text/javascript', body: 'window.SEVER_SUPABASE_CONFIG={};' }));
   await page.addInitScript(({ onboarded, withTask }) => {
+    if (localStorage.getItem('sever-e2e-onboarding-v110-seeded-v1') === '1') return;
     const today = new Date();
     const iso = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
     localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({
@@ -29,6 +30,7 @@ async function seed(page, { onboarded = false, withTask = false } = {}) {
       security: { protectedNotesAutoLockMinutes: 5, lockInBackground: true }
     }));
     localStorage.setItem('sever-theme', 'light');
+    localStorage.setItem('sever-e2e-onboarding-v110-seeded-v1', '1');
   }, { onboarded, withTask });
 }
 
@@ -46,6 +48,7 @@ test('fresh local user gets automatic quick orientation without manually firing 
   await expect(page.locator('#tourText')).toContainText('достаточно одного дела');
   await expect(page.locator('.guide-kicker')).toHaveText('БЫСТРОЕ ЗНАКОМСТВО');
   await expect(page.locator('#sever110GuideStep')).toHaveText('1 / 5');
+  await expect(page.locator('#tourSkip')).toHaveText('Пропустить');
   await shot(page, info.project.name, 'welcome');
 });
 
@@ -57,7 +60,8 @@ test('quick orientation ends by opening creation of the first real task', async 
 
   for (let step = 1; step < 5; step += 1) await page.locator('#tourNext').click();
   await expect(page.locator('#sever110GuideStep')).toHaveText('5 / 5');
-  await expect(page.locator('#tourTitle')).toHaveText('Остальное — по мере надобности');
+  await expect(page.locator('#tourTitle')).toHaveText('Всё под рукой');
+  await expect(page.locator('#tourText')).toContainText('Деньги');
   await expect(page.locator('#tourNext')).toHaveText('Добавить первую задачу');
   await shot(page, info.project.name, 'finish');
   await page.locator('#tourNext').click();
@@ -80,6 +84,7 @@ test('returning onboarded user is not interrupted and can reopen orientation fro
   await page.locator('#settingsGuide').click();
   await expect(page.locator('#tourDialog')).toBeVisible();
   await expect(page.locator('#tourTitle')).toHaveText('Добро пожаловать в SEVER');
+  await expect(page.locator('#tourSkip')).toHaveText('Закрыть');
   await page.locator('#tourSkip').click();
   await expect(page.locator('#tourDialog')).toBeHidden();
   await expect(page.locator('#settingsView')).toBeVisible();
@@ -100,6 +105,7 @@ test('skip persists and the empty Today state still tells a novice what to do ne
   await page.reload();
   await waitV110(page);
   await expect(page.locator('#tourDialog')).toBeHidden();
+  expect(await page.evaluate(() => window.SeverApp.getState().onboarded)).toBe(true);
 });
 
 test('quick orientation never creates horizontal overflow on narrow phones', async ({ page }, info) => {
