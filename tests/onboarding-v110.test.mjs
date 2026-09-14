@@ -43,6 +43,13 @@ test('v110 finishes with a real first action and keeps contextual empty-state he
   assert.match(js, /Быстрое знакомство/);
 });
 
+test('v110 DOM observers are idempotent and cannot self-trigger forever', () => {
+  assert.match(js, /if \(copy && copy\.textContent !== EMPTY_TODAY_COPY\) copy\.textContent = EMPTY_TODAY_COPY/);
+  assert.match(js, /if \(button && button\.textContent !== EMPTY_TODAY_ACTION\) button\.textContent = EMPTY_TODAY_ACTION/);
+  assert.match(js, /todayObserver\.observe\(tasks, \{ childList: true, subtree: true \}\)/);
+  assert.doesNotMatch(js, /if \(copy\) copy\.textContent = 'Начни с одного дела/);
+});
+
 test('v110 cloud fallback is bounded to local mode and never bypasses configured account hydration', () => {
   assert.match(js, /cloud\.configured !== false/);
   assert.match(js, /window\.SeverCloudReady/);
