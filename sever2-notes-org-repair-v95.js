@@ -16,11 +16,21 @@
     if (!document.querySelector('script[data-sever-onboarding-v110]')) {
       const script = document.createElement('script');
       script.src = 'sever2-onboarding-v110.js?v=110';
-      script.async = false;
-      script.defer = true;
+      script.async = true;
       script.dataset.severOnboardingV110 = 'true';
       document.head.appendChild(script);
     }
+  }
+
+  function scheduleOnboardingV110() {
+    // Onboarding is presentation help, never a boot dependency. Loading it only
+    // after the document load event prevents a tutorial asset from delaying the
+    // planner, Money, Notes, sync, or any other existing first paint/startup path.
+    if (document.readyState === 'complete') {
+      setTimeout(installOnboardingV110Layer, 0);
+      return;
+    }
+    window.addEventListener('load', () => setTimeout(installOnboardingV110Layer, 0), { once:true });
   }
 
   function triggerOrganizationRender() {
@@ -71,10 +81,9 @@
     timer = setTimeout(schedule, 50);
   }
 
-  // This late stable bootstrap is already loaded after the planner's core UI
-  // layers. v110 uses it only as a deterministic presentation loader; Notes
-  // repair behavior and ownership remain unchanged.
-  installOnboardingV110Layer();
+  // This late stable bootstrap remains the deterministic presentation loader;
+  // Notes repair behavior and ownership remain unchanged.
+  scheduleOnboardingV110();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', schedule, { once:true });
   else schedule();
   window.addEventListener('load', schedule, { once:true });
