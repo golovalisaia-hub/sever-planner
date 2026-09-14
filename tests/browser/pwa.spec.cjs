@@ -90,10 +90,10 @@ test('installed release reloads offline with one complete active asset set', asy
     await context.setOffline(true);
     await page.reload();
     await expect(page.locator('#todayView')).toBeVisible();
-    for (const key of ['severProductivity','severFocusFlow','severEfficiency','severCalendarClarity','severCreateFlow','severHomeCore','severNotesCore','severNotesOrganization','severNotesEditorFlow','severNotesNavigation','severNotesPolish','severMoney','severCloudRecovery']) {
+    for (const key of ['severProductivity','severFocusFlow','severEfficiency','severCalendarClarity','severCreateFlow','severHomeCore','severNotesCore','severNotesOrganization','severNotesEditorFlow','severNotesNavigation','severNotesPolish','severMoney','severInteractionPolish','severCloudRecovery']) {
       await expect.poll(() => page.evaluate(name => document.documentElement.dataset[name], key)).toBe('ready');
     }
-    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severInteractionPolish)).toBe('v107');
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severInteractionPolishVersion)).toBe('v107');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesCompact)).toBe('v94');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severExperience)).toBe('v94');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severSeasonSignature)).toBe('v101');
