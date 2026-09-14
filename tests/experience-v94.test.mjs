@@ -64,7 +64,7 @@ test('v101 reliability assets remain part of the current atomic offline release'
     './sever2-efficiency.css?v=102',
     './sever2-experience-v94.css?v=101',
     './sever2-experience-v94.js?v=101',
-    './sever2-interaction-polish.js?v=107'
+    './sever2-interaction-polish.js?v=108'
   ]) {
     assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   }
