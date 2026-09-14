@@ -36,6 +36,8 @@
     }
   ];
 
+  const EMPTY_TODAY_COPY = 'Начни с одного дела. После создания открой задачу — там можно запустить фокус и спокойно довести её до конца.';
+  const EMPTY_TODAY_ACTION = '＋ Добавить первую задачу';
   let installed = false;
   let guideObserver = null;
   let todayObserver = null;
@@ -55,7 +57,7 @@
     const head = $('#tourDialog .guide-card-head');
     const kicker = head?.querySelector('.guide-kicker');
     if (!head || !kicker) return null;
-    kicker.textContent = 'БЫСТРОЕ ЗНАКОМСТВО';
+    if (kicker.textContent !== 'БЫСТРОЕ ЗНАКОМСТВО') kicker.textContent = 'БЫСТРОЕ ЗНАКОМСТВО';
     let counter = $('#sever110GuideStep');
     if (!counter) {
       counter = document.createElement('span');
@@ -95,15 +97,15 @@
     if (!dialog) return;
     syncGuideSlideCopy();
     const counter = ensureStepCounter();
-    if (counter) counter.textContent = `${guideStep()} / ${V110_SLIDES.length}`;
+    const counterText = `${guideStep()} / ${V110_SLIDES.length}`;
+    if (counter && counter.textContent !== counterText) counter.textContent = counterText;
     const next = $('#tourNext');
-    if (next) {
-      next.textContent = isLastStep()
-        ? (hasAnyTasks() ? 'Готово' : 'Добавить первую задачу')
-        : 'Далее';
-    }
+    const nextText = isLastStep()
+      ? (hasAnyTasks() ? 'Готово' : 'Добавить первую задачу')
+      : 'Далее';
+    if (next && next.textContent !== nextText) next.textContent = nextText;
     const skip = $('#tourSkip');
-    if (skip) skip.textContent = 'Пропустить';
+    if (skip && skip.textContent !== 'Пропустить') skip.textContent = 'Пропустить';
   }
 
   function openFirstTask() {
@@ -136,20 +138,20 @@
     if (settings) {
       const title = settings.querySelector('b');
       const hint = settings.querySelector('em');
-      if (title) title.textContent = 'Быстрое знакомство';
-      if (hint) hint.textContent = 'За полминуты вспомнить, что где находится';
+      if (title && title.textContent !== 'Быстрое знакомство') title.textContent = 'Быстрое знакомство';
+      if (hint && hint.textContent !== 'За полминуты вспомнить, что где находится') hint.textContent = 'За полминуты вспомнить, что где находится';
     }
     const more = $('#openGuideFromMore');
-    if (more) more.textContent = 'Быстрое знакомство с SEVER';
+    if (more && more.textContent !== 'Быстрое знакомство с SEVER') more.textContent = 'Быстрое знакомство с SEVER';
   }
 
   function polishEmptyToday() {
     const empty = $('#todayTasks .empty');
     if (!empty) return;
     const copy = empty.querySelector('p');
-    if (copy) copy.textContent = 'Начни с одного дела. После создания открой задачу — там можно запустить фокус и спокойно довести её до конца.';
+    if (copy && copy.textContent !== EMPTY_TODAY_COPY) copy.textContent = EMPTY_TODAY_COPY;
     const button = empty.querySelector('.today-add-task');
-    if (button) button.textContent = '＋ Добавить первую задачу';
+    if (button && button.textContent !== EMPTY_TODAY_ACTION) button.textContent = EMPTY_TODAY_ACTION;
   }
 
   function installObservers() {
