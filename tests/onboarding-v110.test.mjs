@@ -72,11 +72,15 @@ test('v110 historical day refresh waits beyond task mutation scheduling', () => 
   assert.match(js, /cell\.click\(\)/);
 });
 
-test('v110 untargeted slides cannot keep stale spotlight geometry', () => {
+test('v110 untargeted slides use a deterministic backdrop instead of stale spotlight geometry', () => {
   assert.match(js, /function syncGuideSpotlight\(\)/);
   assert.match(js, /dialog\.dataset\.hasTarget = 'false'/);
   assert.match(js, /spot\.removeAttribute\('style'\)/);
-  assert.match(css, /data-has-target="false"\] #guideSpotlight\{[^}]*width:0!important;[^}]*height:0!important/);
+  assert.match(css, /data-has-target="false"\] #guideSpotlight\{[^}]*width:100vw!important;[^}]*height:100dvh!important/);
+  assert.match(css, /data-has-target="false"\] #guideSpotlight\{[^}]*box-shadow:none!important/);
+  assert.match(css, /data-has-target="false"\] #guideSpotlight\{[^}]*transition:none!important/);
+  assert.match(css, /html\[data-theme="light"\][\s\S]*data-has-target="false"\][\s\S]*background:rgba\(26,26,30,\.47\)!important/);
+  assert.match(css, /data-has-target="true"\] #guideSpotlight\{background:transparent!important\}/);
 });
 
 test('v110 onboarding stays phone-safe, readable before late polish, and part of the atomic offline release', () => {
