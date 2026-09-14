@@ -63,6 +63,15 @@ test('v110 cloud fallback is bounded to local mode and never bypasses configured
   assert.match(js, /state\(\)\?\.onboarded/);
 });
 
+test('v110 historical day refresh waits beyond task mutation scheduling', () => {
+  assert.match(js, /function installHistoricalDayRepair\(\)/);
+  assert.match(js, /#dayTaskList \.check, #toast button/);
+  assert.match(js, /function scheduleHistoricalDayRefresh\(date\)/);
+  assert.match(js, /setTimeout\(\(\) => \{[\s\S]*requestAnimationFrame\(\(\) => refreshOpenHistoricalDay\(date\)\)/);
+  assert.match(js, /dialog\.close\(\)/);
+  assert.match(js, /cell\.click\(\)/);
+});
+
 test('v110 onboarding stays phone-safe, readable before late polish, and part of the atomic offline release', () => {
   assert.match(css, /@media\(max-width:350px\)/);
   assert.match(css, /max-width:64vw/);
