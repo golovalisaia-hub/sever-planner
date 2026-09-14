@@ -82,7 +82,11 @@ test('v110 untargeted slides render on a separate deterministic backdrop layer',
   assert.match(css, /data-has-target="false"\] #guideSpotlight\{[^}]*display:none!important;[^}]*box-shadow:none!important;[^}]*transition:none!important/);
   assert.match(css, /html\[data-theme="light"\][\s\S]*data-has-target="false"\]::before[\s\S]*background:rgba\(26,26,30,\.47\)/);
   assert.match(css, /data-has-target="true"\]::before\{content:none\}/);
-  assert.match(css, /data-has-target="true"\] #guideSpotlight\{display:block!important;background:transparent!important\}/);
+});
+
+test('v110 targeted slides explicitly own a real spotlight instead of relying on legacy CSS', () => {
+  assert.match(css, /data-has-target="true"\] #guideSpotlight\{[^}]*display:block!important;[^}]*background:transparent!important;[^}]*box-shadow:0 0 0 999vmax/);
+  assert.match(css, /html\[data-theme="light"\][\s\S]*data-has-target="true"\] #guideSpotlight[\s\S]*box-shadow:0 0 0 999vmax rgba\(26,26,30,\.45\)/);
 });
 
 test('v110 onboarding stays phone-safe, readable before late polish, and part of the atomic offline release', () => {
