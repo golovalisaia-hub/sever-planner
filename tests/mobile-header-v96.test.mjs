@@ -56,7 +56,7 @@ test('installed PWA preserves v103 autumn polish, v102 desktop and v101 reliabil
   assert.ok(sw.includes("'./sever2-experience-v94.css?v=101'"));
   assert.ok(sw.includes("'./sever2-experience-v94.js?v=101'"));
   assert.ok(sw.includes("'./sever2-interaction-polish.css?v=103'"));
-  assert.ok(sw.includes("'./sever2-interaction-polish.js?v=107'"));
+  assert.ok(sw.includes("'./sever2-interaction-polish.js?v=108'"));
   assert.ok(sw.includes("'./sever2-reminder-bridge-v95.js?v=98'"));
   assert.ok(sw.includes("'./js/sever-ai.js?v=100'"));
 });
