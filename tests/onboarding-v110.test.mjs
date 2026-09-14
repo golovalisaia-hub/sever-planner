@@ -16,10 +16,9 @@ test('v110 onboarding parses and loads through the stable late UI bootstrap', ()
   const checked = spawnSync(process.execPath, ['--check', path.join(root, 'sever2-onboarding-v110.js')]);
   assert.equal(checked.status, 0, checked.stderr.toString());
   assert.match(repair, /function installOnboardingV110Layer\(\)/);
-  assert.match(repair, /function scheduleOnboardingV110\(\)/);
-  assert.match(repair, /window\.addEventListener\('load',[\s\S]*installOnboardingV110Layer/);
+  assert.match(repair, /function scheduleLateExperienceLayers\(\)/);
+  assert.match(repair, /window\.addEventListener\('load',[\s\S]*installLateExperienceLayers/);
   assert.match(repair, /script\.async = true/);
-  assert.doesNotMatch(repair, /\n\s*installOnboardingV110Layer\(\);\s*\n/);
   assert.match(repair, /sever2-onboarding-v110\.css\?v=110/);
   assert.match(repair, /sever2-onboarding-v110\.js\?v=110/);
   assert.match(js, /dataset\.severOnboarding = 'v110'/);
@@ -34,7 +33,7 @@ test('v110 teaches the smallest useful mental model instead of every feature', (
   assert.match(js, /Остальное — по мере надобности/);
   assert.match(js, /Календарь хранит планы и историю/);
   assert.match(js, /Заметки — мысли и чек-листы/);
-  assert.match(js, /Деньги помогают держать финансовые планы рядом/);
+  assert.match(js, /Финансы помогают держать бюджет, расходы и цели рядом/);
   assert.match(js, /всегда можно открыть снова в Настройках/);
 });
 
@@ -89,7 +88,7 @@ test('v110 targeted slides explicitly own a real spotlight instead of relying on
   assert.match(css, /html\[data-theme="light"\][\s\S]*data-has-target="true"\] #guideSpotlight[\s\S]*box-shadow:0 0 0 999vmax rgba\(26,26,30,\.45\)/);
 });
 
-test('v110 onboarding stays phone-safe, readable before late polish, and part of the atomic offline release', () => {
+test('v110 onboarding stays phone-safe, readable before late polish, and part of the v111 atomic offline release', () => {
   assert.match(css, /@media\(max-width:350px\)/);
   assert.match(css, /max-width:64vw/);
   assert.match(css, /--sever110-guide-text:#f7f4ef/);
@@ -99,11 +98,11 @@ test('v110 onboarding stays phone-safe, readable before late polish, and part of
   assert.match(coreCss, /--guide-text:#f7f4ef/);
   assert.match(coreCss, /guide-copy h2\{[^}]*color:var\(--guide-text\)/);
   assert.match(coreCss, /guide-copy p\{[^}]*color:var\(--guide-muted\)/);
-  assert.match(sw, /const CACHE = 'sever-v110-first-run-onboarding-release-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v111-finance-center-release-v1'/);
   for (const asset of [
     './sever2-onboarding-v110.css?v=110',
     './sever2-onboarding-v110.js?v=110',
-    './sever2-notes-org-repair-v95.js?v=110'
+    './sever2-notes-org-repair-v95.js?v=111'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   assert.ok(sw.includes("'/sever2-onboarding-v110.css'"));
   assert.ok(sw.includes("'/sever2-onboarding-v110.js'"));
