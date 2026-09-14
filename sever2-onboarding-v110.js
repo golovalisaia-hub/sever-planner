@@ -94,10 +94,21 @@
     if (copy && copy.textContent !== slide.text) copy.textContent = slide.text;
   }
 
+  function syncGuideSpotlight() {
+    const dialog = $('#tourDialog');
+    const spot = $('#guideSpotlight');
+    if (!dialog?.open || !spot) return;
+    const slide = V110_SLIDES[guideStep() - 1];
+    if (slide?.target) return;
+    dialog.dataset.hasTarget = 'false';
+    spot.removeAttribute('style');
+  }
+
   function syncGuideChrome() {
     const dialog = $('#tourDialog');
     if (!dialog) return;
     syncGuideSlideCopy();
+    syncGuideSpotlight();
     const counter = ensureStepCounter();
     const counterText = `${guideStep()} / ${V110_SLIDES.length}`;
     if (counter && counter.textContent !== counterText) counter.textContent = counterText;
