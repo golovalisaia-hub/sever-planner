@@ -80,9 +80,20 @@
     return Boolean(state()?.tasks?.length);
   }
 
+  function syncGuideSlideCopy() {
+    const dialog = $('#tourDialog');
+    if (!dialog?.open) return;
+    const slide = V110_SLIDES[guideStep() - 1];
+    const title = $('#tourTitle');
+    const copy = $('#tourText');
+    if (title && title.textContent !== slide.title) title.textContent = slide.title;
+    if (copy && copy.textContent !== slide.text) copy.textContent = slide.text;
+  }
+
   function syncGuideChrome() {
     const dialog = $('#tourDialog');
     if (!dialog) return;
+    syncGuideSlideCopy();
     const counter = ensureStepCounter();
     if (counter) counter.textContent = `${guideStep()} / ${V110_SLIDES.length}`;
     const next = $('#tourNext');
@@ -182,6 +193,7 @@
     polishHelpLabels();
     installObservers();
     installLocalFirstRunFallback();
+    syncGuideChrome();
     document.documentElement.dataset.severOnboarding = 'v110';
   }
 
