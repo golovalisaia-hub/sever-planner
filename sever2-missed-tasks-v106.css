@@ -1,0 +1,136 @@
+/* SEVER v106 — missed tasks stay historically honest and easy to triage. */
+#missedTasksBlock {
+  margin: 12px 0 20px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-panel);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+#missedTasksBlock[hidden] { display: none !important; }
+.missed-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 10px;
+}
+.missed-head-copy { min-width: 0; }
+.missed-head-copy small {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--warning);
+  font-size: var(--type-micro);
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+.missed-head-copy p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--type-secondary);
+}
+.missed-count {
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--warning) 16%, transparent);
+  color: var(--warning);
+  font-size: var(--type-secondary);
+  font-weight: 800;
+}
+.missed-list {
+  display: grid;
+  gap: 8px;
+  padding: 0 10px 10px;
+}
+.missed-task {
+  display: grid;
+  grid-template-columns: 44px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--surface-2);
+}
+.missed-check {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--success);
+  font: inherit;
+  cursor: pointer;
+}
+.missed-check:active { transform: scale(.96); }
+.missed-copy {
+  min-width: 0;
+  text-align: left;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.missed-copy b,
+.missed-copy span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.missed-copy b { color: var(--text-primary); font-size: var(--type-body); }
+.missed-copy span { margin-top: 3px; color: var(--text-muted); font-size: var(--type-secondary); }
+.missed-actions { display: flex; align-items: center; gap: 6px; }
+.missed-actions button,
+.missed-more {
+  min-height: 38px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  padding: 0 11px;
+  font: inherit;
+  font-size: var(--type-secondary);
+  font-weight: 700;
+  cursor: pointer;
+}
+.missed-actions button[data-missed-action="today"] {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border-subtle));
+  color: var(--text-primary);
+}
+.missed-actions button:active,
+.missed-more:active { transform: scale(.98); }
+.missed-more {
+  width: calc(100% - 20px);
+  margin: 0 10px 10px;
+  background: transparent;
+}
+@media (max-width: 700px) {
+  #missedTasksBlock { margin: 10px 0 16px; border-radius: 18px; }
+  .missed-head { padding: 13px 14px 9px; }
+  .missed-list { padding: 0 8px 8px; }
+  .missed-task {
+    grid-template-columns: 44px minmax(0,1fr);
+    gap: 9px;
+    padding: 9px;
+  }
+  .missed-actions {
+    grid-column: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+  .missed-actions button { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .missed-check,
+  .missed-actions button,
+  .missed-more { transition: none !important; }
+}

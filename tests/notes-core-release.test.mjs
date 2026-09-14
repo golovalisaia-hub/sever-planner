@@ -33,9 +33,10 @@ test('presentation layers load deterministically through cloud recovery v80', as
   assert.ok(home >= 0 && core > home && organization > core && editor > organization && navigation > editor && polish > navigation && money > polish && usability > money && interactions > usability && recovery > interactions);
 });
 
-test('cloud recovery v80 ships atomically inside the complete v102 desktop polish PWA release with v103 autumn CSS', async () => {
+test('cloud recovery and Notes layers remain atomic in the current PWA release', async () => {
   const source = await read('sw.js');
-  assert.match(source, /const CACHE = 'sever-v102-desktop-polish-release-v1'/);
+  const release = source.match(/const CACHE = 'sever-v(\d+)-[^']+'/);
+  assert.ok(release && Number(release[1]) >= 103, 'current atomic cache must preserve v103+ Notes/recovery assets');
   for (const asset of [
     './sever2-efficiency.css?v=102',
     './sever2-home-core.css?v=85','./sever2-home-core.js?v=85',

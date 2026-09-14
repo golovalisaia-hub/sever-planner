@@ -90,7 +90,7 @@ test('habit completion cannot restyle the whole card and Focus play stays center
   assert.match(css, /border-left:\s*11px solid currentColor/);
 });
 
-test('v103 interaction polish remains inside the atomic v102 desktop polish PWA release', () => {
+test('v103 interaction polish remains inside the current atomic PWA release', () => {
   const home = themeInit.indexOf('sever2-home-core-script');
   const money = themeInit.indexOf('sever2-money-script');
   const usabilityIndex = themeInit.indexOf('sever2-usability-v84-script');
@@ -104,7 +104,8 @@ test('v103 interaction polish remains inside the atomic v102 desktop polish PWA 
   assert.match(themeInit, /sever2-interaction-polish\.js\?v=78/);
   assert.match(themeInit, /sever2-cloud-recovery\.js\?v=80/);
   assert.match(themeInit, /data-\$\{marker\}.*v80/s);
-  assert.match(sw, /const CACHE = 'sever-v102-desktop-polish-release-v1'/);
+  const release = sw.match(/const CACHE = 'sever-v(\d+)-[^']+'/);
+  assert.ok(release && Number(release[1]) >= 103, 'current atomic cache must preserve v103 interaction polish');
   assert.match(sw, /v103 refreshes the autumn wordmark animation/);
   for (const asset of [
     './sever2-efficiency.css?v=102',
