@@ -37,7 +37,8 @@ test('v107 observers update only changed task and habit nodes instead of rescann
   assert.match(source, /record\.addedNodes\.forEach\(queueTaskCard\)/);
   assert.match(source, /new MutationObserver\(syncHabitMutationRecords\)/);
   assert.match(source, /node\.querySelectorAll\?\.\('\.habit-day'\)\.forEach\(syncHabitButton\)/);
-  assert.match(source, /dataset\.severInteractionPolish = 'v107'/);
+  assert.match(source, /dataset\.severInteractionPolish = 'ready'/);
+  assert.match(source, /dataset\.severInteractionPolishVersion = 'v107'/);
   assert.doesNotMatch(source, /\$\$\('\.task'\)\.forEach/);
   assert.doesNotMatch(source, /document\.querySelectorAll\('\.habit-week \.habit-day'\)\.forEach/);
 });
