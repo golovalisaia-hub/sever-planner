@@ -10,6 +10,7 @@
   let habitObserver = null;
   let calendarQueued = false;
   let checksQueued = false;
+  const pendingTaskCards = new Set();
 
   const state = () => window.SeverApp?.getState?.() || { tasks: [] };
   const amount = value => Math.max(0, Number(value) || 0);
@@ -192,22 +193,50 @@
     requestAnimationFrame(polishCalendar);
   }
 
+  function queueTaskCard(node) {
+    if (!(node instanceof Element)) return;
+    if (node.matches('.task')) pendingTaskCards.add(node);
+    node.querySelectorAll?.('.task').forEach(card => pendingTaskCards.add(card));
+  }
+
+  function syncTaskCard(task) {
+    if (!task?.isConnected) return;
+    const check = task.querySelector('.check');
+    if (!check) return;
+    const done = task.classList.contains('done');
+    check.setAttribute('aria-pressed', String(done));
+    check.setAttribute('aria-label', done ? 'Отметить задачу как невыполненную' : 'Отметить задачу выполненной');
+    check.title = done ? 'Задача выполнена' : 'Отметить выполненной';
+  }
+
   function syncTaskChecks() {
     checksQueued = false;
-    $$('.task').forEach(task => {
-      const check = task.querySelector('.check');
-      if (!check) return;
-      const done = task.classList.contains('done');
-      check.setAttribute('aria-pressed', String(done));
-      check.setAttribute('aria-label', done ? 'Отметить задачу как невыполненную' : 'Отметить задачу выполненной');
-      check.title = done ? 'Задача выполнена' : 'Отметить выполненной';
-    });
+    const cards = [...pendingTaskCards];
+    pendingTaskCards.clear();
+    cards.forEach(syncTaskCard);
   }
 
   function scheduleChecks() {
-    if (checksQueued) return;
+    if (checksQueued || !pendingTaskCards.size) return;
     checksQueued = true;
     requestAnimationFrame(syncTaskChecks);
+  }
+
+  function syncHabitButton(button) {
+    if (!(button instanceof Element) || !button.matches('.habit-day')) return;
+    const done = button.classList.contains('done');
+    button.setAttribute('aria-pressed', String(done));
+  }
+
+  function syncHabitMutationRecords(records) {
+    records.forEach(record => {
+      if (record.type === 'attributes') syncHabitButton(record.target);
+      record.addedNodes.forEach(node => {
+        if (!(node instanceof Element)) return;
+        syncHabitButton(node);
+        node.querySelectorAll?.('.habit-day').forEach(syncHabitButton);
+      });
+    });
   }
 
   function installObservers() {
@@ -222,19 +251,23 @@
 
     const tasks = $('#todayTasks');
     if (tasks && !taskObserver) {
-      taskObserver = new MutationObserver(scheduleChecks);
+      taskObserver = new MutationObserver(records => {
+        records.forEach(record => {
+          if (record.type === 'attributes') queueTaskCard(record.target);
+          record.addedNodes.forEach(queueTaskCard);
+        });
+        scheduleChecks();
+      });
       taskObserver.observe(tasks, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+      tasks.querySelectorAll('.task').forEach(card => pendingTaskCards.add(card));
+      scheduleChecks();
     }
 
     const habits = $('#habitList');
     if (habits && !habitObserver) {
-      habitObserver = new MutationObserver(() => {
-        document.querySelectorAll('.habit-week .habit-day').forEach(button => {
-          const done = button.classList.contains('done');
-          button.setAttribute('aria-pressed', String(done));
-        });
-      });
+      habitObserver = new MutationObserver(syncHabitMutationRecords);
       habitObserver.observe(habits, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+      habits.querySelectorAll('.habit-day').forEach(syncHabitButton);
     }
   }
 
@@ -242,8 +275,8 @@
     if (!window.SeverApp?.getState || !$('#calendar') || !$('#todayTasks') || !$('#habitList')) return false;
     installObservers();
     scheduleCalendar();
-    scheduleChecks();
     document.documentElement.dataset.severInteractionPolish = 'ready';
+    document.documentElement.dataset.severInteractionPolishVersion = 'v107';
     return true;
   }
 
@@ -269,6 +302,7 @@
   window.addEventListener('sever:ready', () => {
     scheduleBoot();
     scheduleCalendar();
+    $('#todayTasks')?.querySelectorAll('.task').forEach(card => pendingTaskCards.add(card));
     scheduleChecks();
   });
 })();

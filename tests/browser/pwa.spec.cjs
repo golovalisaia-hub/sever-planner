@@ -22,7 +22,7 @@ test('installed release reloads offline with one complete active asset set', asy
       try {
         releaseCache = await page.evaluate(async () => {
           const names = await caches.keys();
-          const releaseNames = names.filter(name => name.startsWith('sever-v106-'));
+          const releaseNames = names.filter(name => name.startsWith('sever-v107-'));
           const name = releaseNames.at(-1) || '';
           if (!name) return { name: '', entries: [], releaseNames };
           const cache = await caches.open(name);
@@ -52,7 +52,7 @@ test('installed release reloads offline with one complete active asset set', asy
           && cached.includes('/sever2-usability-v84.js?v=84')
           && cached.includes('/sever2-interaction-polish.css?v=103')
           && cached.includes('/sever2-missed-tasks-v106.css?v=106')
-          && cached.includes('/sever2-interaction-polish.js?v=101')
+          && cached.includes('/sever2-interaction-polish.js?v=107')
           && cached.includes('/sever2-reminders.css?v=86')
           && cached.includes('/sever2-task-reminders.js?v=82')
           && cached.includes('/sever2-cloud-recovery.js?v=80')
@@ -63,7 +63,7 @@ test('installed release reloads offline with one complete active asset set', asy
       } catch { return false; }
     }).toBe(true);
 
-    expect(releaseCache.name).toBe('sever-v106-missed-tasks-release-v1');
+    expect(releaseCache.name).toBe('sever-v107-instant-response-release-v1');
     const cached = releaseCache.entries;
     for (const asset of [
       '/mobile-home.css?v=52','/desktop-system.css?v=60','/themes.css?v=60','/sever2-ui.css?v=61','/sever2-qa.css?v=61',
@@ -75,7 +75,7 @@ test('installed release reloads offline with one complete active asset set', asy
       '/sever2-mobile-consistency.css?v=76','/sever2-notes-compact-v87.css?v=87','/sever2-notes-compact-v87.js?v=87',
       '/sever2-experience-v94.css?v=101','/sever2-experience-v94.js?v=101',
       '/sever2-money.css?v=83','/sever2-money.js?v=83','/sever2-usability-v84.css?v=93','/sever2-usability-v84.js?v=84',
-      '/sever2-interaction-polish.css?v=103','/sever2-missed-tasks-v106.css?v=106','/sever2-interaction-polish.js?v=101','/sever2-reminders.css?v=86','/sever2-task-reminders.js?v=82',
+      '/sever2-interaction-polish.css?v=103','/sever2-missed-tasks-v106.css?v=106','/sever2-interaction-polish.js?v=107','/sever2-reminders.css?v=86','/sever2-task-reminders.js?v=82',
       '/sever2-cloud-recovery.css?v=80','/sever2-cloud-recovery.js?v=80','/mobile-ui.js?v=92','/js/theme-init.js?v=92','/app.js?v=106','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55','/js/sever-ai.js?v=100'
     ]) expect(cached).toContain(asset);
     expect(cached).not.toContain('/app.js?v=51');
@@ -84,6 +84,7 @@ test('installed release reloads offline with one complete active asset set', asy
     expect(cached).not.toContain('/sever2-experience-v94.css?v=94');
     expect(cached).not.toContain('/sever2-experience-v94.js?v=99');
     expect(cached).not.toContain('/sever2-interaction-polish.js?v=78');
+    expect(cached).not.toContain('/sever2-interaction-polish.js?v=101');
     expect(cached).not.toContain('/desktop-home.css?v=60');
 
     await context.setOffline(true);
@@ -92,6 +93,7 @@ test('installed release reloads offline with one complete active asset set', asy
     for (const key of ['severProductivity','severFocusFlow','severEfficiency','severCalendarClarity','severCreateFlow','severHomeCore','severNotesCore','severNotesOrganization','severNotesEditorFlow','severNotesNavigation','severNotesPolish','severMoney','severInteractionPolish','severCloudRecovery']) {
       await expect.poll(() => page.evaluate(name => document.documentElement.dataset[name], key)).toBe('ready');
     }
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severInteractionPolishVersion)).toBe('v107');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesCompact)).toBe('v94');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severExperience)).toBe('v94');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severSeasonSignature)).toBe('v101');
