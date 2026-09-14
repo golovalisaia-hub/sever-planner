@@ -15,6 +15,10 @@ test('v110 onboarding parses and loads through the stable late UI bootstrap', ()
   const checked = spawnSync(process.execPath, ['--check', path.join(root, 'sever2-onboarding-v110.js')]);
   assert.equal(checked.status, 0, checked.stderr.toString());
   assert.match(repair, /function installOnboardingV110Layer\(\)/);
+  assert.match(repair, /function scheduleOnboardingV110\(\)/);
+  assert.match(repair, /window\.addEventListener\('load',[\s\S]*installOnboardingV110Layer/);
+  assert.match(repair, /script\.async = true/);
+  assert.doesNotMatch(repair, /\n\s*installOnboardingV110Layer\(\);\s*\n/);
   assert.match(repair, /sever2-onboarding-v110\.css\?v=110/);
   assert.match(repair, /sever2-onboarding-v110\.js\?v=110/);
   assert.match(js, /dataset\.severOnboarding = 'v110'/);
