@@ -77,7 +77,9 @@ async function seed(page) {
 }
 
 async function shot(page, projectName, label) {
-  const out = path.resolve('test-results/sever2-visual');
+  // Keep review images outside Playwright's managed test-results directory.
+  // Playwright may clean successful-test output before the workflow upload step.
+  const out = path.resolve('visual-review/sever2-v109');
   fs.mkdirSync(out, { recursive: true });
   await page.screenshot({ path: path.join(out, `${safeName(projectName)}-${label}.png`), fullPage: true });
 }
