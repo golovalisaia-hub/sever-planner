@@ -56,7 +56,7 @@ test('v95 repairs Notes organization shell if the core summary appears after org
   assert.match(notesRepair, /#notesPinnedSection/);
   assert.match(notesRepair, /severNotesOrganizationRepair = 'v95'/);
   assert.match(interaction, /sever2-notes-org-repair-v95\.js\?v=95/);
-  assert.match(sw, /sever2-notes-org-repair-v95\.js\?v=110/);
+  assert.match(sw, /sever2-notes-org-repair-v95\.js\?v=111/);
 });
 
 test('v101 startup never destroys a push subscription before auth has settled', () => {
