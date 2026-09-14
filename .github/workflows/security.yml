@@ -49,8 +49,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sever2-visual-review
-          path: test-results/sever2-visual
-          if-no-files-found: ignore
+          path: visual-review/sever2-v109
+          if-no-files-found: error
           retention-days: 3
       - name: Concurrent sync (isolated PostgreSQL and desktop/mobile contexts)
         run: |
