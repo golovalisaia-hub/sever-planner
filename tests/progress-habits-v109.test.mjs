@@ -17,7 +17,8 @@ test('v109 progress and habit layer parses and is loaded atomically', () => {
   assert.match(polish, /installProgressHabitsV109Layer\(\)/);
   assert.match(polish, /sever2-progress-habits-v109\.css\?v=109/);
   assert.match(polish, /sever2-progress-habits-v109\.js\?v=109/);
-  assert.match(sw, /sever-v109-progress-habits-release-v1/);
+  const release = sw.match(/const CACHE = 'sever-v(\d+)-[^']+'/);
+  assert.ok(release && Number(release[1]) >= 109, 'current atomic cache must preserve the v109 progress layer');
   assert.ok(sw.includes("'./sever2-progress-habits-v109.css?v=109'"));
   assert.ok(sw.includes("'./sever2-progress-habits-v109.js?v=109'"));
   assert.ok(sw.includes("'/sever2-progress-habits-v109.css'"));
