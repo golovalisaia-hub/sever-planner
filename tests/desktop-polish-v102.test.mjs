@@ -52,8 +52,9 @@ test('timer progress remains data-driven and v102 makes the changing arc visuall
   assert.doesNotMatch(timerRule, /stroke-dashoffset\s*:/, 'CSS must not override the JS-computed timer offset');
 });
 
-test('v102 rotates the atomic PWA release and ships refreshed efficiency CSS and JS', () => {
-  assert.match(sw, /const CACHE = 'sever-v102-desktop-polish-release-v1'/);
+test('v102 desktop polish remains in the current atomic PWA release', () => {
+  const release = sw.match(/const CACHE = 'sever-v(\d+)-[^']+'/);
+  assert.ok(release && Number(release[1]) >= 102, 'current atomic cache must preserve v102 desktop polish');
   assert.ok(sw.includes("'./sever2-efficiency.css?v=102'"));
   assert.ok(sw.includes("'./sever2-efficiency.js?v=102'"));
   assert.ok(sw.includes("'/sever2-efficiency.css'"));
