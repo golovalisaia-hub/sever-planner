@@ -1,10 +1,14 @@
 /* SEVER v110 — fast, optional first-run orientation with an actionable finish. */
+#tourDialog .guide-card{--sever110-guide-text:#f7f4ef;--sever110-guide-muted:rgba(247,244,239,.82);--sever110-guide-soft:rgba(247,244,239,.7)}
 #tourDialog .guide-card-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px}
-#tourDialog .guide-kicker{white-space:nowrap;color:var(--text-primary);opacity:.82}
-#tourDialog .sever110-guide-step{justify-self:start;color:var(--text-primary);font-size:.7rem;font-weight:800;letter-spacing:.06em;opacity:.7}
-#tourDialog .guide-copy h2{color:var(--text-primary);text-wrap:balance}
-#tourDialog .guide-copy p{max-width:46ch;color:color-mix(in srgb,var(--text-primary) 82%,var(--text-secondary) 18%)}
-#tourDialog .guide-skip,#tourDialog .guide-back{color:color-mix(in srgb,var(--text-primary) 74%,var(--text-secondary) 26%)}
+#tourDialog .guide-kicker{white-space:nowrap;color:var(--sever110-guide-soft);opacity:1}
+#tourDialog .sever110-guide-step{justify-self:start;color:var(--sever110-guide-soft);font-size:.7rem;font-weight:800;letter-spacing:.06em;opacity:1}
+#tourDialog .guide-copy h2{color:var(--sever110-guide-text);text-wrap:balance}
+#tourDialog .guide-copy p{max-width:46ch;color:var(--sever110-guide-muted)}
+#tourDialog .guide-skip,#tourDialog .guide-back{color:var(--sever110-guide-soft)}
+#tourDialog .guide-skip:hover,#tourDialog .guide-back:hover{color:var(--sever110-guide-text)}
+#tourDialog .guide-dots i{background:rgba(247,244,239,.16)}
+#tourDialog .guide-dots i.active{background:rgba(247,244,239,.72)}
 #todayTasks .empty p{max-width:46ch;margin-inline:auto}
 #todayTasks .empty .today-add-task{min-height:44px}
 @media(max-width:900px){
