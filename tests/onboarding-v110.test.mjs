@@ -65,7 +65,9 @@ test('v110 cloud fallback is bounded to local mode and never bypasses configured
 test('v110 onboarding stays phone-safe, visually legible and part of the atomic offline release', () => {
   assert.match(css, /@media\(max-width:350px\)/);
   assert.match(css, /max-width:64vw/);
-  assert.match(css, /color-mix\(in srgb,var\(--text-primary\) 82%,var\(--text-secondary\) 18%\)/);
+  assert.match(css, /--sever110-guide-text:#f7f4ef/);
+  assert.match(css, /--sever110-guide-muted:rgba\(247,244,239,\.82\)/);
+  assert.match(css, /guide-copy h2\{color:var\(--sever110-guide-text\)/);
   assert.match(sw, /const CACHE = 'sever-v110-first-run-onboarding-release-v1'/);
   for (const asset of [
     './sever2-onboarding-v110.css?v=110',
