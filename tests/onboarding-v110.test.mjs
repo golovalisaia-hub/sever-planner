@@ -72,6 +72,13 @@ test('v110 historical day refresh waits beyond task mutation scheduling', () => 
   assert.match(js, /cell\.click\(\)/);
 });
 
+test('v110 untargeted slides cannot keep stale spotlight geometry', () => {
+  assert.match(js, /function syncGuideSpotlight\(\)/);
+  assert.match(js, /dialog\.dataset\.hasTarget = 'false'/);
+  assert.match(js, /spot\.removeAttribute\('style'\)/);
+  assert.match(css, /data-has-target="false"\] #guideSpotlight\{[^}]*width:0!important;[^}]*height:0!important/);
+});
+
 test('v110 onboarding stays phone-safe, readable before late polish, and part of the atomic offline release', () => {
   assert.match(css, /@media\(max-width:350px\)/);
   assert.match(css, /max-width:64vw/);
