@@ -1,0 +1,593 @@
+exit_status=1
+--- failure excerpts ---
+4-  ---
+5-  duration_ms: 1.651717
+6-  type: 'test'
+7-  ...
+8-# Subtest: v81 startup guard remains active inside the v102 desktop polish release cache
+9:not ok 2 - v81 startup guard remains active inside the v102 desktop polish release cache
+10-  ---
+11-  duration_ms: 4.356961
+12-  type: 'test'
+13-  location: '/home/runner/work/sever-planner/sever-planner/tests/beta-functional-sweep-v81.test.mjs:22:1'
+14:  failureType: 'testCodeFailure'
+15:  error: |-
+16-    The input did not match the regular expression /const CACHE = 'sever-v102-desktop-polish-release-v1'/. Input:
+17-
+18-    '// Upgrade lineage retained for static release-audit compatibility:\n' +
+19-      '// sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.\n' +
+20-      '// index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.\n' +
+21-      '// index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.\n' +
+22-      '// v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.\n' +
+23-      '// v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.\n' +
+--
+39-      "self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});\n" +
+40-      "self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;const asset=ASSETS.find(asset=>{const cachedUrl=new URL(asset,self.registration.scope);return cachedUrl.pathname===url.pathname});const core=event.request.mode==='navigate'||CORE_PATHS.some(path=>url.pathname.endsWith(path));if(core||asset){const key=event.request.mode==='navigate'?'./index.html':asset;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=key?await cache.match(key):null;return hit||new Response('Release asset unavailable',{status:503})}));return}event.respondWith(fetch(event.request))});\n" +
+41-      "self.addEventListener('push',event=>{let payload={};try{payload=event.data?.json()||{}}catch{try{payload={body:event.data?.text()||''}}catch{payload={}}}const options={body:payload.body||'',icon:'./icon-192.png',badge:'./icon-192.png',tag:payload.tag||'sever-task-reminder',renotify:false,data:{url:payload.url||'./?view=today',taskId:payload.taskId||null,reminderKind:payload.reminderKind||null}};event.waitUntil(self.registration.showNotification(payload.title||'SEVER',options))});\n" +
+42-      "self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const target=new URL(event.notification.data?.url||'./',self.registration.scope).href;const windows=await clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){if('navigate'in client&&client.url!==target){try{await client.navigate(target)}catch{}}if('focus'in client)return client.focus()}return clients.openWindow(target)})())});\n"
+43-
+44:  code: 'ERR_ASSERTION'
+45:  name: 'AssertionError'
+46:  expected:
+47:  actual: |-
+48-    // Upgrade lineage retained for static release-audit compatibility:
+49-    // sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.
+50-    // index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.
+51-    // index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.
+52-    // v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.
+53-    // v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.
+54-    // v102 simplifies desktop command/create hierarchy, restores readable habit rhythm and clarifies timer progress.
+55-    // v103 refreshes the autumn wordmark animation so leaves move with compositor-only transforms.
+--
+164-  ---
+165-  duration_ms: 0.267757
+166-  type: 'test'
+167-  ...
+168-# Subtest: cloud recovery v80 remains in the atomic v102 desktop polish PWA release
+169:not ok 17 - cloud recovery v80 remains in the atomic v102 desktop polish PWA release
+170-  ---
+171-  duration_ms: 1.798329
+172-  type: 'test'
+173-  location: '/home/runner/work/sever-planner/sever-planner/tests/cloud-recovery-v80.test.mjs:54:1'
+174:  failureType: 'testCodeFailure'
+175:  error: |-
+176-    The input did not match the regular expression /const CACHE = 'sever-v102-desktop-polish-release-v1'/. Input:
+177-
+178-    '// Upgrade lineage retained for static release-audit compatibility:\n' +
+179-      '// sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.\n' +
+180-      '// index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.\n' +
+181-      '// index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.\n' +
+182-      '// v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.\n' +
+183-      '// v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.\n' +
+--
+199-      "self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});\n" +
+200-      "self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;const asset=ASSETS.find(asset=>{const cachedUrl=new URL(asset,self.registration.scope);return cachedUrl.pathname===url.pathname});const core=event.request.mode==='navigate'||CORE_PATHS.some(path=>url.pathname.endsWith(path));if(core||asset){const key=event.request.mode==='navigate'?'./index.html':asset;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=key?await cache.match(key):null;return hit||new Response('Release asset unavailable',{status:503})}));return}event.respondWith(fetch(event.request))});\n" +
+201-      "self.addEventListener('push',event=>{let payload={};try{payload=event.data?.json()||{}}catch{try{payload={body:event.data?.text()||''}}catch{payload={}}}const options={body:payload.body||'',icon:'./icon-192.png',badge:'./icon-192.png',tag:payload.tag||'sever-task-reminder',renotify:false,data:{url:payload.url||'./?view=today',taskId:payload.taskId||null,reminderKind:payload.reminderKind||null}};event.waitUntil(self.registration.showNotification(payload.title||'SEVER',options))});\n" +
+202-      "self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const target=new URL(event.notification.data?.url||'./',self.registration.scope).href;const windows=await clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){if('navigate'in client&&client.url!==target){try{await client.navigate(target)}catch{}}if('focus'in client)return client.focus()}return clients.openWindow(target)})())});\n"
+203-
+204:  code: 'ERR_ASSERTION'
+205:  name: 'AssertionError'
+206:  expected:
+207:  actual: |-
+208-    // Upgrade lineage retained for static release-audit compatibility:
+209-    // sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.
+210-    // index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.
+211-    // index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.
+212-    // v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.
+213-    // v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.
+214-    // v102 simplifies desktop command/create hierarchy, restores readable habit rhythm and clarifies timer progress.
+215-    // v103 refreshes the autumn wordmark animation so leaves move with compositor-only transforms.
+--
+432-  ---
+433-  duration_ms: 0.458311
+434-  type: 'test'
+435-  ...
+436-# Subtest: v102 rotates the atomic PWA release and ships refreshed efficiency CSS and JS
+437:not ok 50 - v102 rotates the atomic PWA release and ships refreshed efficiency CSS and JS
+438-  ---
+439-  duration_ms: 1.458048
+440-  type: 'test'
+441-  location: '/home/runner/work/sever-planner/sever-planner/tests/desktop-polish-v102.test.mjs:55:1'
+442:  failureType: 'testCodeFailure'
+443:  error: |-
+444-    The input did not match the regular expression /const CACHE = 'sever-v102-desktop-polish-release-v1'/. Input:
+445-
+446-    '// Upgrade lineage retained for static release-audit compatibility:\n' +
+447-      '// sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.\n' +
+448-      '// index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.\n' +
+449-      '// index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.\n' +
+450-      '// v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.\n' +
+451-      '// v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.\n' +
+--
+467-      "self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});\n" +
+468-      "self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;const asset=ASSETS.find(asset=>{const cachedUrl=new URL(asset,self.registration.scope);return cachedUrl.pathname===url.pathname});const core=event.request.mode==='navigate'||CORE_PATHS.some(path=>url.pathname.endsWith(path));if(core||asset){const key=event.request.mode==='navigate'?'./index.html':asset;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=key?await cache.match(key):null;return hit||new Response('Release asset unavailable',{status:503})}));return}event.respondWith(fetch(event.request))});\n" +
+469-      "self.addEventListener('push',event=>{let payload={};try{payload=event.data?.json()||{}}catch{try{payload={body:event.data?.text()||''}}catch{payload={}}}const options={body:payload.body||'',icon:'./icon-192.png',badge:'./icon-192.png',tag:payload.tag||'sever-task-reminder',renotify:false,data:{url:payload.url||'./?view=today',taskId:payload.taskId||null,reminderKind:payload.reminderKind||null}};event.waitUntil(self.registration.showNotification(payload.title||'SEVER',options))});\n" +
+470-      "self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const target=new URL(event.notification.data?.url||'./',self.registration.scope).href;const windows=await clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){if('navigate'in client&&client.url!==target){try{await client.navigate(target)}catch{}}if('focus'in client)return client.focus()}return clients.openWindow(target)})())});\n"
+471-
+472:  code: 'ERR_ASSERTION'
+473:  name: 'AssertionError'
+474:  expected:
+475:  actual: |-
+476-    // Upgrade lineage retained for static release-audit compatibility:
+477-    // sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.
+478-    // index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.
+479-    // index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.
+480-    // v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.
+481-    // v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.
+482-    // v102 simplifies desktop command/create hierarchy, restores readable habit rhythm and clarifies timer progress.
+483-    // v103 refreshes the autumn wordmark animation so leaves move with compositor-only transforms.
+--
+574-  ---
+575-  duration_ms: 0.324252
+576-  type: 'test'
+577-  ...
+578-# Subtest: v101 reliability assets remain part of the newly rotated v102 atomic offline release
+579:not ok 62 - v101 reliability assets remain part of the newly rotated v102 atomic offline release
+580-  ---
+581-  duration_ms: 4.76057
+582-  type: 'test'
+583-  location: '/home/runner/work/sever-planner/sever-planner/tests/experience-v94.test.mjs:60:1'
+584:  failureType: 'testCodeFailure'
+585:  error: |-
+586-    The input did not match the regular expression /const CACHE = 'sever-v102-desktop-polish-release-v1'/. Input:
+587-
+588-    '// Upgrade lineage retained for static release-audit compatibility:\n' +
+589-      '// sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.\n' +
+590-      '// index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.\n' +
+591-      '// index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.\n' +
+592-      '// v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.\n' +
+593-      '// v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.\n' +
+--
+609-      "self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});\n" +
+610-      "self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;const asset=ASSETS.find(asset=>{const cachedUrl=new URL(asset,self.registration.scope);return cachedUrl.pathname===url.pathname});const core=event.request.mode==='navigate'||CORE_PATHS.some(path=>url.pathname.endsWith(path));if(core||asset){const key=event.request.mode==='navigate'?'./index.html':asset;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=key?await cache.match(key):null;return hit||new Response('Release asset unavailable',{status:503})}));return}event.respondWith(fetch(event.request))});\n" +
+611-      "self.addEventListener('push',event=>{let payload={};try{payload=event.data?.json()||{}}catch{try{payload={body:event.data?.text()||''}}catch{payload={}}}const options={body:payload.body||'',icon:'./icon-192.png',badge:'./icon-192.png',tag:payload.tag||'sever-task-reminder',renotify:false,data:{url:payload.url||'./?view=today',taskId:payload.taskId||null,reminderKind:payload.reminderKind||null}};event.waitUntil(self.registration.showNotification(payload.title||'SEVER',options))});\n" +
+612-      "self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const target=new URL(event.notification.data?.url||'./',self.registration.scope).href;const windows=await clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){if('navigate'in client&&client.url!==target){try{await client.navigate(target)}catch{}}if('focus'in client)return client.focus()}return clients.openWindow(target)})())});\n"
+613-
+614:  code: 'ERR_ASSERTION'
+615:  name: 'AssertionError'
+616:  expected:
+617:  actual: |-
+618-    // Upgrade lineage retained for static release-audit compatibility:
+619-    // sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.
+620-    // index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.
+621-    // index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.
+622-    // v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.
+623-    // v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.
+624-    // v102 simplifies desktop command/create hierarchy, restores readable habit rhythm and clarifies timer progress.
+625-    // v103 refreshes the autumn wordmark animation so leaves move with compositor-only transforms.
+--
+752-  ---
+753-  duration_ms: 0.300237
+754-  type: 'test'
+755-  ...
+756-# Subtest: v103 interaction polish remains inside the atomic v102 desktop polish PWA release
+757:not ok 80 - v103 interaction polish remains inside the atomic v102 desktop polish PWA release
+758-  ---
+759-  duration_ms: 1.708403
+760-  type: 'test'
+761-  location: '/home/runner/work/sever-planner/sever-planner/tests/interaction-polish.test.mjs:93:1'
+762:  failureType: 'testCodeFailure'
+763:  error: |-
+764-    The input did not match the regular expression /const CACHE = 'sever-v102-desktop-polish-release-v1'/. Input:
+765-
+766-    '// Upgrade lineage retained for static release-audit compatibility:\n' +
+767-      '// sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.\n' +
+768-      '// index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.\n' +
+769-      '// index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.\n' +
+770-      '// v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.\n' +
+771-      '// v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.\n' +
+--
+787-      "self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});\n" +
+788-      "self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;const asset=ASSETS.find(asset=>{const cachedUrl=new URL(asset,self.registration.scope);return cachedUrl.pathname===url.pathname});const core=event.request.mode==='navigate'||CORE_PATHS.some(path=>url.pathname.endsWith(path));if(core||asset){const key=event.request.mode==='navigate'?'./index.html':asset;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=key?await cache.match(key):null;return hit||new Response('Release asset unavailable',{status:503})}));return}event.respondWith(fetch(event.request))});\n" +
+789-      "self.addEventListener('push',event=>{let payload={};try{payload=event.data?.json()||{}}catch{try{payload={body:event.data?.text()||''}}catch{payload={}}}const options={body:payload.body||'',icon:'./icon-192.png',badge:'./icon-192.png',tag:payload.tag||'sever-task-reminder',renotify:false,data:{url:payload.url||'./?view=today',taskId:payload.taskId||null,reminderKind:payload.reminderKind||null}};event.waitUntil(self.registration.showNotification(payload.title||'SEVER',options))});\n" +
+790-      "self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const target=new URL(event.notification.data?.url||'./',self.registration.scope).href;const windows=await clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){if('navigate'in client&&client.url!==target){try{await client.navigate(target)}catch{}}if('focus'in client)return client.focus()}return clients.openWindow(target)})())});\n"
+791-
+792:  code: 'ERR_ASSERTION'
+793:  name: 'AssertionError'
+794:  expected:
+795:  actual: |-
+796-    // Upgrade lineage retained for static release-audit compatibility:
+797-    // sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.
+798-    // index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.
+799-    // index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.
+800-    // v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.
+801-    // v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.
+802-    // v102 simplifies desktop command/create hierarchy, restores readable habit rhythm and clarifies timer progress.
+803-    // v103 refreshes the autumn wordmark animation so leaves move with compositor-only transforms.
+--
+882-  ---
+883-  duration_ms: 1.608046
+884-  type: 'test'
+885-  ...
+886-# Subtest: installed PWA ships v103 autumn polish while preserving v102 desktop and v101 reliability
+887:not ok 90 - installed PWA ships v103 autumn polish while preserving v102 desktop and v101 reliability
+888-  ---
+889-  duration_ms: 1.425136
+890-  type: 'test'
+891-  location: '/home/runner/work/sever-planner/sever-planner/tests/mobile-header-v96.test.mjs:48:1'
+892:  failureType: 'testCodeFailure'
+893:  error: |-
+894-    The input did not match the regular expression /const CACHE = 'sever-v102-desktop-polish-release-v1'/. Input:
+895-
+896-    '// Upgrade lineage retained for static release-audit compatibility:\n' +
+897-      '// sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.\n' +
+898-      '// index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.\n' +
+899-      '// index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.\n' +
+900-      '// v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.\n' +
+901-      '// v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.\n' +
+--
+917-      "self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});\n" +
+918-      "self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;const asset=ASSETS.find(asset=>{const cachedUrl=new URL(asset,self.registration.scope);return cachedUrl.pathname===url.pathname});const core=event.request.mode==='navigate'||CORE_PATHS.some(path=>url.pathname.endsWith(path));if(core||asset){const key=event.request.mode==='navigate'?'./index.html':asset;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=key?await cache.match(key):null;return hit||new Response('Release asset unavailable',{status:503})}));return}event.respondWith(fetch(event.request))});\n" +
+919-      "self.addEventListener('push',event=>{let payload={};try{payload=event.data?.json()||{}}catch{try{payload={body:event.data?.text()||''}}catch{payload={}}}const options={body:payload.body||'',icon:'./icon-192.png',badge:'./icon-192.png',tag:payload.tag||'sever-task-reminder',renotify:false,data:{url:payload.url||'./?view=today',taskId:payload.taskId||null,reminderKind:payload.reminderKind||null}};event.waitUntil(self.registration.showNotification(payload.title||'SEVER',options))});\n" +
+920-      "self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const target=new URL(event.notification.data?.url||'./',self.registration.scope).href;const windows=await clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){if('navigate'in client&&client.url!==target){try{await client.navigate(target)}catch{}}if('focus'in client)return client.focus()}return clients.openWindow(target)})())});\n"
+921-
+922:  code: 'ERR_ASSERTION'
+923:  name: 'AssertionError'
+924:  expected:
+925:  actual: |-
+926-    // Upgrade lineage retained for static release-audit compatibility:
+927-    // sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.
+928-    // index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.
+929-    // index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.
+930-    // v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.
+931-    // v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.
+932-    // v102 simplifies desktop command/create hierarchy, restores readable habit rhythm and clarifies timer progress.
+933-    // v103 refreshes the autumn wordmark animation so leaves move with compositor-only transforms.
+--
+994-  ---
+995-  duration_ms: 0.645038
+996-  type: 'test'
+997-  ...
+998-# Subtest: Notes compact layer and v101 experience pack ship inside the v102 desktop polish release
+999:not ok 97 - Notes compact layer and v101 experience pack ship inside the v102 desktop polish release
+1000-  ---
+1001-  duration_ms: 1.563454
+1002-  type: 'test'
+1003-  location: '/home/runner/work/sever-planner/sever-planner/tests/notes-compact-v87.test.mjs:39:1'
+1004:  failureType: 'testCodeFailure'
+1005:  error: |-
+1006-    The input did not match the regular expression /const CACHE = 'sever-v102-desktop-polish-release-v1'/. Input:
+1007-
+1008-    '// Upgrade lineage retained for static release-audit compatibility:\n' +
+1009-      '// sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.\n' +
+1010-      '// index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.\n' +
+1011-      '// index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.\n' +
+1012-      '// v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.\n' +
+1013-      '// v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.\n' +
+--
+1029-      "self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});\n" +
+1030-      "self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;const asset=ASSETS.find(asset=>{const cachedUrl=new URL(asset,self.registration.scope);return cachedUrl.pathname===url.pathname});const core=event.request.mode==='navigate'||CORE_PATHS.some(path=>url.pathname.endsWith(path));if(core||asset){const key=event.request.mode==='navigate'?'./index.html':asset;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=key?await cache.match(key):null;return hit||new Response('Release asset unavailable',{status:503})}));return}event.respondWith(fetch(event.request))});\n" +
+1031-      "self.addEventListener('push',event=>{let payload={};try{payload=event.data?.json()||{}}catch{try{payload={body:event.data?.text()||''}}catch{payload={}}}const options={body:payload.body||'',icon:'./icon-192.png',badge:'./icon-192.png',tag:payload.tag||'sever-task-reminder',renotify:false,data:{url:payload.url||'./?view=today',taskId:payload.taskId||null,reminderKind:payload.reminderKind||null}};event.waitUntil(self.registration.showNotification(payload.title||'SEVER',options))});\n" +
+1032-      "self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const target=new URL(event.notification.data?.url||'./',self.registration.scope).href;const windows=await clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){if('navigate'in client&&client.url!==target){try{await client.navigate(target)}catch{}}if('focus'in client)return client.focus()}return clients.openWindow(target)})())});\n"
+1033-
+1034:  code: 'ERR_ASSERTION'
+1035:  name: 'AssertionError'
+1036:  expected:
+1037:  actual: |-
+1038-    // Upgrade lineage retained for static release-audit compatibility:
+1039-    // sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.
+1040-    // index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.
+1041-    // index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.
+1042-    // v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.
+1043-    // v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.
+1044-    // v102 simplifies desktop command/create hierarchy, restores readable habit rhythm and clarifies timer progress.
+1045-    // v103 refreshes the autumn wordmark animation so leaves move with compositor-only transforms.
+--
+1076-  ---
+1077-  duration_ms: 11.551732
+1078-  type: 'test'
+1079-  ...
+1080-# Subtest: cloud recovery v80 ships atomically inside the complete v102 desktop polish PWA release with v103 autumn CSS
+1081:not ok 99 - cloud recovery v80 ships atomically inside the complete v102 desktop polish PWA release with v103 autumn CSS
+1082-  ---
+1083-  duration_ms: 4.227968
+1084-  type: 'test'
+1085-  location: '/home/runner/work/sever-planner/sever-planner/tests/notes-core-release.test.mjs:36:1'
+1086:  failureType: 'testCodeFailure'
+1087:  error: |-
+1088-    The input did not match the regular expression /const CACHE = 'sever-v102-desktop-polish-release-v1'/. Input:
+1089-
+1090-    '// Upgrade lineage retained for static release-audit compatibility:\n' +
+1091-      '// sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.\n' +
+1092-      '// index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.\n' +
+1093-      '// index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.\n' +
+1094-      '// v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.\n' +
+1095-      '// v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.\n' +
+--
+1111-      "self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});\n" +
+1112-      "self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;const asset=ASSETS.find(asset=>{const cachedUrl=new URL(asset,self.registration.scope);return cachedUrl.pathname===url.pathname});const core=event.request.mode==='navigate'||CORE_PATHS.some(path=>url.pathname.endsWith(path));if(core||asset){const key=event.request.mode==='navigate'?'./index.html':asset;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=key?await cache.match(key):null;return hit||new Response('Release asset unavailable',{status:503})}));return}event.respondWith(fetch(event.request))});\n" +
+1113-      "self.addEventListener('push',event=>{let payload={};try{payload=event.data?.json()||{}}catch{try{payload={body:event.data?.text()||''}}catch{payload={}}}const options={body:payload.body||'',icon:'./icon-192.png',badge:'./icon-192.png',tag:payload.tag||'sever-task-reminder',renotify:false,data:{url:payload.url||'./?view=today',taskId:payload.taskId||null,reminderKind:payload.reminderKind||null}};event.waitUntil(self.registration.showNotification(payload.title||'SEVER',options))});\n" +
+1114-      "self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const target=new URL(event.notification.data?.url||'./',self.registration.scope).href;const windows=await clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){if('navigate'in client&&client.url!==target){try{await client.navigate(target)}catch{}}if('focus'in client)return client.focus()}return clients.openWindow(target)})())});\n"
+1115-
+1116:  code: 'ERR_ASSERTION'
+1117:  name: 'AssertionError'
+1118:  expected:
+1119:  actual: |-
+1120-    // Upgrade lineage retained for static release-audit compatibility:
+1121-    // sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.
+1122-    // index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.
+1123-    // index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.
+1124-    // v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.
+1125-    // v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.
+1126-    // v102 simplifies desktop command/create hierarchy, restores readable habit rhythm and clarifies timer progress.
+1127-    // v103 refreshes the autumn wordmark animation so leaves move with compositor-only transforms.
+--
+1166-  ---
+1167-  duration_ms: 2.095561
+1168-  type: 'test'
+1169-  ...
+1170-# Subtest: Notes editor recovery loads after Home v85 and before compact Notes polish and cloud recovery
+1171:not ok 103 - Notes editor recovery loads after Home v85 and before compact Notes polish and cloud recovery
+1172-  ---
+1173-  duration_ms: 1.897083
+1174-  type: 'test'
+1175-  location: '/home/runner/work/sever-planner/sever-planner/tests/notes-editor-flow.test.mjs:28:1'
+1176:  failureType: 'testCodeFailure'
+1177:  error: |-
+1178-    The input did not match the regular expression /const CACHE = 'sever-v102-desktop-polish-release-v1'/. Input:
+1179-
+1180-    '// Upgrade lineage retained for static release-audit compatibility:\n' +
+1181-      '// sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.\n' +
+1182-      '// index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.\n' +
+1183-      '// index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.\n' +
+1184-      '// v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.\n' +
+1185-      '// v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.\n' +
+--
+1201-      "self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});\n" +
+1202-      "self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;const asset=ASSETS.find(asset=>{const cachedUrl=new URL(asset,self.registration.scope);return cachedUrl.pathname===url.pathname});const core=event.request.mode==='navigate'||CORE_PATHS.some(path=>url.pathname.endsWith(path));if(core||asset){const key=event.request.mode==='navigate'?'./index.html':asset;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=key?await cache.match(key):null;return hit||new Response('Release asset unavailable',{status:503})}));return}event.respondWith(fetch(event.request))});\n" +
+1203-      "self.addEventListener('push',event=>{let payload={};try{payload=event.data?.json()||{}}catch{try{payload={body:event.data?.text()||''}}catch{payload={}}}const options={body:payload.body||'',icon:'./icon-192.png',badge:'./icon-192.png',tag:payload.tag||'sever-task-reminder',renotify:false,data:{url:payload.url||'./?view=today',taskId:payload.taskId||null,reminderKind:payload.reminderKind||null}};event.waitUntil(self.registration.showNotification(payload.title||'SEVER',options))});\n" +
+1204-      "self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const target=new URL(event.notification.data?.url||'./',self.registration.scope).href;const windows=await clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){if('navigate'in client&&client.url!==target){try{await client.navigate(target)}catch{}}if('focus'in client)return client.focus()}return clients.openWindow(target)})())});\n"
+1205-
+1206:  code: 'ERR_ASSERTION'
+1207:  name: 'AssertionError'
+1208:  expected:
+1209:  actual: |-
+1210-    // Upgrade lineage retained for static release-audit compatibility:
+1211-    // sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.
+1212-    // index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.
+1213-    // index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.
+1214-    // v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.
+1215-    // v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.
+1216-    // v102 simplifies desktop command/create hierarchy, restores readable habit rhythm and clarifies timer progress.
+1217-    // v103 refreshes the autumn wordmark animation so leaves move with compositor-only transforms.
+--
+1450-  ---
+1451-  duration_ms: 0.912245
+1452-  type: 'test'
+1453-  ...
+1454-# Subtest: migration executes in PostgreSQL and enforces role, RLS, quotas and atomic plans
+1455:not ok 138 - migration executes in PostgreSQL and enforces role, RLS, quotas and atomic plans
+1456-  ---
+1457-  duration_ms: 1.826081
+1458-  type: 'test'
+1459-  location: '/home/runner/work/sever-planner/sever-planner/tests/sever-ai-sql.test.mjs:8:1'
+1460:  failureType: 'testCodeFailure'
+1461:  error: |-
+1462-    Cannot find module '/home/runner/work/sever-planner/sever-planner/node_modules/@electric-sql/pglite'
+1463-    Require stack:
+1464-    - /home/runner/work/sever-planner/sever-planner/tests/sever-ai-sql.test.mjs
+1465-  code: 'MODULE_NOT_FOUND'
+1466-  stack: |-
+1467-    Function._resolveFilename (node:internal/modules/cjs/loader:1430:15)
+1468-    defaultResolveImpl (node:internal/modules/cjs/loader:1040:19)
+1469-    resolveForCJSWithHooks (node:internal/modules/cjs/loader:1045:22)
+--
+1658-  ---
+1659-  duration_ms: 0.507232
+1660-  type: 'test'
+1661-  ...
+1662-# Subtest: v84 and v91 hardening remain inside the atomic v102 desktop polish release
+1663:not ok 169 - v84 and v91 hardening remain inside the atomic v102 desktop polish release
+1664-  ---
+1665-  duration_ms: 1.209185
+1666-  type: 'test'
+1667-  location: '/home/runner/work/sever-planner/sever-planner/tests/usability-v84.test.mjs:71:1'
+1668:  failureType: 'testCodeFailure'
+1669:  error: |-
+1670-    The input did not match the regular expression /const CACHE = 'sever-v102-desktop-polish-release-v1'/. Input:
+1671-
+1672-    '// Upgrade lineage retained for static release-audit compatibility:\n' +
+1673-      '// sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.\n' +
+1674-      '// index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.\n' +
+1675-      '// index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.\n' +
+1676-      '// v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.\n' +
+1677-      '// v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.\n' +
+--
+1693-      "self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});\n" +
+1694-      "self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;const asset=ASSETS.find(asset=>{const cachedUrl=new URL(asset,self.registration.scope);return cachedUrl.pathname===url.pathname});const core=event.request.mode==='navigate'||CORE_PATHS.some(path=>url.pathname.endsWith(path));if(core||asset){const key=event.request.mode==='navigate'?'./index.html':asset;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=key?await cache.match(key):null;return hit||new Response('Release asset unavailable',{status:503})}));return}event.respondWith(fetch(event.request))});\n" +
+1695-      "self.addEventListener('push',event=>{let payload={};try{payload=event.data?.json()||{}}catch{try{payload={body:event.data?.text()||''}}catch{payload={}}}const options={body:payload.body||'',icon:'./icon-192.png',badge:'./icon-192.png',tag:payload.tag||'sever-task-reminder',renotify:false,data:{url:payload.url||'./?view=today',taskId:payload.taskId||null,reminderKind:payload.reminderKind||null}};event.waitUntil(self.registration.showNotification(payload.title||'SEVER',options))});\n" +
+1696-      "self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const target=new URL(event.notification.data?.url||'./',self.registration.scope).href;const windows=await clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){if('navigate'in client&&client.url!==target){try{await client.navigate(target)}catch{}}if('focus'in client)return client.focus()}return clients.openWindow(target)})())});\n"
+1697-
+1698:  code: 'ERR_ASSERTION'
+1699:  name: 'AssertionError'
+1700:  expected:
+1701:  actual: |-
+1702-    // Upgrade lineage retained for static release-audit compatibility:
+1703-    // sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.
+1704-    // index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.
+1705-    // index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.
+1706-    // v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.
+1707-    // v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.
+1708-    // v102 simplifies desktop command/create hierarchy, restores readable habit rhythm and clarifies timer progress.
+1709-    // v103 refreshes the autumn wordmark animation so leaves move with compositor-only transforms.
+--- tail ---
+ok 153 - task reminders request permission only from explicit controls and use Web Push subscription
+  ---
+  duration_ms: 0.386258
+  type: 'test'
+  ...
+# Subtest: legacy daily reminder is retired and cannot be re-enabled by old Settings bridges
+ok 154 - legacy daily reminder is retired and cannot be re-enabled by old Settings bridges
+  ---
+  duration_ms: 0.310076
+  type: 'test'
+  ...
+# Subtest: v98 reminder bridge neutralizes the retired mobile toggle mirror
+ok 155 - v98 reminder bridge neutralizes the retired mobile toggle mirror
+  ---
+  duration_ms: 0.323842
+  type: 'test'
+  ...
+# Subtest: v95 repairs Notes organization shell if the core summary appears after organization boot
+ok 156 - v95 repairs Notes organization shell if the core summary appears after organization boot
+  ---
+  duration_ms: 0.251187
+  type: 'test'
+  ...
+# Subtest: v101 startup never destroys a push subscription before auth has settled
+ok 157 - v101 startup never destroys a push subscription before auth has settled
+  ---
+  duration_ms: 0.275452
+  type: 'test'
+  ...
+# Subtest: reminder settings have dedicated wide desktop and compact mobile layouts
+ok 158 - reminder settings have dedicated wide desktop and compact mobile layouts
+  ---
+  duration_ms: 0.440888
+  type: 'test'
+  ...
+# Subtest: disabled reminder sub-options stay saved but look clearly inactive
+ok 159 - disabled reminder sub-options stay saved but look clearly inactive
+  ---
+  duration_ms: 0.296851
+  type: 'test'
+  ...
+# Subtest: service worker immediately displays visible push notifications and opens the routed SEVER view
+ok 160 - service worker immediately displays visible push notifications and opens the routed SEVER view
+  ---
+  duration_ms: 0.503976
+  type: 'test'
+  ...
+# Subtest: database layer deduplicates reminder deliveries and schedules the dispatcher once per minute
+ok 161 - database layer deduplicates reminder deliveries and schedules the dispatcher once per minute
+  ---
+  duration_ms: 0.556834
+  type: 'test'
+  ...
+# Subtest: v105 task mutations use domain-scoped rendering instead of the full app render
+ok 162 - v105 task mutations use domain-scoped rendering instead of the full app render
+  ---
+  duration_ms: 1.218452
+  type: 'test'
+  ...
+# Subtest: v105 Focus completion updates task and focus domains without rebuilding unrelated views
+ok 163 - v105 Focus completion updates task and focus domains without rebuilding unrelated views
+  ---
+  duration_ms: 0.279129
+  type: 'test'
+  ...
+# Subtest: v105+ PWA ships the task-responsive planner core atomically
+ok 164 - v105+ PWA ships the task-responsive planner core atomically
+  ---
+  duration_ms: 1.589121
+  type: 'test'
+  ...
+# Subtest: usability v84 is syntax-valid and removes only pending Money schedule tasks
+ok 165 - usability v84 is syntax-valid and removes only pending Money schedule tasks
+  ---
+  duration_ms: 29.22482
+  type: 'test'
+  ...
+# Subtest: power-user v91 blocks destructive duplicate actions but never debounces task completion
+ok 166 - power-user v91 blocks destructive duplicate actions but never debounces task completion
+  ---
+  duration_ms: 0.383973
+  type: 'test'
+  ...
+# Subtest: guide v84 stays short but explains the rest of SEVER and how to reopen help
+ok 167 - guide v84 stays short but explains the rest of SEVER and how to reopen help
+  ---
+  duration_ms: 0.24211
+  type: 'test'
+  ...
+# Subtest: phone v84 reduces Money and Settings vertical chrome without shrinking touch targets
+ok 168 - phone v84 reduces Money and Settings vertical chrome without shrinking touch targets
+  ---
+  duration_ms: 0.507232
+  type: 'test'
+  ...
+# Subtest: v84 and v91 hardening remain inside the atomic v102 desktop polish release
+not ok 169 - v84 and v91 hardening remain inside the atomic v102 desktop polish release
+  ---
+  duration_ms: 1.209185
+  type: 'test'
+  location: '/home/runner/work/sever-planner/sever-planner/tests/usability-v84.test.mjs:71:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /const CACHE = 'sever-v102-desktop-polish-release-v1'/. Input:
+
+    '// Upgrade lineage retained for static release-audit compatibility:\n' +
+      '// sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.\n' +
+      '// index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.\n' +
+      '// index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.\n' +
+      '// v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.\n' +
+      '// v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.\n' +
+      '// v102 simplifies desktop command/create hierarchy, restores readable habit rhythm and clarifies timer progress.\n' +
+      '// v103 refreshes the autumn wordmark animation so leaves move with compositor-only transforms.\n' +
+      '// v104 makes ordinary checklist-note interactions paint before persistence and avoids full Notes rerenders.\n' +
+      '// v105 scopes hot task mutations to task/focus rendering and refreshes the cached planner core.\n' +
+      '// v106 preserves overdue task dates and adds explicit missed-task triage.\n' +
+      "// Previous atomic asset keys retained for release-audit lineage only: './sever2-experience-v94.css?v=94' './sever2-experience-v94.js?v=99' './sever2-interaction-polish.js?v=78'.\n" +
+      "const CACHE = 'sever-v106-missed-tasks-release-v1';\n" +
+      'const ASSETS = [\n' +
+      "  './','./index.html','./style.css?v=43','./qa.css?v=43','./responsive.css?v=43','./design-system.css?v=52','./mobile-system.css?v=43','./onboarding.css?v=43','./northern.css?v=43','./northern-components.css?v=48','./sever-v41.css?v=52','./reference-theme.css?v=43','./desktop-system.css?v=60','./mobile-home.css?v=52','./sever-ai.css?v=52','./themes.css?v=60','./sever2-ui.css?v=61','./sever2-qa.css?v=61','./sever2-productivity.css?v=64','./sever2-productivity.js?v=64','./sever2-focus-flow.css?v=66','./sever2-focus-flow.js?v=66','./sever2-efficiency.css?v=102','./sever2-efficiency.js?v=102','./sever2-calendar-clarity.css?v=68','./sever2-calendar-clarity.js?v=68','./sever2-create-flow.js?v=69','./sever2-home-core.css?v=85','./sever2-home-core.js?v=85','./sever2-notes-core.css?v=71','./sever2-notes-core.js?v=71','./sever2-notes-organization.css?v=72','./sever2-notes-organization.js?v=72','./sever2-notes-editor-flow.css?v=90','./sever2-notes-editor-flow.js?v=73','./sever2-notes-navigation.css?v=74','./sever2-notes-navigation.js?v=74','./sever2-notes-polish.css?v=92','./sever2-notes-polish.js?v=104','./sever2-notes-polish.js?v=93','./sever2-notes-responsiveness-v104.js?v=104','./sever2-mobile-consistency.css?v=76','./sever2-notes-compact-v87.css?v=87','./sever2-notes-compact-v87.js?v=87','./sever2-experience-v94.css?v=101','./sever2-experience-v94.js?v=101','./sever2-money.css?v=83','./sever2-money.js?v=83','./sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84','./sever2-interaction-polish.css?v=103','./sever2-missed-tasks-v106.css?v=106','./sever2-interaction-polish.js?v=101','./sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82','./sever2-reminder-bridge-v95.js?v=98','./sever2-notes-org-repair-v95.js?v=95','./sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./app.js?v=106','./notes-pro.js?v=52','./mobile-ui.js?v=92','./supabase-config.js?v=43','./vendor/supabase.min.js?v=2.57.4','./js/theme-init.js?v=92','./js/protected-notes-crypto.js?v=43','./js/security-core.js?v=43','./js/supabase-client.js?v=43','./js/ui-state.js?v=51','./js/sync-core.mjs?v=55','./js/cloud-runtime.js?v=55','./js/sever-ai.js?v=100','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'\n" +
+      '];\n' +
+      'const CORE_PATHS = [\n' +
+      "  '/vendor/supabase.min.js','/js/theme-init.js','/js/protected-notes-crypto.js','/js/security-core.js','/js/supabase-client.js','/js/ui-state.js','/style.css','/qa.css','/responsive.css','/design-system.css','/mobile-system.css','/onboarding.css','/northern.css','/northern-components.css','/sever-v41.css','/reference-theme.css','/desktop-system.css','/sever-ai.css','/mobile-home.css','/themes.css','/sever2-ui.css','/sever2-qa.css','/sever2-productivity.css','/sever2-productivity.js','/sever2-focus-flow.css','/sever2-focus-flow.js','/sever2-efficiency.css','/sever2-efficiency.js','/sever2-calendar-clarity.css','/sever2-calendar-clarity.js','/sever2-create-flow.js','/sever2-home-core.css','/sever2-home-core.js','/sever2-notes-core.css','/sever2-notes-core.js','/sever2-notes-organization.css','/sever2-notes-organization.js','/sever2-notes-editor-flow.css','/sever2-notes-editor-flow.js','/sever2-notes-navigation.css','/sever2-notes-navigation.js','/sever2-notes-polish.css','/sever2-notes-polish.js','/sever2-notes-responsiveness-v104.js','/sever2-mobile-consistency.css','/sever2-notes-compact-v87.css','/sever2-notes-compact-v87.js','/sever2-experience-v94.css','/sever2-experience-v94.js','/sever2-money.css','/sever2-money.js','/sever2-usability-v84.css','/sever2-usability-v84.js','/sever2-interaction-polish.css','/sever2-missed-tasks-v106.css','/sever2-interaction-polish.js','/sever2-reminders.css','/sever2-task-reminders.js','/sever2-reminder-bridge-v95.js','/sever2-notes-org-repair-v95.js','/sever2-cloud-recovery.css','/sever2-cloud-recovery.js','/mobile-ui.js','/app.js','/notes-pro.js','/supabase-config.js','/js/sync-core.mjs','/js/cloud-runtime.js','/js/sever-ai.js'\n" +
+      '];\n' +
+      "self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()))});\n" +
+      "self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});\n" +
+      "self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});\n" +
+      "self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;const asset=ASSETS.find(asset=>{const cachedUrl=new URL(asset,self.registration.scope);return cachedUrl.pathname===url.pathname});const core=event.request.mode==='navigate'||CORE_PATHS.some(path=>url.pathname.endsWith(path));if(core||asset){const key=event.request.mode==='navigate'?'./index.html':asset;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=key?await cache.match(key):null;return hit||new Response('Release asset unavailable',{status:503})}));return}event.respondWith(fetch(event.request))});\n" +
+      "self.addEventListener('push',event=>{let payload={};try{payload=event.data?.json()||{}}catch{try{payload={body:event.data?.text()||''}}catch{payload={}}}const options={body:payload.body||'',icon:'./icon-192.png',badge:'./icon-192.png',tag:payload.tag||'sever-task-reminder',renotify:false,data:{url:payload.url||'./?view=today',taskId:payload.taskId||null,reminderKind:payload.reminderKind||null}};event.waitUntil(self.registration.showNotification(payload.title||'SEVER',options))});\n" +
+      "self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const target=new URL(event.notification.data?.url||'./',self.registration.scope).href;const windows=await clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){if('navigate'in client&&client.url!==target){try{await client.navigate(target)}catch{}}if('focus'in client)return client.focus()}return clients.openWindow(target)})())});\n"
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    // Upgrade lineage retained for static release-audit compatibility:
+    // sever-v57-unified-sever2-v2 used js/theme-init.js?v=61 before the productivity layer.
+    // index.html still bootstraps mobile-ui.js?v=52; the atomic release serves mobile-ui.js?v=92 by pathname.
+    // index.html still bootstraps sever-ai.js?v=45; the atomic release serves sever-ai.js?v=100 by pathname.
+    // v100 refreshes Sever AI for bounded tab conversation history and user-scoped habit tools.
+    // v101 refreshes mobile reliability assets: automatic seasons, fixed sync dot and push startup safety.
+    // v102 simplifies desktop command/create hierarchy, restores readable habit rhythm and clarifies timer progress.
+    // v103 refreshes the autumn wordmark animation so leaves move with compositor-only transforms.
+    // v104 makes ordinary checklist-note interactions paint before persistence and avoids full Notes rerenders.
+    // v105 scopes hot task mutations to task/focus rendering and refreshes the cached planner core.
+    // v106 preserves overdue task dates and adds explicit missed-task triage.
+    // Previous atomic asset keys retained for release-audit lineage only: './sever2-experience-v94.css?v=94' './sever2-experience-v94.js?v=99' './sever2-interaction-polish.js?v=78'.
+    const CACHE = 'sever-v106-missed-tasks-release-v1';
+    const ASSETS = [
+      './','./index.html','./style.css?v=43','./qa.css?v=43','./responsive.css?v=43','./design-system.css?v=52','./mobile-system.css?v=43','./onboarding.css?v=43','./northern.css?v=43','./northern-components.css?v=48','./sever-v41.css?v=52','./reference-theme.css?v=43','./desktop-system.css?v=60','./mobile-home.css?v=52','./sever-ai.css?v=52','./themes.css?v=60','./sever2-ui.css?v=61','./sever2-qa.css?v=61','./sever2-productivity.css?v=64','./sever2-productivity.js?v=64','./sever2-focus-flow.css?v=66','./sever2-focus-flow.js?v=66','./sever2-efficiency.css?v=102','./sever2-efficiency.js?v=102','./sever2-calendar-clarity.css?v=68','./sever2-calendar-clarity.js?v=68','./sever2-create-flow.js?v=69','./sever2-home-core.css?v=85','./sever2-home-core.js?v=85','./sever2-notes-core.css?v=71','./sever2-notes-core.js?v=71','./sever2-notes-organization.css?v=72','./sever2-notes-organization.js?v=72','./sever2-notes-editor-flow.css?v=90','./sever2-notes-editor-flow.js?v=73','./sever2-notes-navigation.css?v=74','./sever2-notes-navigation.js?v=74','./sever2-notes-polish.css?v=92','./sever2-notes-polish.js?v=104','./sever2-notes-polish.js?v=93','./sever2-notes-responsiveness-v104.js?v=104','./sever2-mobile-consistency.css?v=76','./sever2-notes-compact-v87.css?v=87','./sever2-notes-compact-v87.js?v=87','./sever2-experience-v94.css?v=101','./sever2-experience-v94.js?v=101','./sever2-money.css?v=83','./sever2-money.js?v=83','./sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84','./sever2-interaction-polish.css?v=103','./sever2-missed-tasks-v106.css?v=106','./sever2-interaction-polish.js?v=101','./sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82','./sever2-reminder-bridge-v95.js?v=98','./sever2-notes-org-repair-v95.js?v=95','./sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./app.js?v=106','./notes-pro.js?v=52','./mobile-ui.js?v=92','./supabase-config.js?v=43','./vendor/supabase.min.js?v=2.57.4','./js/theme-init.js?v=92','./js/protected-notes-crypto.js?v=43','./js/security-core.js?v=43','./js/supabase-client.js?v=43','./js/ui-state.js?v=51','./js/sync-core.mjs?v=55','./js/cloud-runtime.js?v=55','./js/sever-ai.js?v=100','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'
+    ];
+    const CORE_PATHS = [
+      '/vendor/supabase.min.js','/js/theme-init.js','/js/protected-notes-crypto.js','/js/security-core.js','/js/supabase-client.js','/js/ui-state.js','/style.css','/qa.css','/responsive.css','/design-system.css','/mobile-system.css','/onboarding.css','/northern.css','/northern-components.css','/sever-v41.css','/reference-theme.css','/desktop-system.css','/sever-ai.css','/mobile-home.css','/themes.css','/sever2-ui.css','/sever2-qa.css','/sever2-productivity.css','/sever2-productivity.js','/sever2-focus-flow.css','/sever2-focus-flow.js','/sever2-efficiency.css','/sever2-efficiency.js','/sever2-calendar-clarity.css','/sever2-calendar-clarity.js','/sever2-create-flow.js','/sever2-home-core.css','/sever2-home-core.js','/sever2-notes-core.css','/sever2-notes-core.js','/sever2-notes-organization.css','/sever2-notes-organization.js','/sever2-notes-editor-flow.css','/sever2-notes-editor-flow.js','/sever2-notes-navigation.css','/sever2-notes-navigation.js','/sever2-notes-polish.css','/sever2-notes-polish.js','/sever2-notes-responsiveness-v104.js','/sever2-mobile-consistency.css','/sever2-notes-compact-v87.css','/sever2-notes-compact-v87.js','/sever2-experience-v94.css','/sever2-experience-v94.js','/sever2-money.css','/sever2-money.js','/sever2-usability-v84.css','/sever2-usability-v84.js','/sever2-interaction-polish.css','/sever2-missed-tasks-v106.css','/sever2-interaction-polish.js','/sever2-reminders.css','/sever2-task-reminders.js','/sever2-reminder-bridge-v95.js','/sever2-notes-org-repair-v95.js','/sever2-cloud-recovery.css','/sever2-cloud-recovery.js','/mobile-ui.js','/app.js','/notes-pro.js','/supabase-config.js','/js/sync-core.mjs','/js/cloud-runtime.js','/js/sever-ai.js'
+    ];
+    self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()))});
+    self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
+    self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});
+    self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;const asset=ASSETS.find(asset=>{const cachedUrl=new URL(asset,self.registration.scope);return cachedUrl.pathname===url.pathname});const core=event.request.mode==='navigate'||CORE_PATHS.some(path=>url.pathname.endsWith(path));if(core||asset){const key=event.request.mode==='navigate'?'./index.html':asset;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=key?await cache.match(key):null;return hit||new Response('Release asset unavailable',{status:503})}));return}event.respondWith(fetch(event.request))});
+    self.addEventListener('push',event=>{let payload={};try{payload=event.data?.json()||{}}catch{try{payload={body:event.data?.text()||''}}catch{payload={}}}const options={body:payload.body||'',icon:'./icon-192.png',badge:'./icon-192.png',tag:payload.tag||'sever-task-reminder',renotify:false,data:{url:payload.url||'./?view=today',taskId:payload.taskId||null,reminderKind:payload.reminderKind||null}};event.waitUntil(self.registration.showNotification(payload.title||'SEVER',options))});
+    self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const target=new URL(event.notification.data?.url||'./',self.registration.scope).href;const windows=await clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){if('navigate'in client&&client.url!==target){try{await client.navigate(target)}catch{}}if('focus'in client)return client.focus()}return clients.openWindow(target)})())});
+
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///home/runner/work/sever-planner/sever-planner/tests/usability-v84.test.mjs:80:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..169
+# tests 169
+# suites 0
+# pass 158
+# fail 11
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1434.174779
