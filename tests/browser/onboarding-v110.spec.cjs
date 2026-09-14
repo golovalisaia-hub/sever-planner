@@ -49,6 +49,8 @@ test('fresh local user gets automatic quick orientation without manually firing 
   await expect(page.locator('.guide-kicker')).toHaveText('БЫСТРОЕ ЗНАКОМСТВО');
   await expect(page.locator('#sever110GuideStep')).toHaveText('1 / 5');
   await expect(page.locator('#tourSkip')).toHaveText('Пропустить');
+  await expect(page.locator('#tourTitle')).toHaveCSS('color', 'rgb(247, 244, 239)');
+  await expect(page.locator('#tourText')).toHaveCSS('color', 'rgba(247, 244, 239, 0.82)');
   await shot(page, info.project.name, 'welcome');
 });
 
@@ -63,6 +65,7 @@ test('quick orientation ends by opening creation of the first real task', async 
   await expect(page.locator('#tourTitle')).toHaveText('Всё под рукой');
   await expect(page.locator('#tourText')).toContainText('Деньги');
   await expect(page.locator('#tourNext')).toHaveText('Добавить первую задачу');
+  await expect(page.locator('#tourTitle')).toHaveCSS('color', 'rgb(247, 244, 239)');
   await shot(page, info.project.name, 'finish');
   await page.locator('#tourNext').click();
 
