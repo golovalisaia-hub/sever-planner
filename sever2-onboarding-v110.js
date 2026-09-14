@@ -100,8 +100,8 @@
     if (!dialog?.open || !spot) return;
     const slide = V110_SLIDES[guideStep() - 1];
     if (slide?.target) return;
-    dialog.dataset.hasTarget = 'false';
-    spot.removeAttribute('style');
+    if (dialog.dataset.hasTarget !== 'false') dialog.dataset.hasTarget = 'false';
+    if (spot.hasAttribute('style')) spot.removeAttribute('style');
   }
 
   function syncGuideChrome() {
@@ -215,7 +215,7 @@
     const dialog = $('#tourDialog');
     if (dialog && !guideObserver) {
       guideObserver = new MutationObserver(syncGuideChrome);
-      guideObserver.observe(dialog, { attributes: true, attributeFilter: ['open', 'data-step'] });
+      guideObserver.observe(dialog, { attributes: true, attributeFilter: ['open', 'data-step', 'data-has-target'] });
       $('#tourNext')?.addEventListener('click', handleNextCapture, true);
       $('#tourNext')?.addEventListener('click', handleNextComplete);
       syncGuideChrome();
