@@ -103,6 +103,14 @@
 .sever109-history-week .habit-day:not(.done) {
   opacity: .7;
 }
+/* Past weeks are read-only, but they are history, not unavailable UI. Override
+   the core future-day disabled fade so completed and missed days remain legible. */
+.sever109-history-week .habit-day:disabled {
+  opacity: .72 !important;
+}
+.sever109-history-week .habit-day.done:disabled {
+  opacity: 1 !important;
+}
 .sever109-history-week .habit-day.today {
   box-shadow: none !important;
 }
