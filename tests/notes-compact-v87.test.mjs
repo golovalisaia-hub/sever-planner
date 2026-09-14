@@ -36,12 +36,13 @@ test('Notes compact layer is mobile-only, touch-safe and progressively discloses
   assert.match(css, /notes-v94-empty-library \.notes-core-summary/);
 });
 
-test('Notes compact layer and v101 experience pack ship inside the v102 desktop polish release', () => {
+test('Notes compact layer and v101 experience pack remain in the current atomic release', () => {
   assert.match(polish, /sever2-notes-compact-v87\.css\?v=87/);
   assert.match(polish, /sever2-notes-compact-v87\.js\?v=87/);
   assert.match(source, /sever2-experience-v94\.css\?v=94/);
   assert.match(source, /sever2-experience-v94\.js\?v=94/);
-  assert.match(sw, /const CACHE = 'sever-v102-desktop-polish-release-v1'/);
+  const release = sw.match(/const CACHE = 'sever-v(\d+)-[^']+'/);
+  assert.ok(release && Number(release[1]) >= 102, 'current atomic cache must preserve the Notes compact and v101 experience layers');
   for (const asset of [
     './sever2-efficiency.css?v=102',
     './sever2-notes-compact-v87.css?v=87', './sever2-notes-compact-v87.js?v=87',
