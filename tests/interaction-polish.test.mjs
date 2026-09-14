@@ -32,6 +32,16 @@ test('interaction polish keeps the original task checkbox size and centered comp
   assert.doesNotMatch(usability, /closest\('\.task \.check, \.habit-day/);
 });
 
+test('v107 observers update only changed task and habit nodes instead of rescanning whole lists', () => {
+  assert.match(source, /const pendingTaskCards = new Set\(\)/);
+  assert.match(source, /record\.addedNodes\.forEach\(queueTaskCard\)/);
+  assert.match(source, /new MutationObserver\(syncHabitMutationRecords\)/);
+  assert.match(source, /node\.querySelectorAll\?\.\('\.habit-day'\)\.forEach\(syncHabitButton\)/);
+  assert.match(source, /dataset\.severInteractionPolish = 'v107'/);
+  assert.doesNotMatch(source, /\$\$\('\.task'\)\.forEach/);
+  assert.doesNotMatch(source, /document\.querySelectorAll\('\.habit-week \.habit-day'\)\.forEach/);
+});
+
 test('v96.3 retires Money schedule reminders synchronously before the Money save persists', () => {
   assert.match(source, /function guardMoneyLifecycleSubmit\(event\)/);
   assert.match(source, /function clearPendingMoneySchedule\(item\)/);
@@ -107,6 +117,7 @@ test('v103 interaction polish remains inside the current atomic PWA release', ()
   const release = sw.match(/const CACHE = 'sever-v(\d+)-[^']+'/);
   assert.ok(release && Number(release[1]) >= 103, 'current atomic cache must preserve v103 interaction polish');
   assert.match(sw, /v103 refreshes the autumn wordmark animation/);
+  assert.match(sw, /v107 scopes task\/habit MutationObserver work/);
   for (const asset of [
     './sever2-efficiency.css?v=102',
     './sever2-home-core.js?v=85',
@@ -115,7 +126,7 @@ test('v103 interaction polish remains inside the current atomic PWA release', ()
     './sever2-experience-v94.css?v=101','./sever2-experience-v94.js?v=101',
     './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84',
-    './sever2-interaction-polish.css?v=103','./sever2-interaction-polish.js?v=101',
+    './sever2-interaction-polish.css?v=103','./sever2-interaction-polish.js?v=107',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80',
     './sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82',
     './js/theme-init.js?v=92'
