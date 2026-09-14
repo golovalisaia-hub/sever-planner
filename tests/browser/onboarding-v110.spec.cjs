@@ -78,28 +78,50 @@ async function expectStableGuideContrast(page) {
 async function expectUntargetedBackdropStable(page) {
   await expect(page.locator('#tourDialog')).toHaveAttribute('data-has-target', 'false');
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const visual = await page.evaluate(() => {
+    const dialog = document.querySelector('#tourDialog');
+    const spot = document.querySelector('#guideSpotlight');
+    const dialogBox = dialog.getBoundingClientRect();
+    const spotStyle = getComputedStyle(spot);
+    const backdrop = getComputedStyle(dialog, '::before');
+    return {
+      dialogX: dialogBox.x,
+      dialogY: dialogBox.y,
+      dialogWidth: dialogBox.width,
+      dialogHeight: dialogBox.height,
+      viewportWidth: innerWidth,
+      viewportHeight: innerHeight,
+      spotDisplay: spotStyle.display,
+      spotBoxShadow: spotStyle.boxShadow,
+      backdropContent: backdrop.content,
+      backdropBackground: backdrop.backgroundColor,
+      backdropPosition: backdrop.position,
+      backdropInset: [backdrop.top, backdrop.right, backdrop.bottom, backdrop.left]
+    };
+  });
+  expect(Math.abs(visual.dialogX)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visual.dialogY)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visual.dialogWidth - visual.viewportWidth)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visual.dialogHeight - visual.viewportHeight)).toBeLessThanOrEqual(1);
+  expect(visual.spotDisplay).toBe('none');
+  expect(visual.spotBoxShadow).toBe('none');
+  expect(visual.backdropContent).not.toBe('none');
+  expect(visual.backdropBackground).toBe('rgba(26, 26, 30, 0.47)');
+  expect(visual.backdropPosition).toBe('fixed');
+  expect(visual.backdropInset).toEqual(['0px', '0px', '0px', '0px']);
+}
+
+async function expectTargetedSpotlightActive(page) {
+  await expect(page.locator('#tourDialog')).toHaveAttribute('data-has-target', 'true');
   const visual = await page.locator('#guideSpotlight').evaluate(element => {
     const box = element.getBoundingClientRect();
     const style = getComputedStyle(element);
-    return {
-      x: box.x,
-      y: box.y,
-      width: box.width,
-      height: box.height,
-      viewportWidth: innerWidth,
-      viewportHeight: innerHeight,
-      boxShadow: style.boxShadow,
-      backgroundColor: style.backgroundColor,
-      transitionDuration: style.transitionDuration
-    };
+    return { width: box.width, height: box.height, display: style.display, boxShadow: style.boxShadow };
   });
-  expect(Math.abs(visual.x)).toBeLessThanOrEqual(1);
-  expect(Math.abs(visual.y)).toBeLessThanOrEqual(1);
-  expect(Math.abs(visual.width - visual.viewportWidth)).toBeLessThanOrEqual(1);
-  expect(Math.abs(visual.height - visual.viewportHeight)).toBeLessThanOrEqual(1);
-  expect(visual.boxShadow).toBe('none');
-  expect(visual.backgroundColor).toBe('rgba(26, 26, 30, 0.47)');
-  expect(visual.transitionDuration).toBe('0s');
+  expect(visual.display).toBe('block');
+  expect(visual.width).toBeGreaterThan(20);
+  expect(visual.height).toBeGreaterThan(20);
+  expect(visual.boxShadow).not.toBe('none');
 }
 
 test('fresh local user gets automatic quick orientation without manually firing cloud-ready', async ({ page }, info) => {
@@ -124,7 +146,10 @@ test('quick orientation ends by opening creation of the first real task', async 
   await waitV110(page);
   await expect(page.locator('#tourDialog')).toBeVisible();
 
-  for (let step = 1; step < 5; step += 1) await page.locator('#tourNext').click();
+  for (let step = 1; step < 4; step += 1) await page.locator('#tourNext').click();
+  await expect(page.locator('#sever110GuideStep')).toHaveText('4 / 5');
+  await expectTargetedSpotlightActive(page);
+  await page.locator('#tourNext').click();
   await expect(page.locator('#sever110GuideStep')).toHaveText('5 / 5');
   await expect(page.locator('#tourTitle')).toHaveText('Всё под рукой');
   await expect(page.locator('#tourText')).toContainText('Деньги');
