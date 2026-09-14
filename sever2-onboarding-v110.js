@@ -114,6 +114,11 @@
     const step = guideStep();
     if (dialog.dataset.hasTarget !== 'false') dialog.dataset.hasTarget = 'false';
     if (spot.hasAttribute('style')) spot.removeAttribute('style');
+    // Keep the original node on the welcome slide so legacy/Safari guide-mask
+    // observers retain a live reference through targeted steps 2–4. A physical
+    // compositor reset is only necessary after the spotlight has actually been
+    // positioned, when the guide enters its final untargeted step.
+    if (step === 1) return;
     if (spot.dataset.severResetStep !== String(step)) resetGuideSpotlightNode(spot, step);
   }
 
