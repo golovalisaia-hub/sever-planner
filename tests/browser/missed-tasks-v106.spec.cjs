@@ -14,21 +14,23 @@ async function boot(page) {
       date.setDate(date.getDate() + offset);
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     };
-    const now = Date.now();
-    localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({
-      version: 11,
-      onboarded: true,
-      tourSeen: true,
-      tasks: [
-        { id: 'missed-v106', title: 'Вчерашняя задача', date: toIso(-1), time: '', duration: 20, category: 'Личное', priority: false, challenge: false, completed: false, createdAt: now - 86400000, updatedAt: now - 86400000 },
-        { id: 'today-v106', title: 'Сегодняшняя задача', date: toIso(0), time: '', duration: 15, category: 'Личное', priority: false, challenge: false, completed: false, createdAt: now, updatedAt: now }
-      ],
-      notes: [], folders: [], habits: [], checks: {}, taskMemory: [],
-      profile: { name: '' }, appearance: { theme: 'light', animations: 'off', reduceEffects: true },
-      focusSessions: [], stats: { focusMs: 0, sessions: 0 },
-      reminders: { enabled: false, time: '19:00', lastDate: '' },
-      security: { protectedNotesAutoLockMinutes: 5, lockInBackground: true }
-    }));
+    if (!localStorage.getItem('sever-anonymous-state-v1')) {
+      const now = Date.now();
+      localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({
+        version: 11,
+        onboarded: true,
+        tourSeen: true,
+        tasks: [
+          { id: 'missed-v106', title: 'Вчерашняя задача', date: toIso(-1), time: '', duration: 20, category: 'Личное', priority: false, challenge: false, completed: false, createdAt: now - 86400000, updatedAt: now - 86400000 },
+          { id: 'today-v106', title: 'Сегодняшняя задача', date: toIso(0), time: '', duration: 15, category: 'Личное', priority: false, challenge: false, completed: false, createdAt: now, updatedAt: now }
+        ],
+        notes: [], folders: [], habits: [], checks: {}, taskMemory: [],
+        profile: { name: '' }, appearance: { theme: 'light', animations: 'off', reduceEffects: true },
+        focusSessions: [], stats: { focusMs: 0, sessions: 0 },
+        reminders: { enabled: false, time: '19:00', lastDate: '' },
+        security: { protectedNotesAutoLockMinutes: 5, lockInBackground: true }
+      }));
+    }
     localStorage.setItem('sever-theme', 'light');
   });
   await page.goto('/');
