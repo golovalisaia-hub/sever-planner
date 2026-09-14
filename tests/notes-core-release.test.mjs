@@ -49,7 +49,7 @@ test('cloud recovery and Notes layers remain atomic in the current PWA release',
     './sever2-experience-v94.css?v=101','./sever2-experience-v94.js?v=101',
     './sever2-money.css?v=83','./sever2-money.js?v=83',
     './sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84',
-    './sever2-interaction-polish.css?v=103','./sever2-interaction-polish.js?v=108',
+    './sever2-interaction-polish.css?v=103','./sever2-interaction-polish.js?v=109',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80',
     './sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82','./mobile-ui.js?v=92','./js/theme-init.js?v=92'
   ]) assert.ok(source.includes(`'${asset}'`), `missing ${asset}`);
