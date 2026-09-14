@@ -87,11 +87,16 @@ test('calendar task status no longer becomes a second today badge', () => {
   assert.match(css, /\.sever2-v78-status\.all-done/);
 });
 
-test('v108 calendar polish reuses status DOM and only mutates changed state', () => {
-  assert.match(source, /function calendarNeedsPolish\(\)/);
-  assert.match(source, /let status = cell\.querySelector\(':scope > \.sever2-day-status'\)/);
+test('v108 calendar polish reuses valid status DOM, repairs legacy DOM and only mutates changed state', () => {
+  assert.match(source, /function validCalendarStatus\(status\)/);
+  assert.match(source, /status\.matches\('div\.sever2-day-status\.sever2-v78-status'\)/);
+  assert.match(source, /const statuses = \[\.\.\.cell\.querySelectorAll\(':scope > \.sever2-day-status'\)\]/);
+  assert.match(source, /let status = statuses\.find\(validCalendarStatus\) \|\| null/);
+  assert.match(source, /if \(candidate !== status\) candidate\.remove\(\)/);
   assert.match(source, /if \(!status\) \{/);
   assert.match(source, /count\.textContent !== String\(summary\.total\)/);
+  assert.match(source, /function calendarNeedsPolish\(\)/);
+  assert.match(source, /statuses\.length !== 1 \|\| !validCalendarStatus\(statuses\[0\]\)/);
   assert.match(source, /calendarObserver\.observe\(calendar, \{ childList: true, subtree: true \}\)/);
   assert.match(source, /if \(rebuilt \|\| calendarNeedsPolish\(\)\) scheduleCalendar\(\)/);
   assert.doesNotMatch(source, /querySelectorAll\(':scope > \.sever2-day-status'\)\.forEach\(status => status\.remove\(\)\)/);
