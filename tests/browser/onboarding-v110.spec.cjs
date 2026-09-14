@@ -38,6 +38,43 @@ async function waitV110(page) {
   await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severOnboarding === 'v110');
 }
 
+async function expectStableGuideContrast(page) {
+  await expect(page.locator('#tourTitle')).toHaveCSS('color', 'rgb(247, 244, 239)');
+  await expect(page.locator('#tourText')).toHaveCSS('color', 'rgba(247, 244, 239, 0.82)');
+  await page.evaluate(() => document.fonts?.ready || Promise.resolve());
+  await page.waitForTimeout(750);
+  await expect(page.locator('#tourTitle')).toHaveCSS('color', 'rgb(247, 244, 239)');
+  await expect(page.locator('#tourText')).toHaveCSS('color', 'rgba(247, 244, 239, 0.82)');
+  const visual = await page.evaluate(() => {
+    const title = getComputedStyle(document.querySelector('#tourTitle'));
+    const text = getComputedStyle(document.querySelector('#tourText'));
+    const copy = getComputedStyle(document.querySelector('#guideCopy'));
+    const card = getComputedStyle(document.querySelector('#tourDialog .guide-card'));
+    return {
+      titleFill: title.webkitTextFillColor,
+      textFill: text.webkitTextFillColor,
+      titleOpacity: title.opacity,
+      textOpacity: text.opacity,
+      copyOpacity: copy.opacity,
+      cardOpacity: card.opacity,
+      copyFilter: copy.filter,
+      cardFilter: card.filter,
+      copyBlend: copy.mixBlendMode,
+      cardBlend: card.mixBlendMode
+    };
+  });
+  expect(visual.titleFill).toBe('rgb(247, 244, 239)');
+  expect(visual.textFill).toBe('rgba(247, 244, 239, 0.82)');
+  expect(visual.titleOpacity).toBe('1');
+  expect(visual.textOpacity).toBe('1');
+  expect(visual.copyOpacity).toBe('1');
+  expect(visual.cardOpacity).toBe('1');
+  expect(visual.copyFilter).toBe('none');
+  expect(visual.cardFilter).toBe('none');
+  expect(visual.copyBlend).toBe('normal');
+  expect(visual.cardBlend).toBe('normal');
+}
+
 test('fresh local user gets automatic quick orientation without manually firing cloud-ready', async ({ page }, info) => {
   await seed(page);
   await page.goto('/');
@@ -49,8 +86,7 @@ test('fresh local user gets automatic quick orientation without manually firing 
   await expect(page.locator('.guide-kicker')).toHaveText('БЫСТРОЕ ЗНАКОМСТВО');
   await expect(page.locator('#sever110GuideStep')).toHaveText('1 / 5');
   await expect(page.locator('#tourSkip')).toHaveText('Пропустить');
-  await expect(page.locator('#tourTitle')).toHaveCSS('color', 'rgb(247, 244, 239)');
-  await expect(page.locator('#tourText')).toHaveCSS('color', 'rgba(247, 244, 239, 0.82)');
+  await expectStableGuideContrast(page);
   await shot(page, info.project.name, 'welcome');
 });
 
@@ -65,7 +101,7 @@ test('quick orientation ends by opening creation of the first real task', async 
   await expect(page.locator('#tourTitle')).toHaveText('Всё под рукой');
   await expect(page.locator('#tourText')).toContainText('Деньги');
   await expect(page.locator('#tourNext')).toHaveText('Добавить первую задачу');
-  await expect(page.locator('#tourTitle')).toHaveCSS('color', 'rgb(247, 244, 239)');
+  await expectStableGuideContrast(page);
   await shot(page, info.project.name, 'finish');
   await page.locator('#tourNext').click();
 
