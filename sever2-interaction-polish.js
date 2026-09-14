@@ -114,6 +114,24 @@
     document.head.appendChild(script);
   }
 
+  function installProgressHabitsV109Layer() {
+    if (!document.querySelector('link[data-sever-progress-habits-v109]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'sever2-progress-habits-v109.css?v=109';
+      link.dataset.severProgressHabitsV109 = 'true';
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[data-sever-progress-habits-v109]')) {
+      const script = document.createElement('script');
+      script.src = 'sever2-progress-habits-v109.js?v=109';
+      script.async = false;
+      script.defer = true;
+      script.dataset.severProgressHabitsV109 = 'true';
+      document.head.appendChild(script);
+    }
+  }
+
   /* v101 intentionally kept autumn as an 11px signature to the right of the
      mobile wordmark. v103 changes that product decision: the same tiny leaf
      sprites start at the left edge of SEVER and travel across the letters using
@@ -322,7 +340,7 @@
     installObservers();
     scheduleCalendar();
     document.documentElement.dataset.severInteractionPolish = 'ready';
-    document.documentElement.dataset.severInteractionPolishVersion = 'v108';
+    document.documentElement.dataset.severInteractionPolishVersion = 'v109';
     return true;
   }
 
@@ -341,6 +359,7 @@
   document.documentElement.dataset.severMoneyLifecycle = 'v96.3';
   installReminderLayer();
   installNotesOrganizationRepair();
+  installProgressHabitsV109Layer();
   installAutumnMobileFlightAnchor();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleBoot, { once: true });
   else scheduleBoot();
