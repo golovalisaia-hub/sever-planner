@@ -50,6 +50,7 @@ test('installed PWA preserves v103 autumn polish, v102 desktop and v101 reliabil
   assert.match(sw, /v102 simplifies desktop command\/create hierarchy/);
   assert.match(sw, /v101 refreshes mobile reliability assets/);
   assert.match(sw, /v100 refreshes Sever AI/);
+  assert.match(sw, /v110\.2 repairs iOS direct-gesture Web Push subscription/);
   const release = sw.match(/const CACHE = 'sever-v(\d+)-[^']+'/);
   assert.ok(release && Number(release[1]) >= 103, 'current atomic cache must preserve the v103/v102/v101 release lineage');
   assert.ok(sw.includes("'./sever2-efficiency.css?v=102'"));
@@ -57,6 +58,6 @@ test('installed PWA preserves v103 autumn polish, v102 desktop and v101 reliabil
   assert.ok(sw.includes("'./sever2-experience-v94.js?v=101'"));
   assert.ok(sw.includes("'./sever2-interaction-polish.css?v=103'"));
   assert.ok(sw.includes("'./sever2-interaction-polish.js?v=109'"));
-  assert.ok(sw.includes("'./sever2-reminder-bridge-v95.js?v=98'"));
+  assert.ok(sw.includes("'./sever2-reminder-bridge-v95.js?v=1102'"));
   assert.ok(sw.includes("'./js/sever-ai.js?v=100'"));
 });

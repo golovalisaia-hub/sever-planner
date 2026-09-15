@@ -34,14 +34,30 @@ test('legacy daily reminder is retired and cannot be re-enabled by old Settings 
   assert.match(bridge, /legacyTime\.onchange = null/);
   assert.match(bridge, /test\.onclick = null/);
   assert.match(bridge, /guide\.onclick = null/);
-  assert.match(bridge, /severReminderBridge = 'v98'/);
+  assert.match(bridge, /severReminderBridge = 'v1102'/);
   assert.match(interaction, /sever2-task-reminders\.js\?v=82/);
   assert.match(interaction, /sever2-reminder-bridge-v95\.js\?v=95/);
   assert.match(interaction, /sever2-reminders\.css\?v=82/);
-  assert.match(sw, /sever2-reminder-bridge-v95\.js\?v=98/);
+  assert.match(sw, /sever2-reminder-bridge-v95\.js\?v=1102/);
 });
 
-test('v98 reminder bridge neutralizes the retired mobile toggle mirror', () => {
+test('v110.2 iOS Web Push starts subscribe directly from the toggle gesture', () => {
+  assert.match(bridge, /function prewarmIosPush\(\)/);
+  assert.match(bridge, /function interceptIosEnable\(event, master\)/);
+  assert.match(bridge, /master\.addEventListener\('change', event => \{[\s\S]*interceptIosEnable\(event, master\)[\s\S]*\}, true\)/);
+  assert.match(bridge, /iosRegistration\.pushManager\.subscribe\(\{/);
+  assert.match(bridge, /applicationServerKey:decodePublicKey\(VAPID_PUBLIC_KEY\)/);
+  assert.match(bridge, /master\.dataset\.severIosPushFix = 'v1102'/);
+  const start = bridge.indexOf('function interceptIosEnable');
+  const end = bridge.indexOf('\n  function boot()', start);
+  const body = bridge.slice(start, end);
+  const subscribeAt = body.indexOf('pushManager.subscribe');
+  const asyncContinuationAt = body.indexOf('void (async () =>');
+  assert.ok(subscribeAt >= 0 && asyncContinuationAt > subscribeAt, 'iOS subscribe must start before async continuation');
+  assert.equal(body.includes('Notification.requestPermission'), false, 'iOS direct subscription must not consume the gesture with requestPermission first');
+});
+
+test('v110.2 reminder bridge still neutralizes the retired mobile toggle mirror', () => {
   assert.match(mobileUi, /targetToggle\.checked = sourceToggle\.checked/);
   assert.match(bridge, /function isolateLegacyReminderMirror\(master\)/);
   assert.match(bridge, /Object\.getOwnPropertyDescriptor\(HTMLInputElement\.prototype, 'checked'\)/);
