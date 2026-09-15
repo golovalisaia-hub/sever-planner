@@ -124,8 +124,6 @@
     const master = event.target;
     if (!(master instanceof HTMLInputElement) || master.id !== 'settingsNotificationToggle' || !master.checked || !isIOS()) return;
 
-    // Capture on document runs before the old target listener and survives any
-    // Settings DOM replacement. The legacy iOS path must never run after this.
     event.preventDefault();
     event.stopImmediatePropagation();
     master.disabled = true;
@@ -158,8 +156,6 @@
 
     let subscribePromise;
     try {
-      // Important for Safari/iOS: subscribe() is started synchronously inside
-      // the direct user gesture, before any await, auth request or cloud work.
       subscribePromise = subscription
         ? Promise.resolve(subscription)
         : registration.pushManager.subscribe({

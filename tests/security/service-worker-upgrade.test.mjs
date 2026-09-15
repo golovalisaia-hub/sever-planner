@@ -7,9 +7,9 @@ import vm from 'node:vm';
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 const RELEASE_CACHE = source.match(/const CACHE = '([^']+)'/)?.[1] || '';
-assert.ok(RELEASE_CACHE.startsWith('sever-v111-'), 'security suite must run against the v111 atomic release');
+assert.ok(RELEASE_CACHE.startsWith('sever-v112-'), 'security suite must run against the v112 atomic release');
 
-test('current service worker installs the guarded v111 release assets atomically and removes stale caches', async () => {
+test('current service worker installs the guarded v112 release assets atomically and removes stale caches', async () => {
   const handlers = new Map();
   const deleted = [];
   let cachedAssets = [];
@@ -27,7 +27,7 @@ test('current service worker installs the guarded v111 release assets atomically
       'sever-v82-reminders-desktop-v9','sever-v92-unified-release-v1','sever-v93-complete-release-v1','sever-v94-experience-release-v1',
       'sever-v101-reliability-release-v1','sever-v102-desktop-polish-release-v1','sever-v106-missed-tasks-release-v1',
       'sever-v107-instant-response-release-v1','sever-v108-observer-batching-release-v1','sever-v109-progress-habits-release-v1',
-      'sever-v110-first-run-onboarding-release-v1',RELEASE_CACHE
+      'sever-v110-first-run-onboarding-release-v1','sever-v111-finance-center-release-v1',RELEASE_CACHE
     ],
     delete: async name => { deleted.push(name); return true; }
   };
@@ -36,7 +36,7 @@ test('current service worker installs the guarded v111 release assets atomically
   handlers.get('install')({ waitUntil: promise => { work = promise; } });
   await work;
   for (const asset of [
-    './index.html','./sever2-efficiency.css?v=102','./sever2-home-core.css?v=85','./sever2-home-core.js?v=85','./sever2-notes-core.js?v=71','./sever2-notes-organization.js?v=72',
+    './index.html','./sever2-email-otp-v112.css?v=112','./sever2-email-otp-v112.js?v=112','./js/supabase-client.js?v=112','./sever2-efficiency.css?v=102','./sever2-home-core.css?v=85','./sever2-home-core.js?v=85','./sever2-notes-core.js?v=71','./sever2-notes-organization.js?v=72',
     './sever2-notes-editor-flow.css?v=90','./sever2-notes-editor-flow.js?v=73','./sever2-notes-navigation.css?v=74','./sever2-notes-navigation.js?v=74',
     './sever2-notes-polish.css?v=92','./sever2-notes-polish.js?v=104','./sever2-notes-responsiveness-v104.js?v=104','./sever2-mobile-consistency.css?v=76',
     './sever2-notes-compact-v87.css?v=87','./sever2-notes-compact-v87.js?v=87','./sever2-experience-v94.css?v=101','./sever2-experience-v94.js?v=101',
@@ -62,7 +62,7 @@ test('current service worker installs the guarded v111 release assets atomically
     'sever-v82-reminders-desktop-v9','sever-v92-unified-release-v1','sever-v93-complete-release-v1','sever-v94-experience-release-v1',
     'sever-v101-reliability-release-v1','sever-v102-desktop-polish-release-v1','sever-v106-missed-tasks-release-v1',
     'sever-v107-instant-response-release-v1','sever-v108-observer-batching-release-v1','sever-v109-progress-habits-release-v1',
-    'sever-v110-first-run-onboarding-release-v1'
+    'sever-v110-first-run-onboarding-release-v1','sever-v111-finance-center-release-v1'
   ]) assert.ok(deleted.includes(stale), `stale cache not deleted: ${stale}`);
   assert.ok(!deleted.includes(RELEASE_CACHE));
   assert.equal(claimed, true);
@@ -106,6 +106,8 @@ test('installed current release serves planner, Notes, progress, onboarding and 
     ['sever2-experience-v94.js?v=old','cors','./sever2-experience-v94.js?v=101'],
     ['sever2-money.css?v=old','cors','./sever2-money.css?v=83'],
     ['sever2-money.js?v=old','cors','./sever2-money.js?v=83'],
+    ['sever2-email-otp-v112.js?v=old','cors','./sever2-email-otp-v112.js?v=112'],
+    ['js/supabase-client.js?v=old','cors','./js/supabase-client.js?v=112'],
     ['sever2-finance-v111.css?v=old','cors','./sever2-finance-v111.css?v=111'],
     ['sever2-finance-v111.js?v=old','cors','./sever2-finance-v111.js?v=111'],
     ['sever2-usability-v84.css?v=old','cors','./sever2-usability-v84.css?v=93'],

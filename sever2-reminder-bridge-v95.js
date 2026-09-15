@@ -225,14 +225,18 @@
     scheduleReminderHealth(650);
   }
 
-  function iosPushErrorText(error) {
-    const name = String(error?.name || error?.code || 'UNKNOWN');
+  function iosPushErrorText(error, stage = 'subscription') {
+    // Error.name is usually just "Error"; preserve our tagged causes first.
+    const cause = String(error?.code || error?.message || '');
+    const name = ['AUTH_REQUIRED', 'CLOUD_UNAVAILABLE'].includes(cause)
+      ? cause : String(error?.code || error?.name || 'UNKNOWN');
     if (name === 'NotAllowedError') return 'iPhone не разрешил уведомления. Проверьте Настройки iOS → Уведомления → SEVER.';
     if (name === 'InvalidStateError') return 'iPhone хранит несовместимую старую push-подписку. Закройте SEVER, откройте снова и повторите включение.';
     if (name === 'AbortError') return 'iOS не смог создать push-подписку. Откройте SEVER с экрана «Домой» и повторите включение.';
     if (name === 'AUTH_REQUIRED') return 'Push создан, но аккаунт SEVER не подтверждён. Перезайдите в аккаунт и повторите включение.';
     if (name === 'CLOUD_UNAVAILABLE') return 'Push создан, но облако SEVER сейчас недоступно. Проверьте интернет и повторите включение.';
-    return `Не удалось подключить Web Push на iPhone (${name}).`;
+    if (stage === 'save') return 'Push создан на iPhone, но не удалось сохранить подключение в аккаунте SEVER. Проверьте вход и интернет, затем повторите включение.';
+    return 'Не удалось создать push-подписку на iPhone. Откройте SEVER с экрана «Домой» и повторите включение.';
   }
 
   // Safari/iOS consumes transient user activation when a permission flow is
@@ -280,14 +284,16 @@
     }
 
     void (async () => {
+      let stage = 'subscription';
       try {
         const subscription = await subscriptionPromise;
+        stage = 'save';
         await saveIosSubscription(subscription, master);
       } catch (error) {
         console.warn('SEVER: iOS direct Web Push subscription failed', error);
         if (prefs) prefs.enabled = false;
         syncPushUi(master);
-        reminderStatus(iosPushErrorText(error), 'warning');
+        reminderStatus(iosPushErrorText(error, stage), 'warning');
         await window.SeverApp?.persist?.().catch?.(() => {});
       } finally {
         master.disabled = false;

@@ -7,7 +7,7 @@ const source = fs.readFileSync(new URL('../sever2-ios-push-corefix-v1111.js', im
 const bootstrap = fs.readFileSync(new URL('../sever2-notes-org-repair-v95.js', import.meta.url), 'utf8');
 const sw = fs.readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
 
-test('v111.1 iOS push core fix is syntax-valid, bootstrapped early and shipped atomically', () => {
+test('v111.1 iOS push core fix is syntax-valid, bootstrapped early and shipped atomically inside v112', () => {
   assert.doesNotThrow(() => new vm.Script(source));
   assert.match(source, /document\.addEventListener\('change', interceptEnable, true\)/);
   assert.match(source, /event\.stopImmediatePropagation\(\)/);
@@ -17,7 +17,7 @@ test('v111.1 iOS push core fix is syntax-valid, bootstrapped early and shipped a
   assert.match(source, /severIosPushCoreFix = VERSION/);
   assert.match(bootstrap, /sever2-ios-push-corefix-v1111\.js\?v=1111/);
   assert.match(bootstrap, /installIosPushCoreFixLayer\(\);[\s\S]*scheduleLateExperienceLayers\(\)/);
-  assert.match(sw, /const CACHE = 'sever-v111-finance-center-release-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v112-email-otp-release-v1'/);
   assert.match(sw, /sever2-ios-push-corefix-v1111\.js\?v=1111/);
   assert.match(sw, /'\/sever2-ios-push-corefix-v1111\.js'/);
 });
@@ -137,7 +137,6 @@ test('document capture wins before the legacy Settings listener on iPhone and st
   };
 
   changeCapture(event);
-  // Model DOM propagation: target/legacy listener runs only when capture did not stop it.
   if (!stopped) legacyCalls += 1;
 
   assert.equal(stopped, true, 'iOS capture must stop the old target listener');

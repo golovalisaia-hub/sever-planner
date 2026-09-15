@@ -91,7 +91,7 @@ test('v110 targeted slides explicitly own a real spotlight instead of relying on
   assert.match(css, /html\[data-theme="light"\][\s\S]*data-has-target="true"\] #guideSpotlight[\s\S]*box-shadow:0 0 0 999vmax rgba\(26,26,30,\.45\)/);
 });
 
-test('v110 onboarding stays phone-safe, readable before late polish, and part of the v111 atomic offline release', () => {
+test('v110 onboarding stays phone-safe, readable before late polish, and part of the v112 atomic offline release', () => {
   assert.match(css, /@media\(max-width:350px\)/);
   assert.match(css, /max-width:64vw/);
   assert.match(css, /--sever110-guide-text:#f7f4ef/);
@@ -101,7 +101,7 @@ test('v110 onboarding stays phone-safe, readable before late polish, and part of
   assert.match(coreCss, /--guide-text:#f7f4ef/);
   assert.match(coreCss, /guide-copy h2\{[^}]*color:var\(--guide-text\)/);
   assert.match(coreCss, /guide-copy p\{[^}]*color:var\(--guide-muted\)/);
-  assert.match(sw, /const CACHE = 'sever-v111-finance-center-release-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v112-email-otp-release-v1'/);
   for (const asset of [
     './sever2-onboarding-v110.css?v=110',
     './sever2-onboarding-v110.js?v=110',
