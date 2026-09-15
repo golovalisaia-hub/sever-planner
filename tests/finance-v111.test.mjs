@@ -63,8 +63,8 @@ test('Finance layout remains touch-safe and responsive down to narrow phones', (
 });
 
 test('Finance v111 is part of the guarded offline release and AI knows the renamed page', () => {
-  assert.match(sw, /const CACHE = 'sever-v111-finance-center-release-v1'/);
-  for (const asset of ['./sever2-finance-v111.css?v=111','./sever2-finance-v111.js?v=111','./sever2-notes-org-repair-v95.js?v=111']) {
+  assert.match(sw, /const CACHE = 'sever-v111-email-otp-auth-release-v1'/);
+  for (const asset of ['./sever2-finance-v111.css?v=111','./sever2-finance-v111.js?v=111','./sever2-notes-org-repair-v95.js?v=1111']) {
     assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   }
   assert.ok(sw.includes("'/sever2-finance-v111.css'"));
