@@ -11,9 +11,11 @@
   let calendarQueued = false;
   let checksQueued = false;
   let habitChecksQueued = false;
+  let taskPointerSequence = 0;
+  let taskConsumedSequence = 0;
+  let taskPointerAt = -Infinity;
   const pendingTaskCards = new Set();
   const pendingHabitButtons = new Set();
-  const taskCheckGestures = new WeakMap();
 
   const state = () => window.SeverApp?.getState?.() || { tasks: [] };
   const amount = value => Math.max(0, Number(value) || 0);
@@ -194,6 +196,31 @@
     document.head.appendChild(style);
   }
 
+  function taskCheckFromEvent(event) {
+    return event.target instanceof Element ? event.target.closest('.task .check') : null;
+  }
+
+  function guardTaskPointerDown(event) {
+    if (!taskCheckFromEvent(event)) return;
+    if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
+    taskPointerSequence += 1;
+    taskPointerAt = performance.now();
+    const selection = window.getSelection?.();
+    if (selection?.rangeCount) selection.removeAllRanges();
+  }
+
+  function guardTaskClick(event) {
+    if (!taskCheckFromEvent(event)) return;
+    const fromRecentPointer = taskPointerSequence > 0 && performance.now() - taskPointerAt < 900;
+    if (!fromRecentPointer) return;
+    if (taskConsumedSequence === taskPointerSequence) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return;
+    }
+    taskConsumedSequence = taskPointerSequence;
+  }
+
   function taskSummaryFor(date) {
     const tasks = (state().tasks || []).filter(task => task?.date === date);
     const done = tasks.filter(task => task.completed).length;
@@ -273,30 +300,9 @@
   }
 
   function hardenTaskCheck(check) {
-    if (!(check instanceof HTMLElement) || taskCheckGestures.has(check)) return;
-    const gesture = { sequence: 0, consumed: 0, pointerAt: 0 };
-    taskCheckGestures.set(check, gesture);
-
-    check.addEventListener('pointerdown', event => {
-      if (event.pointerType === 'touch' || event.pointerType === 'pen') {
-        gesture.sequence += 1;
-        gesture.pointerAt = performance.now();
-      }
-      const selection = window.getSelection?.();
-      if (selection?.rangeCount) selection.removeAllRanges();
-    }, { passive: true });
-
-    check.addEventListener('click', event => {
-      const fromRecentPointer = gesture.sequence > 0 && performance.now() - gesture.pointerAt < 900;
-      if (fromRecentPointer && gesture.consumed === gesture.sequence) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        return;
-      }
-      if (fromRecentPointer) gesture.consumed = gesture.sequence;
-      event.stopPropagation();
-    }, true);
-
+    if (!(check instanceof HTMLElement) || check.dataset.severTaskInput === 'v113') return;
+    check.dataset.severTaskInput = 'v113';
+    check.addEventListener('click', event => event.stopPropagation());
     check.addEventListener('selectstart', event => event.preventDefault());
     check.addEventListener('contextmenu', event => event.preventDefault());
   }
@@ -411,6 +417,8 @@
     bootTimer = setTimeout(scheduleBoot, 50);
   }
 
+  document.addEventListener('pointerdown', guardTaskPointerDown, true);
+  document.addEventListener('click', guardTaskClick, true);
   document.addEventListener('submit', guardMoneyLifecycleSubmit, true);
   document.addEventListener('click', guardMoneyLifecycleDelete, true);
   document.documentElement.dataset.severMoneyLifecycle = 'v96.3';
