@@ -155,7 +155,7 @@ test('habit completion keeps edit button and seven-day geometry stable in every 
     await setTheme(page, theme);
     const today = habit.locator('.habit-day.today');
     await expect(today).toBeVisible();
-    await today.scrollIntoViewIfNeeded();
+    await today.evaluate(el => el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' }));
     await waitForScrollToSettle(page);
 
     const before = await habit.evaluate(el => {
