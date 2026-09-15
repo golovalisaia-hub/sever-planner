@@ -34,13 +34,17 @@ test('accepted task checkbox clicks stay isolated from later row interaction lay
 });
 
 test('rapid action guard still does not debounce deliberate task completion taps', () => {
-  const rapidTarget = usability.match(/function rapidClickGuard\(event\)[\s\S]*?const target =([\s\S]*?): null;/)?.[1] || '';
+  const rapidTarget = usability.match(/const target = event\.target\.closest\(\s*'([^']+)'\s*\)/)?.[1] || '';
+  assert.ok(rapidTarget.length > 0, 'rapid-click target selector should stay discoverable');
   assert.doesNotMatch(rapidTarget, /\.check/);
   assert.match(usability, /Task completion is intentionally NOT debounced/);
 });
 
-test('installed PWA receives the v113 task input runtime', () => {
-  assert.match(sw, /const CACHE = 'sever-v113-mobile-task-input-v1'/);
+test('installed PWA receives the v113 task input runtime before the legacy v109 alias', () => {
+  assert.match(sw, /const CACHE = 'sever-v111-push-key-repair-v2'/);
   assert.match(sw, /sever2-interaction-polish\.js\?v=113/);
   assert.match(sw, /v113 hardens iPhone task completion/);
+  const current = sw.indexOf('./sever2-interaction-polish.js?v=113');
+  const legacy = sw.indexOf('./sever2-interaction-polish.js?v=109');
+  assert.ok(current >= 0 && legacy > current, 'v113 must be the first pathname match in the PWA asset list');
 });
