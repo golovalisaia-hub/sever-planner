@@ -84,7 +84,9 @@ test('income, expense and category budget update the month and survive reload', 
 
 test('recurring payment can be marked once and becomes a real expense transaction', async ({ page }) => {
   await page.locator('[data-finance-tab="transactions"]').click();
-  await page.locator('[data-finance-recurring-new]').first().click();
+  const panel = page.locator('[data-finance-panel="transactions"]');
+  await expect(panel).toBeVisible();
+  await panel.locator('[data-finance-recurring-new]').click();
   await expect(page.locator('#financeRecurringDialog')).toBeVisible();
   await page.locator('#financeRecurringName').fill('Связь');
   await page.locator('#financeRecurringAmount').fill('990');
