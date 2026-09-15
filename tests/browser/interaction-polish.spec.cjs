@@ -80,6 +80,20 @@ function closeEnough(a, b, tolerance = 1.5) {
   return Math.abs(a - b) <= tolerance;
 }
 
+async function waitForScrollToSettle(page) {
+  await page.evaluate(async () => {
+    let stableFrames = 0;
+    let last = scrollY;
+    for (let frame = 0; frame < 120 && stableFrames < 4; frame += 1) {
+      await new Promise(requestAnimationFrame);
+      const current = scrollY;
+      if (Math.abs(current - last) < 0.5) stableFrames += 1;
+      else stableFrames = 0;
+      last = current;
+    }
+  });
+}
+
 test.beforeEach(async ({ page }) => { await boot(page); });
 
 test('task completion preserves existing checkbox geometry and remains reversible in every theme', async ({ page }) => {
@@ -133,6 +147,7 @@ test('every rapid phone tap toggles task completion instead of being debounced',
 
 test('habit completion keeps edit button and seven-day geometry stable in every theme', async ({ page }) => {
   await page.evaluate(() => window.SeverApp.switchView('habits'));
+  await waitForScrollToSettle(page);
   const habit = page.locator('#habitList .habit').first();
   await expect(habit).toBeVisible();
 
@@ -141,7 +156,7 @@ test('habit completion keeps edit button and seven-day geometry stable in every 
     const today = habit.locator('.habit-day.today');
     await expect(today).toBeVisible();
     await today.scrollIntoViewIfNeeded();
-    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await waitForScrollToSettle(page);
 
     const before = await habit.evaluate(el => {
       const edit = el.querySelector('.habit-edit').getBoundingClientRect();
@@ -176,7 +191,7 @@ test('habit completion keeps edit button and seven-day geometry stable in every 
 
     expect(after.edit.width).toBeGreaterThanOrEqual(43);
     expect(after.edit.height).toBeGreaterThanOrEqual(43);
-    expect(closeEnough(before.scrollY, after.scrollY, 2)).toBe(true);
+    expect(closeEnough(before.scrollY, after.scrollY, 2), `scrollY moved ${before.scrollY} -> ${after.scrollY}`).toBe(true);
     expect(closeEnough(before.edit.x, after.edit.x, 2)).toBe(true);
     expect(closeEnough(before.edit.y, after.edit.y, 2)).toBe(true);
     expect(closeEnough(before.week.x, after.week.x, 2)).toBe(true);
