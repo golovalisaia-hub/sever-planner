@@ -13,6 +13,7 @@
   let habitChecksQueued = false;
   const pendingTaskCards = new Set();
   const pendingHabitButtons = new Set();
+  const taskCheckGestures = new WeakMap();
 
   const state = () => window.SeverApp?.getState?.() || { tasks: [] };
   const amount = value => Math.max(0, Number(value) || 0);
@@ -168,6 +169,31 @@
     document.head.appendChild(style);
   }
 
+  function installTaskInputStyles() {
+    if (document.querySelector('style[data-sever-task-input-v113]')) return;
+    const style = document.createElement('style');
+    style.dataset.severTaskInputV113 = 'true';
+    style.textContent = `
+      .task,
+      .task .check,
+      .task .task-open,
+      .task .edit,
+      .task .task-name,
+      .task .task-meta {
+        -webkit-user-select: none !important;
+        user-select: none !important;
+        -webkit-touch-callout: none !important;
+      }
+      .task .check,
+      .task .task-open,
+      .task .edit {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function taskSummaryFor(date) {
     const tasks = (state().tasks || []).filter(task => task?.date === date);
     const done = tasks.filter(task => task.completed).length;
@@ -246,10 +272,40 @@
     node.querySelectorAll?.('.task').forEach(card => pendingTaskCards.add(card));
   }
 
+  function hardenTaskCheck(check) {
+    if (!(check instanceof HTMLElement) || taskCheckGestures.has(check)) return;
+    const gesture = { sequence: 0, consumed: 0, pointerAt: 0 };
+    taskCheckGestures.set(check, gesture);
+
+    check.addEventListener('pointerdown', event => {
+      if (event.pointerType === 'touch' || event.pointerType === 'pen') {
+        gesture.sequence += 1;
+        gesture.pointerAt = performance.now();
+      }
+      const selection = window.getSelection?.();
+      if (selection?.rangeCount) selection.removeAllRanges();
+    }, { passive: true });
+
+    check.addEventListener('click', event => {
+      const fromRecentPointer = gesture.sequence > 0 && performance.now() - gesture.pointerAt < 900;
+      if (fromRecentPointer && gesture.consumed === gesture.sequence) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+      if (fromRecentPointer) gesture.consumed = gesture.sequence;
+      event.stopPropagation();
+    }, true);
+
+    check.addEventListener('selectstart', event => event.preventDefault());
+    check.addEventListener('contextmenu', event => event.preventDefault());
+  }
+
   function syncTaskCard(task) {
     if (!task?.isConnected) return;
     const check = task.querySelector('.check');
     if (!check) return;
+    hardenTaskCheck(check);
     const done = task.classList.contains('done');
     check.setAttribute('aria-pressed', String(done));
     check.setAttribute('aria-label', done ? 'Отметить задачу как невыполненную' : 'Отметить задачу выполненной');
@@ -337,10 +393,11 @@
 
   function boot() {
     if (!window.SeverApp?.getState || !$('#calendar') || !$('#todayTasks') || !$('#habitList')) return false;
+    installTaskInputStyles();
     installObservers();
     scheduleCalendar();
     document.documentElement.dataset.severInteractionPolish = 'ready';
-    document.documentElement.dataset.severInteractionPolishVersion = 'v109';
+    document.documentElement.dataset.severInteractionPolishVersion = 'v113';
     return true;
   }
 
