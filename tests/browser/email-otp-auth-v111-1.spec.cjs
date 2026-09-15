@@ -1,4 +1,14 @@
 const { test, expect } = require('@playwright/test');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const safeName = value => String(value || 'project').replace(/[^a-z0-9_-]+/gi, '-');
+
+async function shot(page, projectName, label) {
+  const out = path.resolve('visual-review/sever2-v109');
+  fs.mkdirSync(out, { recursive: true });
+  await page.screenshot({ path: path.join(out, `${safeName(projectName)}-${label}.png`), fullPage: true });
+}
 
 async function boot(page) {
   await page.route('**/supabase-config.js*', route => route.fulfill({
@@ -42,7 +52,7 @@ async function boot(page) {
 
 test.beforeEach(async ({ page }) => { await boot(page); });
 
-test('account login is email then six-digit OTP with no visible password or registration mode', async ({ page }) => {
+test('account login is email then six-digit OTP with no visible password or registration mode', async ({ page }, testInfo) => {
   const email = page.locator('#accountEmailInput');
   const passwordLabel = page.locator('#accountPassword').locator('xpath=ancestor::label[1]');
   const mode = page.locator('#accountMode');
@@ -52,6 +62,8 @@ test('account login is email then six-digit OTP with no visible password or regi
   await expect(mode).toBeHidden();
   await expect(submit).toHaveText('Получить код');
   await expect(page.locator('#accountCopy')).toContainText('одноразовый код');
+  expect(await page.evaluate(() => Math.max(0, document.documentElement.scrollWidth - innerWidth))).toBeLessThanOrEqual(1);
+  await shot(page, testInfo.project.name, 'otp-email');
 
   await email.fill('otp@example.test');
   await submit.click();
@@ -62,6 +74,8 @@ test('account login is email then six-digit OTP with no visible password or regi
   await expect(submit).toHaveText('Войти');
   await expect(page.locator('#accountOtpResend')).toBeDisabled();
   await expect(page.locator('#accountOtpResend')).toContainText('через 60 сек');
+  expect(await page.evaluate(() => Math.max(0, document.documentElement.scrollWidth - innerWidth))).toBeLessThanOrEqual(1);
+  await shot(page, testInfo.project.name, 'otp-code');
 
   const sent = await page.evaluate(() => window.__otpSend);
   expect(sent.email).toBe('otp@example.test');
