@@ -1,0 +1,35 @@
+name: iPhone push key and guide regression
+on:
+  pull_request:
+    paths:
+      - 'sever2-*'
+      - 'mobile-ui.js'
+      - 'sw.js'
+      - 'tests/browser/ios-push-guide.spec.cjs'
+      - 'tests/push-key-validity.test.mjs'
+      - 'playwright.ios.config.cjs'
+      - '.github/workflows/ios-push-guide.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ios-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - run: pnpm install --frozen-lockfile
+      - run: node --test tests/push-key-validity.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium webkit
+      - run: pnpm exec playwright test --config=playwright.ios.config.cjs --workers=2
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: iphone-push-guide-review
+          path: test-results/
+          retention-days: 3

@@ -83,7 +83,9 @@ async function expectUntargetedBackdropStable(page) {
     const spot = document.querySelector('#guideSpotlight');
     const dialogBox = dialog.getBoundingClientRect();
     const spotStyle = getComputedStyle(spot);
-    const backdrop = getComputedStyle(dialog, '::before');
+    const backdrop = getComputedStyle(dialog.querySelector('.guide-mask-top'));
+    const dialogStyle = getComputedStyle(dialog);
+    const nativeBackdrop = getComputedStyle(dialog, '::backdrop');
     return {
       dialogX: dialogBox.x,
       dialogY: dialogBox.y,
@@ -93,7 +95,11 @@ async function expectUntargetedBackdropStable(page) {
       viewportHeight: innerHeight,
       spotDisplay: spotStyle.display,
       spotBoxShadow: spotStyle.boxShadow,
-      backdropContent: backdrop.content,
+      dialogBackground: dialogStyle.backgroundColor,
+      nativeBackdropBackground: nativeBackdrop.backgroundColor,
+      nativeBackdropFilter: nativeBackdrop.backdropFilter,
+      topWidth: dialog.querySelector('.guide-mask-top').getBoundingClientRect().width,
+      topHeight: dialog.querySelector('.guide-mask-top').getBoundingClientRect().height,
       backdropBackground: backdrop.backgroundColor,
       backdropPosition: backdrop.position,
       backdropInset: [backdrop.top, backdrop.right, backdrop.bottom, backdrop.left]
@@ -105,15 +111,20 @@ async function expectUntargetedBackdropStable(page) {
   expect(Math.abs(visual.dialogHeight - visual.viewportHeight)).toBeLessThanOrEqual(1);
   expect(visual.spotDisplay).toBe('none');
   expect(visual.spotBoxShadow).toBe('none');
-  expect(visual.backdropContent).not.toBe('none');
-  expect(visual.backdropBackground).toBe('rgba(26, 26, 30, 0.47)');
+  expect(visual.dialogBackground).toBe('rgba(0, 0, 0, 0)');
+  expect(visual.nativeBackdropBackground).toBe('rgba(0, 0, 0, 0)');
+  expect(visual.nativeBackdropFilter).toBe('none');
+  expect(Math.abs(visual.topWidth - visual.viewportWidth)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visual.topHeight - visual.viewportHeight)).toBeLessThanOrEqual(1);
+  expect(visual.backdropBackground).toBe('rgba(28, 27, 30, 0.14)');
   expect(visual.backdropPosition).toBe('fixed');
-  expect(visual.backdropInset).toEqual(['0px', '0px', '0px', '0px']);
+  expect(visual.backdropInset[0]).toBe('0px');
+  expect(visual.backdropInset[3]).toBe('0px');
 }
 
 async function expectTargetedSpotlightActive(page) {
   await expect(page.locator('#tourDialog')).toHaveAttribute('data-has-target', 'true');
-  const visual = await page.locator('#guideSpotlight').evaluate(element => {
+  const visual = await page.locator('.guide-mask-ring').evaluate(element => {
     const box = element.getBoundingClientRect();
     const style = getComputedStyle(element);
     return { width: box.width, height: box.height, display: style.display, boxShadow: style.boxShadow };

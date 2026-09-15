@@ -256,8 +256,8 @@
       // Steps 2–4 are already anchored by app.js. Read the real positioned spot,
       // but render the mask ourselves so Safari cannot lose the transparent hole.
       if (dialog.dataset.hasTarget === 'true') {
-        const rect = originalSpot.getBoundingClientRect();
-        if (rect.width > 1 && rect.height > 1) {
+        const rect = $('#guideSpotlight')?.getBoundingClientRect();
+        if (rect && rect.width > 1 && rect.height > 1) {
           return { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
         }
       }
@@ -297,12 +297,21 @@
         box(panes.right, rect.right, rect.top, vw - rect.right, rect.height);
         box(panes.bottom, 0, rect.bottom, vw, vh - rect.bottom);
         box(ring, rect.left, rect.top, rect.width, rect.height);
-        ring.style.borderRadius = originalSpot.style.borderRadius || '16px';
+        ring.style.borderRadius = $('#guideSpotlight')?.style.borderRadius || '16px';
       });
     };
 
     new MutationObserver(sync).observe(dialog, { attributes: true, attributeFilter: ['open', 'data-step', 'data-has-target'] });
-    new MutationObserver(sync).observe(originalSpot, { attributes: true, attributeFilter: ['style'] });
+    const spotObserver = new MutationObserver(sync);
+    const observeLiveSpot = () => {
+      spotObserver.disconnect();
+      const spot = $('#guideSpotlight');
+      if (spot) spotObserver.observe(spot, { attributes: true, attributeFilter: ['style'] });
+    };
+    observeLiveSpot();
+    // v110 replaces the spotlight on the final slide. Rebind when going back
+    // or reopening the guide instead of measuring that detached old element.
+    new MutationObserver(() => { observeLiveSpot(); sync(); }).observe(dialog, { childList: true });
     ['tourNext', 'tourBack'].forEach(id => $(`#${id}`)?.addEventListener('click', () => setTimeout(sync, 0)));
     window.addEventListener('resize', sync, { passive: true });
     window.addEventListener('scroll', sync, { passive: true });
