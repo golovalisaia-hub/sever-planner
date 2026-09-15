@@ -6,6 +6,13 @@ html[data-theme="light"] #tourDialog.guide-dialog[data-has-target="false"]::befo
 #tourDialog.guide-dialog[data-has-target="true"]::before{content:none}
 #tourDialog.guide-dialog[data-has-target="true"] #guideSpotlight{display:block!important;background:transparent!important;border:1px solid rgba(255,255,255,.64)!important;box-shadow:0 0 0 999vmax rgba(3,3,5,.72),0 0 0 5px rgba(255,255,255,.08),0 12px 36px rgba(0,0,0,.28)!important}
 html[data-theme="light"] #tourDialog.guide-dialog[data-has-target="true"] #guideSpotlight,html[data-theme="motion"] #tourDialog.guide-dialog[data-has-target="true"] #guideSpotlight{border-color:rgba(17,17,20,.62)!important;box-shadow:0 0 0 999vmax rgba(26,26,30,.45),0 0 0 5px rgba(17,17,20,.07),0 12px 36px rgba(0,0,0,.15)!important}
+/* v90's Safari-safe four-pane mask intentionally highlights navigation on its old final slide.
+   v110's final slide is untargeted, so force that legacy layer back to one uniform backdrop. */
+#tourDialog.guide-dialog[data-step="5"][data-has-target="false"] .guide-mask-ring{display:none!important}
+#tourDialog.guide-dialog[data-step="5"][data-has-target="false"] .guide-mask-top{display:block!important;left:0!important;top:0!important;width:100vw!important;height:100vh!important}
+#tourDialog.guide-dialog[data-step="5"][data-has-target="false"] .guide-mask-left,
+#tourDialog.guide-dialog[data-step="5"][data-has-target="false"] .guide-mask-right,
+#tourDialog.guide-dialog[data-step="5"][data-has-target="false"] .guide-mask-bottom{display:none!important}
 #tourDialog.guide-dialog .guide-card-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px}
 #tourDialog.guide-dialog .guide-kicker{white-space:nowrap;color:var(--sever110-guide-soft)!important;-webkit-text-fill-color:var(--sever110-guide-soft)!important;opacity:1!important}
 #tourDialog.guide-dialog .sever110-guide-step{justify-self:start;color:var(--sever110-guide-soft)!important;-webkit-text-fill-color:var(--sever110-guide-soft)!important;font-size:.7rem;font-weight:800;letter-spacing:.06em;opacity:1!important}
