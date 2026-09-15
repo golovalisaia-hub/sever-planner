@@ -15,6 +15,16 @@ async function boot(page) {
   });
   await page.goto('/');
   await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severMoney === 'ready');
+  await page.waitForFunction(() => document.documentElement.dataset.severFinance === 'v111');
+}
+
+async function openPlans(page) {
+  await page.evaluate(() => window.SeverApp.switchView('money'));
+  await expect(page.locator('#moneyView')).toBeVisible();
+  const plans = page.locator('[data-finance-tab="plans"]');
+  await expect(plans).toBeVisible();
+  await plans.click();
+  await expect(page.locator('[data-finance-panel="plans"]')).toBeVisible();
 }
 
 function channel(value) {
@@ -35,10 +45,9 @@ function contrast(foreground, background) {
 
 test.beforeEach(async ({ page }) => { await boot(page); });
 
-test('Money quick input creates a debt plan, tracks payments and survives reload', async ({ page }) => {
-  await page.evaluate(() => window.SeverApp.switchView('money'));
-  await expect(page.locator('#moneyView')).toBeVisible();
-  await expect(page.locator('.desktop-sidebar [data-view="money"]')).toContainText('Деньги');
+test('Finance Plans quick input creates a debt plan, tracks payments and survives reload', async ({ page }) => {
+  await openPlans(page);
+  await expect(page.locator('.desktop-sidebar [data-view="money"]')).toContainText('Финансы');
 
   await page.locator('#moneyQuickInput').fill('долг 10к до декабря');
   await page.locator('#moneyQuickForm button[type="submit"]').click();
@@ -65,15 +74,15 @@ test('Money quick input creates a debt plan, tracks payments and survives reload
   await expect(page.locator('.money-card-amount')).toContainText(/9.?000/);
 
   await page.reload();
-  await page.waitForFunction(() => document.documentElement.dataset.severMoney === 'ready');
-  await page.evaluate(() => window.SeverApp.switchView('money'));
+  await page.waitForFunction(() => document.documentElement.dataset.severMoney === 'ready' && document.documentElement.dataset.severFinance === 'v111');
+  await openPlans(page);
   await expect(page.locator('.money-card')).toContainText('Машина');
   await expect(page.locator('.money-card-amount')).toContainText(/9.?000/);
   await expect(page.locator('#moneyIncomeTotal')).toContainText(/50.?000/);
 });
 
-test('Money can create calendar reminders without treating them as actual payments', async ({ page }) => {
-  await page.evaluate(() => window.SeverApp.switchView('money'));
+test('Finance Plans can create calendar reminders without treating them as actual payments', async ({ page }) => {
+  await openPlans(page);
   await page.locator('[data-money-create="goal"]').click();
   await page.locator('#moneyItemName').fill('Ноутбук');
   await page.locator('#moneyItemTarget').fill('30000');
@@ -96,8 +105,8 @@ test('Money can create calendar reminders without treating them as actual paymen
   await expect(page.locator('.money-card-actions button').filter({ hasText: 'Уже в календаре' })).toBeDisabled();
 });
 
-test('Money treats an overdue deadline as a plan to update, not one month left', async ({ page }) => {
-  await page.evaluate(() => window.SeverApp.switchView('money'));
+test('Finance Plans treats an overdue deadline as a plan to update, not one month left', async ({ page }) => {
+  await openPlans(page);
   await page.locator('[data-money-create="debt"]').click();
   await page.locator('#moneyItemName').fill('Старый план');
   await page.locator('#moneyItemTarget').fill('12000');
@@ -117,9 +126,9 @@ test('Money treats an overdue deadline as a plan to update, not one month left',
   expect(await page.evaluate(() => window.SeverApp.getState().tasks.length)).toBe(0);
 });
 
-test('Money layout has no horizontal overflow on phone widths', async ({ page }, info) => {
+test('Finance Plans layout has no horizontal overflow on phone widths', async ({ page }, info) => {
   if (info.project.name === 'desktop') test.skip();
-  await page.evaluate(() => window.SeverApp.switchView('money'));
+  await openPlans(page);
   const geometry = await page.evaluate(() => ({
     overflow: Math.max(0, document.documentElement.scrollWidth - innerWidth),
     quickWidth: document.querySelector('.money-quick').getBoundingClientRect().width,
@@ -131,9 +140,9 @@ test('Money layout has no horizontal overflow on phone widths', async ({ page },
   expect(Math.min(...geometry.actions)).toBeGreaterThanOrEqual(44);
 });
 
-test('Money primary action keeps readable contrast when hovered on desktop', async ({ page }, info) => {
+test('Finance Plans primary action keeps readable contrast when hovered on desktop', async ({ page }, info) => {
   if (info.project.name !== 'desktop') test.skip();
-  await page.evaluate(() => window.SeverApp.switchView('money'));
+  await openPlans(page);
   await page.locator('[data-money-create="goal"]').click();
   await page.locator('#moneyItemName').fill('Резерв');
   await page.locator('#moneyItemTarget').fill('10000');
