@@ -236,6 +236,9 @@ html[data-sever-season="autumn"] .sever-season-mark[data-season="autumn"]::after
 }
 
 /* ---------- Habits: completion must never restyle every button in the card ---------- */
+#habitList {
+  overflow-anchor: none;
+}
 .habit-card-actions {
   display: flex;
   flex: 0 0 auto;
@@ -329,6 +332,10 @@ html[data-theme="black"] .habit .habit-week .habit-day.done b {
   }
   .habit-card-head {
     align-items: flex-start;
+  }
+  .habit .habit-status {
+    min-height: 2.9em;
+    line-height: 1.45;
   }
   .habit-week {
     width: 100%;

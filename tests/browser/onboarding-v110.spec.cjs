@@ -1,0 +1,217 @@
+const { test, expect } = require('@playwright/test');
+const fs = require('node:fs');
+const path = require('node:path');
+
+function safeName(value) {
+  return String(value || 'project').replace(/[^a-z0-9_-]+/gi, '-');
+}
+
+async function shot(page, projectName, label) {
+  const out = path.resolve('visual-review/sever2-v109');
+  fs.mkdirSync(out, { recursive: true });
+  await page.screenshot({ path: path.join(out, `${safeName(projectName)}-v110-${label}.png`), fullPage: true });
+}
+
+async function seed(page, { onboarded = false, withTask = false } = {}) {
+  await page.route('**/supabase-config.js*', route => route.fulfill({ contentType: 'text/javascript', body: 'window.SEVER_SUPABASE_CONFIG={};' }));
+  await page.addInitScript(({ onboarded, withTask }) => {
+    if (localStorage.getItem('sever-e2e-onboarding-v110-seeded-v1') === '1') return;
+    const today = new Date();
+    const iso = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({
+      version: 11,
+      onboarded,
+      tasks: withTask ? [{ id: 'existing-task', title: 'Уже знакомая задача', date: iso, completed: false, priority: false, category: 'Личное' }] : [],
+      notes: [], folders: [], habits: [], checks: {}, taskMemory: [],
+      profile: { name: '' },
+      appearance: { theme: 'light', animations: 'off', reduceEffects: true },
+      focusSessions: [], stats: { focusMs: 0, sessions: 0 },
+      reminders: { enabled: false, time: '19:00', lastDate: '' },
+      security: { protectedNotesAutoLockMinutes: 5, lockInBackground: true }
+    }));
+    localStorage.setItem('sever-theme', 'light');
+    localStorage.setItem('sever-e2e-onboarding-v110-seeded-v1', '1');
+  }, { onboarded, withTask });
+}
+
+async function waitV110(page) {
+  await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severOnboarding === 'v110');
+}
+
+async function expectStableGuideContrast(page) {
+  await expect(page.locator('#tourTitle')).toHaveCSS('color', 'rgb(247, 244, 239)');
+  await expect(page.locator('#tourText')).toHaveCSS('color', 'rgba(247, 244, 239, 0.82)');
+  await page.evaluate(() => document.fonts?.ready || Promise.resolve());
+  await page.waitForTimeout(750);
+  await expect(page.locator('#tourTitle')).toHaveCSS('color', 'rgb(247, 244, 239)');
+  await expect(page.locator('#tourText')).toHaveCSS('color', 'rgba(247, 244, 239, 0.82)');
+  const visual = await page.evaluate(() => {
+    const title = getComputedStyle(document.querySelector('#tourTitle'));
+    const text = getComputedStyle(document.querySelector('#tourText'));
+    const copy = getComputedStyle(document.querySelector('#guideCopy'));
+    const card = getComputedStyle(document.querySelector('#tourDialog .guide-card'));
+    return {
+      titleFill: title.webkitTextFillColor,
+      textFill: text.webkitTextFillColor,
+      titleOpacity: title.opacity,
+      textOpacity: text.opacity,
+      copyOpacity: copy.opacity,
+      cardOpacity: card.opacity,
+      copyFilter: copy.filter,
+      cardFilter: card.filter,
+      copyBlend: copy.mixBlendMode,
+      cardBlend: card.mixBlendMode
+    };
+  });
+  expect(visual.titleFill).toBe('rgb(247, 244, 239)');
+  expect(visual.textFill).toBe('rgba(247, 244, 239, 0.82)');
+  expect(visual.titleOpacity).toBe('1');
+  expect(visual.textOpacity).toBe('1');
+  expect(visual.copyOpacity).toBe('1');
+  expect(visual.cardOpacity).toBe('1');
+  expect(visual.copyFilter).toBe('none');
+  expect(visual.cardFilter).toBe('none');
+  expect(visual.copyBlend).toBe('normal');
+  expect(visual.cardBlend).toBe('normal');
+}
+
+async function expectUntargetedBackdropStable(page) {
+  await expect(page.locator('#tourDialog')).toHaveAttribute('data-has-target', 'false');
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const visual = await page.evaluate(() => {
+    const dialog = document.querySelector('#tourDialog');
+    const spot = document.querySelector('#guideSpotlight');
+    const dialogBox = dialog.getBoundingClientRect();
+    const spotStyle = getComputedStyle(spot);
+    const backdrop = getComputedStyle(dialog, '::before');
+    return {
+      dialogX: dialogBox.x,
+      dialogY: dialogBox.y,
+      dialogWidth: dialogBox.width,
+      dialogHeight: dialogBox.height,
+      viewportWidth: innerWidth,
+      viewportHeight: innerHeight,
+      spotDisplay: spotStyle.display,
+      spotBoxShadow: spotStyle.boxShadow,
+      backdropContent: backdrop.content,
+      backdropBackground: backdrop.backgroundColor,
+      backdropPosition: backdrop.position,
+      backdropInset: [backdrop.top, backdrop.right, backdrop.bottom, backdrop.left]
+    };
+  });
+  expect(Math.abs(visual.dialogX)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visual.dialogY)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visual.dialogWidth - visual.viewportWidth)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visual.dialogHeight - visual.viewportHeight)).toBeLessThanOrEqual(1);
+  expect(visual.spotDisplay).toBe('none');
+  expect(visual.spotBoxShadow).toBe('none');
+  expect(visual.backdropContent).not.toBe('none');
+  expect(visual.backdropBackground).toBe('rgba(26, 26, 30, 0.47)');
+  expect(visual.backdropPosition).toBe('fixed');
+  expect(visual.backdropInset).toEqual(['0px', '0px', '0px', '0px']);
+}
+
+async function expectTargetedSpotlightActive(page) {
+  await expect(page.locator('#tourDialog')).toHaveAttribute('data-has-target', 'true');
+  const visual = await page.locator('#guideSpotlight').evaluate(element => {
+    const box = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return { width: box.width, height: box.height, display: style.display, boxShadow: style.boxShadow };
+  });
+  expect(visual.display).toBe('block');
+  expect(visual.width).toBeGreaterThan(20);
+  expect(visual.height).toBeGreaterThan(20);
+  expect(visual.boxShadow).not.toBe('none');
+}
+
+test('fresh local user gets automatic quick orientation without manually firing cloud-ready', async ({ page }, info) => {
+  await seed(page);
+  await page.goto('/');
+  await waitV110(page);
+
+  await expect(page.locator('#tourDialog')).toBeVisible();
+  await expect(page.locator('#tourTitle')).toHaveText('Добро пожаловать в SEVER');
+  await expect(page.locator('#tourText')).toContainText('достаточно одного дела');
+  await expect(page.locator('.guide-kicker')).toHaveText('БЫСТРОЕ ЗНАКОМСТВО');
+  await expect(page.locator('#sever110GuideStep')).toHaveText('1 / 5');
+  await expect(page.locator('#tourSkip')).toHaveText('Пропустить');
+  await expectStableGuideContrast(page);
+  await expectUntargetedBackdropStable(page);
+  await shot(page, info.project.name, 'welcome');
+});
+
+test('quick orientation ends by opening creation of the first real task', async ({ page }, info) => {
+  await seed(page);
+  await page.goto('/');
+  await waitV110(page);
+  await expect(page.locator('#tourDialog')).toBeVisible();
+
+  for (let step = 1; step < 4; step += 1) await page.locator('#tourNext').click();
+  await expect(page.locator('#sever110GuideStep')).toHaveText('4 / 5');
+  await expectTargetedSpotlightActive(page);
+  await page.locator('#tourNext').click();
+  await expect(page.locator('#sever110GuideStep')).toHaveText('5 / 5');
+  await expect(page.locator('#tourTitle')).toHaveText('Всё под рукой');
+  await expect(page.locator('#tourText')).toContainText('Деньги');
+  await expect(page.locator('#tourNext')).toHaveText('Добавить первую задачу');
+  await expectStableGuideContrast(page);
+  await expectUntargetedBackdropStable(page);
+  await shot(page, info.project.name, 'finish');
+  await page.locator('#tourNext').click();
+
+  await expect(page.locator('#tourDialog')).toBeHidden();
+  await expect(page.locator('#taskDialog')).toBeVisible();
+  await expect(page.locator('#taskTitle')).toBeFocused();
+  expect(await page.evaluate(() => window.SeverApp.getState().onboarded)).toBe(true);
+});
+
+test('returning onboarded user is not interrupted and can reopen orientation from Settings', async ({ page }) => {
+  await seed(page, { onboarded: true, withTask: true });
+  await page.goto('/');
+  await waitV110(page);
+  await expect(page.locator('#tourDialog')).toBeHidden();
+
+  await page.evaluate(() => window.SeverApp.switchView('settings'));
+  await expect(page.locator('#settingsGuide b')).toHaveText('Быстрое знакомство');
+  await expect(page.locator('#settingsGuide em')).toContainText('полминуты');
+  await page.locator('#settingsGuide').click();
+  await expect(page.locator('#tourDialog')).toBeVisible();
+  await expect(page.locator('#tourTitle')).toHaveText('Добро пожаловать в SEVER');
+  await expect(page.locator('#tourSkip')).toHaveText('Закрыть');
+  await page.locator('#tourSkip').click();
+  await expect(page.locator('#tourDialog')).toBeHidden();
+  await expect(page.locator('#settingsView')).toBeVisible();
+});
+
+test('skip persists and the empty Today state still tells a novice what to do next', async ({ page }) => {
+  await seed(page);
+  await page.goto('/');
+  await waitV110(page);
+  await expect(page.locator('#tourDialog')).toBeVisible();
+  await page.locator('#tourSkip').click();
+  await expect(page.locator('#tourDialog')).toBeHidden();
+  expect(await page.evaluate(() => window.SeverApp.getState().onboarded)).toBe(true);
+
+  await expect(page.locator('#todayTasks .empty p')).toContainText('Начни с одного дела');
+  await expect(page.locator('#todayTasks .today-add-task')).toContainText('Добавить первую задачу');
+
+  await page.reload();
+  await waitV110(page);
+  await expect(page.locator('#tourDialog')).toBeHidden();
+  expect(await page.evaluate(() => window.SeverApp.getState().onboarded)).toBe(true);
+});
+
+test('quick orientation never creates horizontal overflow on narrow phones', async ({ page }, info) => {
+  test.skip(info.project.name === 'desktop', 'Narrow-phone guard');
+  await seed(page);
+  await page.goto('/');
+  await waitV110(page);
+  await expect(page.locator('#tourDialog')).toBeVisible();
+
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+  const card = await page.locator('#tourDialog .guide-card').boundingBox();
+  expect(card).not.toBeNull();
+  expect(card.x).toBeGreaterThanOrEqual(-1);
+  expect(card.x + card.width).toBeLessThanOrEqual((await page.evaluate(() => innerWidth)) + 1);
+});

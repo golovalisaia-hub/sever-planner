@@ -222,7 +222,7 @@
     if (booted) return;
     const coreReady = document.documentElement.dataset.severNotesCore === 'ready';
     const orgReady = document.documentElement.dataset.severNotesOrganization === 'ready';
-    if (!window.SeverApp || !window.SeverNotes || !coreReady || !orgReady || !folderSource()) {
+    if (!window.SeverApp || !window.SeverNotes || !coreReady || !orgReady || !folderSource() || !tagSource()) {
       if (attempt < 180) setTimeout(() => boot(attempt + 1), 50);
       return;
     }
