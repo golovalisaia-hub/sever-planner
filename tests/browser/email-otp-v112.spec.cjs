@@ -1,7 +1,16 @@
 const { test, expect } = require('@playwright/test');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const safeName = value => String(value || 'project').replace(/[^a-z0-9_-]+/gi, '-');
+async function shot(page, project, label) {
+  const out = path.resolve('visual-review/sever2-v109');
+  fs.mkdirSync(out, { recursive: true });
+  await page.screenshot({ path: path.join(out, `${safeName(project)}-v112-email-otp-${label}.png`), fullPage: true });
+}
 
 test('account login uses email then a six-digit OTP with no password field', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'phone-390', 'One phone project is enough for the focused OTP flow.');
+  test.skip(!['phone-390', 'desktop'].includes(testInfo.project.name), 'Phone 390 and desktop cover the OTP flow and release visuals.');
 
   await page.route('**/supabase-config.js*', route => route.fulfill({
     contentType: 'text/javascript',
@@ -48,6 +57,7 @@ test('account login uses email then a six-digit OTP with no password field', asy
   await expect(page.locator('#accountMode')).toBeHidden();
   await expect(page.locator('#accountTitle')).toHaveText('Войти в SEVER');
   await expect(page.locator('#accountCopy')).toContainText('Пароль не нужен');
+  await shot(page, testInfo.project.name, 'email');
 
   await page.locator('#accountEmailInput').fill('TEST@EXAMPLE.COM');
   await page.locator('#accountSubmit').click();
@@ -57,6 +67,7 @@ test('account login uses email then a six-digit OTP with no password field', asy
   await expect(page.locator('#severOtpCode')).toHaveAttribute('autocomplete', 'one-time-code');
   await expect(page.locator('#accountSubmit')).toHaveText('Подтвердить код');
   await expect(page.locator('#severOtpResend')).toBeDisabled();
+  await shot(page, testInfo.project.name, 'code');
 
   const send = await page.evaluate(() => window.__otpCalls.find(call => call.kind === 'send'));
   expect(send.payload.email).toBe('test@example.com');
