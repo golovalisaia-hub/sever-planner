@@ -62,7 +62,6 @@
       code.type = 'text';
       code.inputMode = 'numeric';
       code.autocomplete = 'one-time-code';
-      code.maxLength = 6;
       code.pattern = '[0-9]{6}';
       code.placeholder = '000000';
       code.setAttribute('aria-describedby', 'severOtpHint');
