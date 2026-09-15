@@ -17,7 +17,7 @@ test('v111.1 iOS push core fix is syntax-valid, bootstrapped early and shipped a
   assert.match(source, /severIosPushCoreFix = VERSION/);
   assert.match(bootstrap, /sever2-ios-push-corefix-v1111\.js\?v=1111/);
   assert.match(bootstrap, /installIosPushCoreFixLayer\(\);[\s\S]*scheduleLateExperienceLayers\(\)/);
-  assert.match(sw, /const CACHE = 'sever-v111-finance-center-release-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v112-email-otp-release-v1'/);
   assert.match(sw, /sever2-ios-push-corefix-v1111\.js\?v=1111/);
   assert.match(sw, /'\/sever2-ios-push-corefix-v1111\.js'/);
 });
