@@ -39,14 +39,32 @@
     }
   }
 
+  function installEmailOtpAuthLayer() {
+    if (!document.querySelector('link[data-sever-email-otp-auth]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'sever2-email-otp-auth-v111-1.css?v=1111';
+      link.dataset.severEmailOtpAuth = 'true';
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[data-sever-email-otp-auth]')) {
+      const script = document.createElement('script');
+      script.src = 'sever2-email-otp-auth-v111-1.js?v=1111';
+      script.async = true;
+      script.dataset.severEmailOtpAuth = 'true';
+      document.head.appendChild(script);
+    }
+  }
+
   function installLateExperienceLayers() {
     installOnboardingV110Layer();
     installFinanceV111Layer();
+    installEmailOtpAuthLayer();
   }
 
   function scheduleLateExperienceLayers() {
-    // Presentation/help layers are never boot dependencies. Load only after the
-    // document load event so Finance/Onboarding cannot delay the planner core.
+    // Presentation/help/auth layers are never boot dependencies. Load only after
+    // document load so they cannot delay the planner core.
     if (document.readyState === 'complete') {
       setTimeout(installLateExperienceLayers, 0);
       return;
@@ -102,7 +120,7 @@
     timer = setTimeout(schedule, 50);
   }
 
-  // This late stable bootstrap remains the deterministic presentation loader;
+  // This late stable bootstrap remains the deterministic presentation/auth loader;
   // Notes repair behavior and ownership remain unchanged.
   scheduleLateExperienceLayers();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', schedule, { once:true });
