@@ -41,7 +41,7 @@ test('v108 observers batch changed task and habit nodes without rescanning whole
   assert.match(source, /requestAnimationFrame\(syncHabitChecks\)/);
   assert.match(source, /new MutationObserver\(syncHabitMutationRecords\)/);
   assert.match(source, /dataset\.severInteractionPolish = 'ready'/);
-  assert.match(source, /dataset\.severInteractionPolishVersion = 'v109'/);
+  assert.match(source, /dataset\.severInteractionPolishVersion = 'v113'/);
   assert.doesNotMatch(source, /\$\$\('\.task'\)\.forEach/);
   assert.doesNotMatch(source, /document\.querySelectorAll\('\.habit-week \.habit-day'\)\.forEach/);
 });
