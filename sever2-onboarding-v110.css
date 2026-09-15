@@ -31,6 +31,11 @@ html[data-theme="light"] #tourDialog.guide-dialog[data-has-target="true"] #guide
   #tourDialog.guide-dialog .guide-copy p{font-size:.9rem;line-height:1.5}
   #tourDialog.guide-dialog .guide-actions .primary{max-width:min(62vw,230px);white-space:normal;line-height:1.15;padding-block:9px}
 }
+/* Habit state changes rerender the card. Reserve two text lines on narrow phones so
+   the shorter completed copy cannot collapse the header and trigger scroll anchoring. */
+@media(max-width:430px){
+  #habitList .habit .habit-status{min-height:2.9em;line-height:1.45}
+}
 @media(max-width:350px){
   #tourDialog.guide-dialog .guide-card{padding-left:16px;padding-right:16px}
   #tourDialog.guide-dialog .guide-card-head{grid-template-columns:minmax(0,1fr) auto;gap:6px}
