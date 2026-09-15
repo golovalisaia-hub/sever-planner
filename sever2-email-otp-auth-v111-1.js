@@ -43,7 +43,7 @@
     otpWrap.className = 'account-otp-step hidden';
     otpWrap.innerHTML = `
       <label>Код из письма
-        <input id="accountOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" placeholder="000000" aria-describedby="accountOtpHint">
+        <input id="accountOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" placeholder="000000" aria-describedby="accountOtpHint">
       </label>
       <p id="accountOtpHint" class="account-otp-hint">Введите 6 цифр, которые пришли на почту.</p>
       <div class="account-otp-actions">
