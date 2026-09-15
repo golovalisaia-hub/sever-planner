@@ -5,6 +5,15 @@
   let attempts = 0;
   let timer = 0;
 
+  function installIosPushCoreFixLayer() {
+    if (document.querySelector('script[data-sever-ios-push-corefix]')) return;
+    const script = document.createElement('script');
+    script.src = 'sever2-ios-push-corefix-v1111.js?v=1111';
+    script.async = true;
+    script.dataset.severIosPushCorefix = 'true';
+    document.head.appendChild(script);
+  }
+
   function installOnboardingV110Layer() {
     if (!document.querySelector('link[data-sever-onboarding-v110]')) {
       const link = document.createElement('link');
@@ -101,6 +110,10 @@
     clearTimeout(timer);
     timer = setTimeout(schedule, 50);
   }
+
+  // The iOS push capture must exist before a user can reach Settings. It is a
+  // reliability layer rather than a presentation layer, so do not defer it.
+  installIosPushCoreFixLayer();
 
   // This late stable bootstrap remains the deterministic presentation loader;
   // Notes repair behavior and ownership remain unchanged.
