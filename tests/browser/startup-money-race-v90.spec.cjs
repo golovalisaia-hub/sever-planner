@@ -54,6 +54,13 @@ async function boot(page) {
   await page.goto('/');
 }
 
+async function openFinancePlans(page) {
+  await page.waitForFunction(() => document.documentElement.dataset.severFinance === 'v111');
+  await page.evaluate(() => window.SeverApp.switchView('money'));
+  await page.locator('[data-finance-tab="plans"]').click();
+  await expect(page.locator('[data-finance-panel="plans"]')).toBeVisible();
+}
+
 test('sever:ready is emitted only after the initial local state is durably initialized', async ({ page }, info) => {
   test.skip(info.project.name !== 'phone-320', 'startup ordering only needs one deterministic viewport');
   await boot(page);
@@ -67,12 +74,12 @@ test('sever:ready is emitted only after the initial local state is durably initi
   expect(snapshot.storageText, JSON.stringify(snapshot)).not.toContain('Проверяем');
 });
 
-test('an immediate Money plan survives the whole startup handoff and a reload', async ({ page }, info) => {
+test('an immediate Finance plan survives the whole startup handoff and a reload', async ({ page }, info) => {
   test.skip(info.project.name !== 'phone-320', 'race stress runs on the narrow/slow phone profile');
   await boot(page);
   await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severMoney === 'ready');
 
-  await page.evaluate(() => window.SeverApp.switchView('money'));
+  await openFinancePlans(page);
   await page.locator('[data-money-create="goal"]').click();
   await page.locator('#moneyItemName').fill('STARTUP Money');
   await page.locator('#moneyItemTarget').fill('30000');
@@ -83,13 +90,13 @@ test('an immediate Money plan survives the whole startup handoff and a reload', 
   await page.waitForFunction(() => window.SeverCloudReady === true);
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().profile?.money?.items?.some(item => item.title === 'STARTUP Money') || false), {
     timeout: 10000,
-    message: 'Money item disappeared while startup finished'
+    message: 'Finance plan disappeared while startup finished'
   }).toBe(true);
 
   await page.reload();
-  await page.waitForFunction(() => window.SeverApp && window.SeverCloudReady && document.documentElement.dataset.severMoney === 'ready');
+  await page.waitForFunction(() => window.SeverApp && window.SeverCloudReady && document.documentElement.dataset.severMoney === 'ready' && document.documentElement.dataset.severFinance === 'v111');
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().profile?.money?.items?.some(item => item.title === 'STARTUP Money') || false), {
     timeout: 10000,
-    message: 'Money item did not survive reload'
+    message: 'Finance plan did not survive reload'
   }).toBe(true);
 });

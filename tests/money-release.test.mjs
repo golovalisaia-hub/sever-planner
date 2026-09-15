@@ -11,7 +11,7 @@ const css = read('sever2-money.css');
 const sync = read('js/sync-core.mjs');
 const manifest = read('supabase/functions/sever-ai/manifest.ts');
 
-test('Money v77 is syntax-valid and stores its data inside synced profile settings', () => {
+test('Money v77 legacy plans remain syntax-valid and store data inside synced profile settings', () => {
   const checked = spawnSync(process.execPath, ['--check', path.join(root, 'sever2-money.js')]);
   assert.equal(checked.status, 0, checked.stderr.toString());
   assert.match(source, /state\.profile\.money = normalizeMoney/);
@@ -22,7 +22,7 @@ test('Money v77 is syntax-valid and stores its data inside synced profile settin
   assert.doesNotMatch(source, /service_role|bank api|openbanking/i);
 });
 
-test('Money supports debt, savings, progress and optional calendar reminders without guessing interest', () => {
+test('Money legacy core preserves debt, savings, progress and optional calendar reminders without guessing interest', () => {
   assert.match(source, /type === 'goal' \? 'goal' : 'debt'/);
   assert.match(source, /monthlyBudget/);
   assert.match(source, /currentAmount/);
@@ -34,7 +34,7 @@ test('Money supports debt, savings, progress and optional calendar reminders wit
   assert.match(source, /накоп\|отлож\|собрат\|цель/);
 });
 
-test('Money treats overdue deadlines as stale plans instead of inventing one month remaining', () => {
+test('Money legacy plans treat overdue deadlines as stale plans instead of inventing one month remaining', () => {
   assert.match(source, /function deadlineStatus\(deadline\)/);
   assert.match(source, /if \(!status\.valid \|\| status\.overdue\) return null/);
   assert.match(source, /money-pace money-pace-overdue/);
@@ -44,11 +44,11 @@ test('Money treats overdue deadlines as stale plans instead of inventing one mon
   assert.match(css, /\.money-pace-overdue/);
 });
 
-test('Money has responsive touch-safe presentation and Sever AI can navigate to the page', () => {
+test('legacy Money presentation remains responsive while Sever AI routes users to Finance', () => {
   assert.match(css, /@media \(max-width: 700px\)/);
   assert.match(css, /min-height:\s*44px/);
   assert.match(css, /\.money-list/);
   assert.match(css, /\.money-card-actions/);
-  assert.match(manifest, /money:'Деньги: долги и накопления'/);
+  assert.match(manifest, /money:'Финансы: бюджет, операции, регулярные платежи, долги и накопления'/);
   assert.match(manifest, /page==='money'.*plan\.create/s);
 });

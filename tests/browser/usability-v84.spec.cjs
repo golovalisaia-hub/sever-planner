@@ -27,8 +27,18 @@ async function settleDialogAutofocus(page) {
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 }
 
-async function createPlan(page, { type = 'goal', name = 'План', target = '30000', budget = '10000' } = {}) {
+async function openPlans(page) {
   await page.evaluate(() => window.SeverApp.switchView('money'));
+  const plans = page.locator('[data-finance-tab="plans"]');
+  if (await plans.count()) {
+    await page.waitForFunction(() => document.documentElement.dataset.severFinance === 'v111');
+    await plans.click();
+    await expect(page.locator('[data-finance-panel="plans"]')).toBeVisible();
+  }
+}
+
+async function createPlan(page, { type = 'goal', name = 'План', target = '30000', budget = '10000' } = {}) {
+  await openPlans(page);
   await page.locator(`[data-money-create="${type}"]`).click();
   await expect(page.locator('#moneyItemDialog')).toBeVisible();
   await settleDialogAutofocus(page);
@@ -148,7 +158,7 @@ test('deleting a Money plan also retires its pending generated calendar reminder
   expect(after).toEqual({ items: 0, tasks: 0 });
 });
 
-test('guide ends with a compact map of Calendar Notes Money and can return to Settings', async ({ page }) => {
+test('guide ends with a compact map of Calendar Notes Finance and can return to Settings', async ({ page }) => {
   await page.evaluate(() => window.SeverApp.switchView('settings'));
   await page.locator('#settingsGuide').click();
   await expect(page.locator('#tourDialog')).toBeVisible();
@@ -156,16 +166,16 @@ test('guide ends with a compact map of Calendar Notes Money and can return to Se
   await expect(page.locator('#tourTitle')).toHaveText('Всё под рукой');
   await expect(page.locator('#tourText')).toContainText('Календарь');
   await expect(page.locator('#tourText')).toContainText('Заметки');
-  await expect(page.locator('#tourText')).toContainText('Деньги');
+  await expect(page.locator('#tourText')).toContainText('Финансы');
   await expect(page.locator('#tourText')).toContainText('Настройках');
   await page.locator('#tourSkip').click();
   await expect(page.locator('#tourDialog')).toBeHidden();
   await expect(page.locator('#settingsView')).toBeVisible();
 });
 
-test('v84 keeps Money and Appearance compact without horizontal page overflow on phones', async ({ page }, info) => {
+test('v84 keeps legacy Plans and Appearance compact without horizontal page overflow on phones', async ({ page }, info) => {
   if (info.project.name === 'desktop') test.skip();
-  await page.evaluate(() => window.SeverApp.switchView('money'));
+  await openPlans(page);
   const money = await page.evaluate(() => {
     const quick = document.querySelector('.money-quick').getBoundingClientRect();
     const input = document.querySelector('#moneyQuickInput').getBoundingClientRect();

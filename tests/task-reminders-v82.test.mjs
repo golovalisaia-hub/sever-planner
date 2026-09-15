@@ -34,14 +34,14 @@ test('legacy daily reminder is retired and cannot be re-enabled by old Settings 
   assert.match(bridge, /legacyTime\.onchange = null/);
   assert.match(bridge, /test\.onclick = null/);
   assert.match(bridge, /guide\.onclick = null/);
-  assert.match(bridge, /severReminderBridge = 'v1102'/);
+  assert.match(bridge, /severReminderBridge = 'v111'/);
   assert.match(interaction, /sever2-task-reminders\.js\?v=82/);
   assert.match(interaction, /sever2-reminder-bridge-v95\.js\?v=95/);
   assert.match(interaction, /sever2-reminders\.css\?v=82/);
-  assert.match(sw, /sever2-reminder-bridge-v95\.js\?v=1102/);
+  assert.match(sw, /sever2-reminder-bridge-v95\.js\?v=111/);
 });
 
-test('v110.2 iOS Web Push starts subscribe directly from the toggle gesture', () => {
+test('v111 keeps the v110.2 iOS Web Push direct-gesture fix', () => {
   assert.match(bridge, /function prewarmIosPush\(\)/);
   assert.match(bridge, /function interceptIosEnable\(event, master\)/);
   assert.match(bridge, /master\.addEventListener\('change', event => \{[\s\S]*interceptIosEnable\(event, master\)[\s\S]*\}, true\)/);
@@ -57,7 +57,7 @@ test('v110.2 iOS Web Push starts subscribe directly from the toggle gesture', ()
   assert.equal(body.includes('Notification.requestPermission'), false, 'iOS direct subscription must not consume the gesture with requestPermission first');
 });
 
-test('v110.2 reminder bridge still neutralizes the retired mobile toggle mirror', () => {
+test('v111 reminder bridge still neutralizes the retired mobile toggle mirror', () => {
   assert.match(mobileUi, /targetToggle\.checked = sourceToggle\.checked/);
   assert.match(bridge, /function isolateLegacyReminderMirror\(master\)/);
   assert.match(bridge, /Object\.getOwnPropertyDescriptor\(HTMLInputElement\.prototype, 'checked'\)/);
@@ -66,13 +66,24 @@ test('v110.2 reminder bridge still neutralizes the retired mobile toggle mirror'
   assert.match(bridge, /legacy\.dataset\.severPushProxy = 'true'/);
 });
 
+test('v111 reminder health explains ready, empty and cloud-sync-lag states', () => {
+  assert.match(bridge, /function refreshReminderHealth\(\)/);
+  assert.match(bridge, /client\.from\('tasks'\)/);
+  assert.match(bridge, /\.eq\('completed', false\)/);
+  assert.match(bridge, /\.is\('deleted_at', null\)/);
+  assert.match(bridge, /Подписка работает · .*готов/);
+  assert.match(bridge, /ещё .*в облаке\. Проверьте синхронизацию/);
+  assert.match(bridge, /Подписка работает · пока нет будущих задач с датой и временем/);
+  assert.match(bridge, /severReminderHealth = 'v111'/);
+});
+
 test('v95 repairs Notes organization shell if the core summary appears after organization boot', () => {
   assert.match(notesRepair, /#notesCoreSummary/);
   assert.match(notesRepair, /#notesOrganizationTags/);
   assert.match(notesRepair, /#notesPinnedSection/);
   assert.match(notesRepair, /severNotesOrganizationRepair = 'v95'/);
   assert.match(interaction, /sever2-notes-org-repair-v95\.js\?v=95/);
-  assert.match(sw, /sever2-notes-org-repair-v95\.js\?v=110/);
+  assert.match(sw, /sever2-notes-org-repair-v95\.js\?v=111/);
 });
 
 test('v101 startup never destroys a push subscription before auth has settled', () => {
@@ -104,6 +115,7 @@ test('service worker immediately displays visible push notifications and opens t
   assert.match(sw, /addEventListener\('push'/);
   assert.match(sw, /showNotification/);
   assert.match(sw, /sever2-task-reminders\.js\?v=82/);
+  assert.match(sw, /sever2-reminder-bridge-v95\.js\?v=111/);
   assert.match(sw, /new URL\(event\.notification\.data\?\.url/);
 });
 

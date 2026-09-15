@@ -22,15 +22,36 @@
     }
   }
 
-  function scheduleOnboardingV110() {
-    // Onboarding is presentation help, never a boot dependency. Loading it only
-    // after the document load event prevents a tutorial asset from delaying the
-    // planner, Money, Notes, sync, or any other existing first paint/startup path.
+  function installFinanceV111Layer() {
+    if (!document.querySelector('link[data-sever-finance-v111]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'sever2-finance-v111.css?v=111';
+      link.dataset.severFinanceV111 = 'true';
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[data-sever-finance-v111]')) {
+      const script = document.createElement('script');
+      script.src = 'sever2-finance-v111.js?v=111';
+      script.async = true;
+      script.dataset.severFinanceV111 = 'true';
+      document.head.appendChild(script);
+    }
+  }
+
+  function installLateExperienceLayers() {
+    installOnboardingV110Layer();
+    installFinanceV111Layer();
+  }
+
+  function scheduleLateExperienceLayers() {
+    // Presentation/help layers are never boot dependencies. Load only after the
+    // document load event so Finance/Onboarding cannot delay the planner core.
     if (document.readyState === 'complete') {
-      setTimeout(installOnboardingV110Layer, 0);
+      setTimeout(installLateExperienceLayers, 0);
       return;
     }
-    window.addEventListener('load', () => setTimeout(installOnboardingV110Layer, 0), { once:true });
+    window.addEventListener('load', () => setTimeout(installLateExperienceLayers, 0), { once:true });
   }
 
   function triggerOrganizationRender() {
@@ -83,7 +104,7 @@
 
   // This late stable bootstrap remains the deterministic presentation loader;
   // Notes repair behavior and ownership remain unchanged.
-  scheduleOnboardingV110();
+  scheduleLateExperienceLayers();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', schedule, { once:true });
   else schedule();
   window.addEventListener('load', schedule, { once:true });

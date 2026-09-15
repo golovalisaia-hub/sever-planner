@@ -37,6 +37,7 @@ async function boot(page) {
   await page.goto('/');
   await page.waitForFunction(() => window.SeverApp && window.SeverNotes);
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severMoney)).toBe('ready');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severFinance)).toBe('v111');
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severFocusFlow)).toBe('ready');
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesPolish)).toBe('ready');
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severCloudRecovery)).toBe('ready');
@@ -54,9 +55,15 @@ async function switchView(page, view) {
   await expect(page.locator(selector)).toBeVisible();
 }
 
+async function openFinancePlans(page) {
+  await switchView(page, 'money');
+  await page.locator('[data-finance-tab="plans"]').click();
+  await expect(page.locator('[data-finance-panel="plans"]')).toBeVisible();
+}
+
 test.beforeEach(async ({ page }) => { await boot(page); });
 
-test('beta journey keeps tasks, focus, calendar, habits, notes, Money and theme persistence coherent', async ({ page }, info) => {
+test('beta journey keeps tasks, focus, calendar, habits, notes, Finance and theme persistence coherent', async ({ page }, info) => {
   const pageErrors = [];
   page.on('pageerror', error => pageErrors.push(error.message));
 
@@ -115,7 +122,7 @@ test('beta journey keeps tasks, focus, calendar, habits, notes, Money and theme 
   await expect(noteCard.locator('.note-check:visible')).toHaveCount(4);
   await expect(noteCard.locator('.notes-core-more-items')).toContainText('Свернуть');
 
-  await switchView(page, 'money');
+  await openFinancePlans(page);
   await page.locator('#moneyQuickInput').fill('долг 10000 до декабря');
   await page.locator('#moneyQuickForm button[type="submit"]').click();
   await page.locator('#moneyItemName').fill('Beta debt');
@@ -131,7 +138,7 @@ test('beta journey keeps tasks, focus, calendar, habits, notes, Money and theme 
   await page.locator('[data-sever-theme="motion"]').click();
   await expect.poll(() => page.evaluate(() => localStorage.getItem('sever-theme'))).toBe('motion');
   await page.reload();
-  await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severMoney === 'ready');
+  await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severMoney === 'ready' && document.documentElement.dataset.severFinance === 'v111');
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.theme)).toBe('motion');
   const persisted = await page.evaluate(() => {
     const s = window.SeverApp.getState();

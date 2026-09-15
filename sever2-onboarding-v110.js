@@ -30,7 +30,7 @@
     },
     {
       title: 'Всё под рукой',
-      text: 'Остальное — по мере надобности: Календарь хранит планы и историю, Заметки — мысли и чек-листы, Привычки и Прогресс показывают ритм, Деньги помогают держать финансовые планы рядом. Это знакомство всегда можно открыть снова в Настройках.',
+      text: 'Остальное — по мере надобности: Календарь хранит планы и историю, Заметки — мысли и чек-листы, Привычки и Прогресс показывают ритм, Финансы помогают держать бюджет, расходы и цели рядом. Это знакомство всегда можно открыть снова в Настройках.',
       view: 'today',
       target: null
     }
@@ -114,10 +114,10 @@
     const step = guideStep();
     if (dialog.dataset.hasTarget !== 'false') dialog.dataset.hasTarget = 'false';
     if (spot.hasAttribute('style')) spot.removeAttribute('style');
-    // The welcome slide has never positioned the spotlight, so replacing its DOM
-    // node would only break legacy/Safari mask observers that correctly keep a
-    // reference through steps 2–4. The physical compositor reset is needed only
-    // after a targeted slide has actually used the spotlight (the final step).
+    // Keep the original node on the welcome slide so legacy/Safari guide-mask
+    // observers retain a live reference through targeted steps 2–4. A physical
+    // compositor reset is only necessary after the spotlight has actually been
+    // positioned, when the guide enters its final untargeted step.
     if (step === 1) return;
     if (spot.dataset.severResetStep !== String(step)) resetGuideSpotlightNode(spot, step);
   }

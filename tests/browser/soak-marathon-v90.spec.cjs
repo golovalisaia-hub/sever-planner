@@ -40,6 +40,7 @@ async function boot(page) {
   await page.goto('/');
   await page.waitForFunction(() => window.SeverApp && window.SeverNotes && window.SeverCloudReady);
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severMoney)).toBe('ready');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severFinance)).toBe('v111');
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severHomeCore)).toBe('ready');
 }
 
@@ -50,6 +51,12 @@ async function switchView(page, name) {
     .map(node => node.id))).toEqual([`${name}View`]);
   const overflow = await page.evaluate(() => Math.max(0, document.documentElement.scrollWidth - innerWidth));
   expect(overflow, `${name} horizontal overflow`).toBeLessThanOrEqual(1);
+}
+
+async function openFinancePlans(page) {
+  await switchView(page, 'money');
+  await page.locator('[data-finance-tab="plans"]').click();
+  await expect(page.locator('[data-finance-panel="plans"]')).toBeVisible();
 }
 
 async function openQuickCreate(page) {
@@ -72,6 +79,7 @@ async function waitReadyAfterReload(page) {
   await page.reload();
   await page.waitForFunction(() => window.SeverApp && window.SeverCloudReady && document.documentElement.dataset.severHomeCore === 'ready');
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severMoney)).toBe('ready');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severFinance)).toBe('v111');
 }
 
 async function expectMinTarget(locator, min = 44) {
@@ -141,7 +149,7 @@ test('key phone actions keep comfortable touch targets across primary sections',
   await switchView(page, 'today');
   await expectMinTarget(page.locator('#mobileCreateBtn'));
 
-  await switchView(page, 'money');
+  await openFinancePlans(page);
   await expectMinTarget(page.locator('[data-money-create="debt"]'));
   await expectMinTarget(page.locator('[data-money-create="goal"]'));
   await expectMinTarget(page.locator('#moneyQuickForm button[type="submit"]'));
