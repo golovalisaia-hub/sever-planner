@@ -117,6 +117,9 @@ test('legacy debts remain available as Plans and finance AI is explicit user act
   await expect(page.locator('#severAiInput')).toHaveValue(/Без осуждения/);
   if (['phone-390', 'desktop'].includes(info.project.name)) {
     await page.locator('#severAiClose').click();
+    await page.locator('[data-finance-tab="plans"]').click();
+    await expect(page.locator('[data-finance-panel="plans"]')).toBeVisible();
+    await expect(page.locator('.money-card').filter({ hasText: 'Кредит' })).toBeVisible();
     await shot(page, info.project.name, 'plans');
   }
 });
