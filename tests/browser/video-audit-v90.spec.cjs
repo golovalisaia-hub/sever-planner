@@ -51,7 +51,7 @@ test('video audit: mobile Settings has fast section navigation and manual Guide 
   await expect(page.locator('#tourTitle')).toHaveText('Добро пожаловать в SEVER');
 });
 
-test('video audit: guide reveals the actual target instead of a solid grey screen', async ({ page }) => {
+test('video audit: guide reveals real learning targets and finishes on a uniform backdrop', async ({ page }) => {
   await page.evaluate(() => window.SeverApp.switchView('settings'));
   await page.locator('#settingsGuide').scrollIntoViewIfNeeded();
   await page.locator('#settingsGuide').click();
@@ -76,18 +76,21 @@ test('video audit: guide reveals the actual target instead of a solid grey scree
   await page.locator('#tourNext').click();
   await page.locator('#tourNext').click();
   await expect(page.locator('#tourDialog')).toHaveAttribute('data-step', '5');
-  await expect(page.locator('#tourDialog')).toHaveAttribute('data-guide-mask-target', 'true');
+  await expect(page.locator('#tourDialog')).toHaveAttribute('data-has-target', 'false');
+  await expect(page.locator('#tourDialog .guide-mask-ring')).toBeHidden();
   await expect.poll(async () => page.evaluate(() => {
-    const ring = document.querySelector('#tourDialog .guide-mask-ring')?.getBoundingClientRect();
-    const navNode = innerWidth <= 700
-      ? document.querySelector('.bottom-nav')
-      : document.querySelector('.desktop-sidebar .app-nav');
-    const nav = navNode?.getBoundingClientRect();
-    if (!ring || !nav) return false;
-    return ring.left <= nav.left + 8
-      && ring.right >= nav.right - 8
-      && ring.top <= nav.top + 8
-      && ring.bottom >= nav.bottom - 8;
+    const topNode = document.querySelector('#tourDialog .guide-mask-top');
+    const leftNode = document.querySelector('#tourDialog .guide-mask-left');
+    const rightNode = document.querySelector('#tourDialog .guide-mask-right');
+    const bottomNode = document.querySelector('#tourDialog .guide-mask-bottom');
+    if (!topNode || !leftNode || !rightNode || !bottomNode) return false;
+    const top = topNode.getBoundingClientRect();
+    const displays = [leftNode, rightNode, bottomNode].map(node => getComputedStyle(node).display);
+    return Math.abs(top.left) <= 1
+      && Math.abs(top.top) <= 1
+      && Math.abs(top.width - innerWidth) <= 1
+      && Math.abs(top.height - innerHeight) <= 1
+      && displays.every(display => display === 'none');
   })).toBe(true);
 });
 
