@@ -55,6 +55,7 @@ test('account login uses email then a six-digit OTP with no password field', asy
   await expect(page.locator('#accountDialog')).toBeVisible();
   await expect(page.locator('#accountPassword')).toBeHidden();
   await expect(page.locator('#accountMode')).toBeHidden();
+  await expect(page.locator('#accountRetry')).toBeHidden();
   await expect(page.locator('#accountTitle')).toHaveText('Войти в SEVER');
   await expect(page.locator('#accountCopy')).toContainText('Пароль не нужен');
   await shot(page, testInfo.project.name, 'email');
@@ -65,6 +66,7 @@ test('account login uses email then a six-digit OTP with no password field', asy
   await expect(page.locator('#accountTitle')).toHaveText('Введите код');
   await expect(page.locator('#severOtpCode')).toBeVisible();
   await expect(page.locator('#severOtpCode')).toHaveAttribute('autocomplete', 'one-time-code');
+  await expect(page.locator('#accountRetry')).toBeHidden();
   await expect(page.locator('#accountSubmit')).toHaveText('Подтвердить код');
   await expect(page.locator('#severOtpResend')).toBeDisabled();
   await shot(page, testInfo.project.name, 'code');
