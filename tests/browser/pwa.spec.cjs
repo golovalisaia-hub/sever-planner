@@ -59,6 +59,7 @@ test('installed release reloads offline with one complete active asset set', asy
           && cached.includes('/sever2-notes-org-repair-v95.js?v=110')
           && cached.includes('/sever2-reminders.css?v=86')
           && cached.includes('/sever2-task-reminders.js?v=82')
+          && cached.includes('/sever2-reminder-bridge-v95.js?v=1102')
           && cached.includes('/sever2-cloud-recovery.js?v=80')
           && cached.includes('/mobile-ui.js?v=92')
           && cached.includes('/js/theme-init.js?v=92')
@@ -67,7 +68,7 @@ test('installed release reloads offline with one complete active asset set', asy
       } catch { return false; }
     }).toBe(true);
 
-    expect(releaseCache.name).toBe('sever-v110-first-run-onboarding-release-v1');
+    expect(releaseCache.name).toBe('sever-v110-ios-push-hotfix-v2');
     const cached = releaseCache.entries;
     for (const asset of [
       '/mobile-home.css?v=52','/desktop-system.css?v=60','/themes.css?v=60','/sever2-ui.css?v=61','/sever2-qa.css?v=61',
@@ -82,7 +83,7 @@ test('installed release reloads offline with one complete active asset set', asy
       '/sever2-interaction-polish.css?v=103','/sever2-missed-tasks-v106.css?v=106','/sever2-interaction-polish.js?v=109',
       '/sever2-progress-habits-v109.css?v=109','/sever2-progress-habits-v109.js?v=109',
       '/sever2-onboarding-v110.css?v=110','/sever2-onboarding-v110.js?v=110','/sever2-notes-org-repair-v95.js?v=110',
-      '/sever2-reminders.css?v=86','/sever2-task-reminders.js?v=82',
+      '/sever2-reminders.css?v=86','/sever2-task-reminders.js?v=82','/sever2-reminder-bridge-v95.js?v=1102',
       '/sever2-cloud-recovery.css?v=80','/sever2-cloud-recovery.js?v=80','/mobile-ui.js?v=92','/js/theme-init.js?v=92','/app.js?v=106','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55','/js/sever-ai.js?v=100'
     ]) expect(cached).toContain(asset);
     expect(cached).not.toContain('/app.js?v=51');
@@ -105,6 +106,7 @@ test('installed release reloads offline with one complete active asset set', asy
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severInteractionPolishVersion)).toBe('v109');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severProgressHabitsVersion)).toBe('v109');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severOnboarding)).toBe('v110');
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severReminderBridge)).toBe('v1102');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesCompact)).toBe('v94');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severExperience)).toBe('v94');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severSeasonSignature)).toBe('v101');
