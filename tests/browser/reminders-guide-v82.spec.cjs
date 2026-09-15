@@ -22,7 +22,7 @@ async function boot(page) {
     localStorage.setItem('sever-e2e-reminders-guide-seeded-v1', '1');
   });
   await page.goto('/');
-  await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severReminders === 'v82' && document.documentElement.dataset.severReminderBridge === 'v98');
+  await page.waitForFunction(() => window.SeverApp && document.documentElement.dataset.severReminders === 'v82' && document.documentElement.dataset.severReminderBridge === 'v1102');
   await page.evaluate(() => window.SeverApp.switchView('settings'));
   await expect(page.locator('#settingsView')).toBeVisible();
 }
@@ -102,7 +102,7 @@ test('disabled reminder kinds look inactive without losing the saved choices', a
   await expect(fifteen).toBeChecked();
 
   // Reproduce the old phone race deterministically: the retired legacy renderer
-  // writes `true`, then mobile-ui runs its resize sync. v98 must leave the task
+  // writes `true`, then mobile-ui runs its resize sync. v110.2 must leave the task
   // push master authoritative instead of copying that stale legacy value back.
   await page.evaluate(() => {
     const legacy = document.querySelector('#notificationToggle');
