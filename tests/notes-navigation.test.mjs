@@ -27,3 +27,10 @@ test('Notes navigation replaces long source rails and keeps search sticky', () =
   assert.match(source, /tagSource\(\)\?\.classList\.add\('notes-navigation-source'\)/);
   assert.match(source, /dataset\.severNotesNavigation = 'ready'/);
 });
+
+test('Notes navigation waits for folder and tag sources before declaring itself ready', () => {
+  const startupGuard = source.indexOf('!folderSource() || !tagSource()');
+  const readyMarker = source.indexOf("dataset.severNotesNavigation = 'ready'");
+  assert.ok(startupGuard >= 0, 'startup guard must require both folder and tag sources');
+  assert.ok(readyMarker > startupGuard, 'ready marker must only be set after the source guard');
+});
