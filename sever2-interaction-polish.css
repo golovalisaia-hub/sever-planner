@@ -330,6 +330,10 @@ html[data-theme="black"] .habit .habit-week .habit-day.done b {
   .habit-card-head {
     align-items: flex-start;
   }
+  .habit .habit-status {
+    min-height: 2.9em;
+    line-height: 1.45;
+  }
   .habit-week {
     width: 100%;
     grid-template-columns: repeat(7, minmax(0, 1fr));
