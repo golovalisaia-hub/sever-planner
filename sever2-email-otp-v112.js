@@ -119,6 +119,7 @@
     const signedIn = Boolean(cloud()?.user);
     const submit = $('#accountSubmit');
     const signOut = $('#accountSignOut');
+    const retry = $('#accountRetry');
     const title = $('#accountTitle');
     const copy = $('#accountCopy');
     const eyebrow = $('#accountEyebrow');
@@ -141,6 +142,7 @@
       return;
     }
 
+    retry?.classList.add('hidden');
     signOut?.classList.add('hidden');
     submit?.classList.remove('hidden');
     submit.disabled = !configured();
