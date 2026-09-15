@@ -34,6 +34,7 @@ test('current service worker installs the guarded v110 release assets atomically
       'sever-v107-instant-response-release-v1',
       'sever-v108-observer-batching-release-v1',
       'sever-v109-progress-habits-release-v1',
+      'sever-v110-first-run-onboarding-release-v1',
       RELEASE_CACHE
     ],
     delete: async name => { deleted.push(name); return true; }
@@ -52,7 +53,7 @@ test('current service worker installs the guarded v110 release assets atomically
     './sever2-interaction-polish.css?v=103','./sever2-missed-tasks-v106.css?v=106','./sever2-interaction-polish.js?v=109',
     './sever2-progress-habits-v109.css?v=109','./sever2-progress-habits-v109.js?v=109',
     './sever2-onboarding-v110.css?v=110','./sever2-onboarding-v110.js?v=110','./sever2-notes-org-repair-v95.js?v=110',
-    './sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82',
+    './sever2-reminders.css?v=86','./sever2-task-reminders.js?v=82','./sever2-reminder-bridge-v95.js?v=1102',
     './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./app.js?v=106','./js/theme-init.js?v=92','./js/sever-ai.js?v=100'
   ]) assert.ok(cachedAssets.includes(asset), `missing ${asset}`);
   assert.ok(!cachedAssets.includes('./app.js?v=51'));
@@ -77,7 +78,8 @@ test('current service worker installs the guarded v110 release assets atomically
     'sever-v106-missed-tasks-release-v1',
     'sever-v107-instant-response-release-v1',
     'sever-v108-observer-batching-release-v1',
-    'sever-v109-progress-habits-release-v1'
+    'sever-v109-progress-habits-release-v1',
+    'sever-v110-first-run-onboarding-release-v1'
   ]) assert.ok(deleted.includes(stale), `stale cache not deleted: ${stale}`);
   assert.ok(!deleted.includes(RELEASE_CACHE));
   assert.equal(claimed, true);
@@ -133,6 +135,7 @@ test('installed current release serves v106 planner core, v104 Notes, v109 progr
     ['sever2-notes-org-repair-v95.js?v=old','cors','./sever2-notes-org-repair-v95.js?v=110'],
     ['sever2-reminders.css?v=old','cors','./sever2-reminders.css?v=86'],
     ['sever2-task-reminders.js?v=old','cors','./sever2-task-reminders.js?v=82'],
+    ['sever2-reminder-bridge-v95.js?v=old','cors','./sever2-reminder-bridge-v95.js?v=1102'],
     ['sever2-cloud-recovery.css?v=old','cors','./sever2-cloud-recovery.css?v=80'],
     ['sever2-cloud-recovery.js?v=old','cors','./sever2-cloud-recovery.js?v=80'],
     ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=92'],
