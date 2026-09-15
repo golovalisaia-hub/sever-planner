@@ -4,6 +4,13 @@
   display: none !important;
 }
 
+/* The legacy cloud-recovery layer may briefly toggle this button after its
+   own health render. In passwordless mode recovery stays inside the OTP
+   flow, so the old account retry action must never reappear. */
+html[data-sever-email-otp="v112"] #accountDialog #accountRetry {
+  display: none !important;
+}
+
 #accountDialog .sever-otp-code {
   display: grid;
   gap: 8px;
