@@ -38,7 +38,7 @@ test('legacy daily reminder is retired and cannot be re-enabled by old Settings 
   assert.match(interaction, /sever2-task-reminders\.js\?v=82/);
   assert.match(interaction, /sever2-reminder-bridge-v95\.js\?v=95/);
   assert.match(interaction, /sever2-reminders\.css\?v=82/);
-  assert.match(sw, /sever2-reminder-bridge-v95\.js\?v=98/);
+  assert.match(sw, /sever2-reminder-bridge-v95\.js\?v=111/);
 });
 
 test('v98 reminder bridge neutralizes the retired mobile toggle mirror', () => {
@@ -48,6 +48,17 @@ test('v98 reminder bridge neutralizes the retired mobile toggle mirror', () => {
   assert.match(bridge, /Object\.defineProperty\(legacy, 'checked'/);
   assert.match(bridge, /descriptor\.get\.call\(master\)/);
   assert.match(bridge, /legacy\.dataset\.severPushProxy = 'true'/);
+});
+
+test('v111 reminder health explains ready, empty and cloud-sync-lag states', () => {
+  assert.match(bridge, /function refreshReminderHealth\(\)/);
+  assert.match(bridge, /client\.from\('tasks'\)/);
+  assert.match(bridge, /\.eq\('completed', false\)/);
+  assert.match(bridge, /\.is\('deleted_at', null\)/);
+  assert.match(bridge, /Подписка работает · .*готов/);
+  assert.match(bridge, /ещё .*в облаке\. Проверьте синхронизацию/);
+  assert.match(bridge, /Подписка работает · пока нет будущих задач с датой и временем/);
+  assert.match(bridge, /severReminderHealth = 'v111'/);
 });
 
 test('v95 repairs Notes organization shell if the core summary appears after organization boot', () => {
@@ -88,6 +99,7 @@ test('service worker immediately displays visible push notifications and opens t
   assert.match(sw, /addEventListener\('push'/);
   assert.match(sw, /showNotification/);
   assert.match(sw, /sever2-task-reminders\.js\?v=82/);
+  assert.match(sw, /sever2-reminder-bridge-v95\.js\?v=111/);
   assert.match(sw, /new URL\(event\.notification\.data\?\.url/);
 });
 
