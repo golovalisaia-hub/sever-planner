@@ -27,6 +27,7 @@ async function boot(page) {
   await page.goto('/');
   await page.waitForFunction(() => window.SeverApp && window.SeverNotes && document.documentElement.dataset.severHomeCore === 'ready');
   await expect.poll(() => page.evaluate(() => Boolean(window.SeverCloudReady))).toBe(true);
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severFinance)).toBe('v111');
 }
 
 async function openCreate(page) {
@@ -91,6 +92,13 @@ async function openAI(page) {
   await page.locator('#sever2CommandOpen').click();
   await expect(page.locator('#sever2CommandDialog')).toHaveAttribute('open', '');
   await page.locator('[data-command-id="ai"]').click();
+}
+
+async function openFinancePlans(page) {
+  await page.evaluate(() => window.SeverApp.switchView('money'));
+  await expect(page.locator('#moneyView')).toBeVisible();
+  await page.locator('[data-finance-tab="plans"]').click();
+  await expect(page.locator('[data-finance-panel="plans"]')).toBeVisible();
 }
 
 test.beforeEach(async ({ page }) => { await boot(page); });
@@ -197,8 +205,8 @@ test('experienced user can hammer primary flows without stale UI or duplicate wr
   await page.locator('#toast button').click();
   await expect.poll(() => page.evaluate(id => window.SeverApp.getState().habits.some(item => item.id === id), habitId)).toBe(true);
 
-  // Money: create, schedule reminders, delete with explicit confirmation, no orphan reminders.
-  await page.evaluate(() => window.SeverApp.switchView('money'));
+  // Finance Plans: create, schedule reminders, delete with explicit confirmation, no orphan reminders.
+  await openFinancePlans(page);
   const moneyTitle = `QA цель ${info.project.name}`;
   await page.locator('[data-money-create="goal"]').click();
   await page.locator('#moneyItemName').fill(moneyTitle);
