@@ -101,11 +101,11 @@ test('v110 onboarding stays phone-safe, readable before late polish, and part of
   assert.match(coreCss, /--guide-text:#f7f4ef/);
   assert.match(coreCss, /guide-copy h2\{[^}]*color:var\(--guide-text\)/);
   assert.match(coreCss, /guide-copy p\{[^}]*color:var\(--guide-muted\)/);
-  assert.match(sw, /const CACHE = 'sever-v111-finance-center-release-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v111-email-otp-auth-release-v1'/);
   for (const asset of [
     './sever2-onboarding-v110.css?v=110',
     './sever2-onboarding-v110.js?v=110',
-    './sever2-notes-org-repair-v95.js?v=111'
+    './sever2-notes-org-repair-v95.js?v=1111'
   ]) assert.ok(sw.includes(`'${asset}'`), `missing ${asset}`);
   assert.ok(sw.includes("'/sever2-onboarding-v110.css'"));
   assert.ok(sw.includes("'/sever2-onboarding-v110.js'"));
