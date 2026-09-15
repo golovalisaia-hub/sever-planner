@@ -4,10 +4,11 @@
   display: none !important;
 }
 
-/* The legacy cloud-recovery layer may briefly toggle this button after its
-   own health render. In passwordless mode recovery stays inside the OTP
-   flow, so the old account retry action must never reappear. */
-html[data-sever-email-otp="v112"] #accountDialog #accountRetry {
+/* While signed out, the legacy cloud-recovery layer may briefly toggle its
+   retry button after OTP rendering. Keep that old action out of the login
+   flow, but allow it again after a real session exists so stalled sync can
+   still expose "Восстановить связь". */
+html[data-sever-email-otp="v112"] #accountDialog:has(#accountSignOut.hidden) #accountRetry {
   display: none !important;
 }
 
