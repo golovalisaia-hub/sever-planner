@@ -27,7 +27,7 @@ test('current service worker installs the guarded v111 release assets atomically
       'sever-v82-reminders-desktop-v9','sever-v92-unified-release-v1','sever-v93-complete-release-v1','sever-v94-experience-release-v1',
       'sever-v101-reliability-release-v1','sever-v102-desktop-polish-release-v1','sever-v106-missed-tasks-release-v1',
       'sever-v107-instant-response-release-v1','sever-v108-observer-batching-release-v1','sever-v109-progress-habits-release-v1',
-      'sever-v110-first-run-onboarding-release-v1',RELEASE_CACHE
+      'sever-v110-first-run-onboarding-release-v1','sever-v111-finance-center-release-v1',RELEASE_CACHE
     ],
     delete: async name => { deleted.push(name); return true; }
   };
@@ -62,7 +62,7 @@ test('current service worker installs the guarded v111 release assets atomically
     'sever-v82-reminders-desktop-v9','sever-v92-unified-release-v1','sever-v93-complete-release-v1','sever-v94-experience-release-v1',
     'sever-v101-reliability-release-v1','sever-v102-desktop-polish-release-v1','sever-v106-missed-tasks-release-v1',
     'sever-v107-instant-response-release-v1','sever-v108-observer-batching-release-v1','sever-v109-progress-habits-release-v1',
-    'sever-v110-first-run-onboarding-release-v1'
+    'sever-v110-first-run-onboarding-release-v1','sever-v111-finance-center-release-v1'
   ]) assert.ok(deleted.includes(stale), `stale cache not deleted: ${stale}`);
   assert.ok(!deleted.includes(RELEASE_CACHE));
   assert.equal(claimed, true);
@@ -115,11 +115,11 @@ test('installed current release serves planner, Notes, progress, onboarding and 
     ['sever2-interaction-polish.js?v=old','cors','./sever2-interaction-polish.js?v=109'],
     ['sever2-progress-habits-v109.css?v=old','cors','./sever2-progress-habits-v109.css?v=109'],
     ['sever2-progress-habits-v109.js?v=old','cors','./sever2-progress-habits-v109.js?v=109'],
-    ['sever2-onboarding-v110.css?v=old','cors','./sever2-onboarding-v110.css?v=110'],
+    ['sever2-onboarding-v110.css?v=old','cors','./sever2-onboarding-v110.css?v=1112'],
     ['sever2-onboarding-v110.js?v=old','cors','./sever2-onboarding-v110.js?v=110'],
     ['sever2-notes-org-repair-v95.js?v=old','cors','./sever2-notes-org-repair-v95.js?v=111'],
     ['sever2-reminders.css?v=old','cors','./sever2-reminders.css?v=86'],
-    ['sever2-task-reminders.js?v=old','cors','./sever2-task-reminders.js?v=82'],
+    ['sever2-task-reminders.js?v=old','cors','./sever2-task-reminders.js?v=1112'],
     ['sever2-cloud-recovery.css?v=old','cors','./sever2-cloud-recovery.css?v=80'],
     ['sever2-cloud-recovery.js?v=old','cors','./sever2-cloud-recovery.js?v=80'],
     ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=92'],

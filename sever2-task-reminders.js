@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VAPID_PUBLIC_KEY = 'BGZgDkSfY_K2my7NyLzsWprVLUMKdVGH_Kd2k0DceANXmqwN4cgafdaLNvb9KOPcfFUAWHkxha9ykisXfRsVpx0';
+  const VAPID_PUBLIC_KEY = 'BJebqzKOHHkvVsoNnlt4tJpVcvYWFyI93tcLQgO2JJZyDkQ66UsKscOTZsV9NFqqviSZY26lGapm3S7gCV4GsMM';
   const $ = selector => document.querySelector(selector);
   const IOS_RE = /iPad|iPhone|iPod/i;
   let bootAttempts = 0;

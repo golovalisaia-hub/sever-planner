@@ -1,4 +1,10 @@
 /* SEVER v110 — fast, optional first-run orientation with an actionable finish. */
+/* The guide is a transparent top-layer viewport, not an opaque themed sheet. */
+#tourDialog.guide-dialog{background:transparent!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#tourDialog.guide-dialog::backdrop{background:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+/* Four real mask panes own dimming; do not stack a second full-screen shade. */
+#tourDialog.guide-dialog[data-sever-mask-ready="true"]::before{content:none!important}
+#tourDialog.guide-dialog[data-sever-mask-ready="true"] #guideSpotlight{opacity:0!important;box-shadow:none!important}
 #tourDialog.guide-dialog .guide-card{--sever110-guide-text:#f7f4ef;--sever110-guide-muted:rgba(247,244,239,.82);--sever110-guide-soft:rgba(247,244,239,.7);background:rgba(13,17,25,.96)!important;color:var(--sever110-guide-text)!important;opacity:1!important;filter:none!important;mix-blend-mode:normal!important}
 #tourDialog.guide-dialog[data-has-target="false"]::before{content:"";position:fixed;z-index:0;inset:0;background:rgba(3,3,5,.72);pointer-events:none}
 html[data-theme="light"] #tourDialog.guide-dialog[data-has-target="false"]::before,html[data-theme="motion"] #tourDialog.guide-dialog[data-has-target="false"]::before{background:rgba(26,26,30,.47)}
