@@ -22,7 +22,7 @@ test('installed release reloads offline with one complete active asset set', asy
       try {
         releaseCache = await page.evaluate(async () => {
           const names = await caches.keys();
-          const releaseNames = names.filter(name => name.startsWith('sever-v111-'));
+          const releaseNames = names.filter(name => name.startsWith('sever-v112-'));
           const name = releaseNames.at(-1) || '';
           if (!name) return { name: '', entries: [], releaseNames };
           const cache = await caches.open(name);
@@ -61,15 +61,18 @@ test('installed release reloads offline with one complete active asset set', asy
           && cached.includes('/sever2-notes-org-repair-v95.js?v=111')
           && cached.includes('/sever2-reminders.css?v=86')
           && cached.includes('/sever2-task-reminders.js?v=82')
+          && cached.includes('/sever2-email-otp-v112.css?v=112')
+          && cached.includes('/sever2-email-otp-v112.js?v=112')
           && cached.includes('/sever2-cloud-recovery.js?v=80')
           && cached.includes('/mobile-ui.js?v=92')
           && cached.includes('/js/theme-init.js?v=92')
+          && cached.includes('/js/supabase-client.js?v=112')
           && cached.includes('/app.js?v=106')
           && cached.includes('/js/sever-ai.js?v=100');
       } catch { return false; }
     }).toBe(true);
 
-    expect(releaseCache.name).toBe('sever-v111-finance-center-release-v1');
+    expect(releaseCache.name).toBe('sever-v112-email-otp-release-v1');
     const cached = releaseCache.entries;
     for (const asset of [
       '/mobile-home.css?v=52','/desktop-system.css?v=60','/themes.css?v=60','/sever2-ui.css?v=61','/sever2-qa.css?v=61',
@@ -84,8 +87,8 @@ test('installed release reloads offline with one complete active asset set', asy
       '/sever2-interaction-polish.css?v=103','/sever2-missed-tasks-v106.css?v=106','/sever2-interaction-polish.js?v=109',
       '/sever2-progress-habits-v109.css?v=109','/sever2-progress-habits-v109.js?v=109',
       '/sever2-onboarding-v110.css?v=110','/sever2-onboarding-v110.js?v=110','/sever2-notes-org-repair-v95.js?v=111',
-      '/sever2-reminders.css?v=86','/sever2-task-reminders.js?v=82',
-      '/sever2-cloud-recovery.css?v=80','/sever2-cloud-recovery.js?v=80','/mobile-ui.js?v=92','/js/theme-init.js?v=92','/app.js?v=106','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55','/js/sever-ai.js?v=100'
+      '/sever2-reminders.css?v=86','/sever2-task-reminders.js?v=82','/sever2-email-otp-v112.css?v=112','/sever2-email-otp-v112.js?v=112',
+      '/sever2-cloud-recovery.css?v=80','/sever2-cloud-recovery.js?v=80','/mobile-ui.js?v=92','/js/theme-init.js?v=92','/js/supabase-client.js?v=112','/app.js?v=106','/notes-pro.js?v=52','/js/sync-core.mjs?v=55','/js/cloud-runtime.js?v=55','/js/sever-ai.js?v=100'
     ]) expect(cached).toContain(asset);
     expect(cached).not.toContain('/app.js?v=51');
     expect(cached).not.toContain('/sever2-efficiency.css?v=67');
@@ -96,6 +99,7 @@ test('installed release reloads offline with one complete active asset set', asy
     expect(cached).not.toContain('/sever2-interaction-polish.js?v=101');
     expect(cached).not.toContain('/sever2-interaction-polish.js?v=107');
     expect(cached).not.toContain('/sever2-interaction-polish.js?v=108');
+    expect(cached).not.toContain('/js/supabase-client.js?v=43');
     expect(cached).not.toContain('/desktop-home.css?v=60');
 
     await context.setOffline(true);
@@ -108,6 +112,7 @@ test('installed release reloads offline with one complete active asset set', asy
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severProgressHabitsVersion)).toBe('v109');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severOnboarding)).toBe('v110');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severFinance)).toBe('v111');
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severEmailOtp)).toBe('v112');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severNotesCompact)).toBe('v94');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severExperience)).toBe('v94');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severSeasonSignature)).toBe('v101');
@@ -133,6 +138,8 @@ test('installed release reloads offline with one complete active asset set', asy
     await expect(page.locator('script[data-sever-onboarding-v110]')).toHaveAttribute('src', /sever2-onboarding-v110\.js\?v=110$/);
     await expect(page.locator('link[data-sever-finance-v111]')).toHaveAttribute('href', /sever2-finance-v111\.css\?v=111$/);
     await expect(page.locator('script[data-sever-finance-v111]')).toHaveAttribute('src', /sever2-finance-v111\.js\?v=111$/);
+    await expect(page.locator('link[data-sever-email-otp-v112]')).toHaveAttribute('href', /sever2-email-otp-v112\.css\?v=112$/);
+    await expect(page.locator('script[data-sever-email-otp-v112]')).toHaveAttribute('src', /sever2-email-otp-v112\.js\?v=112$/);
     await expect(page.locator('link[data-sever2-cloud-recovery-pack]')).toHaveAttribute('href', /sever2-cloud-recovery\.css\?v=80$/);
     await expect(page.locator('#sever2HomeCore')).toBeVisible();
     await page.locator('.bottom-nav [data-view="calendar"]').click();
