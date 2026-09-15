@@ -1,0 +1,68 @@
+/* SEVER v112 — passwordless email OTP */
+#accountDialog[data-sever-otp="v112"] #accountMode,
+#accountDialog[data-sever-otp="v112"] #accountPassword,
+#accountDialog[data-sever-otp="v112"] #accountPassword + * {
+  display: none !important;
+}
+
+#accountDialog[data-sever-otp="v112"] .sever-otp-code {
+  display: grid;
+  gap: 8px;
+}
+
+#accountDialog[data-sever-otp="v112"] .sever-otp-code.hidden,
+#accountDialog[data-sever-otp="v112"] .sever-otp-actions.hidden {
+  display: none !important;
+}
+
+#accountDialog[data-sever-otp="v112"] #severOtpCode {
+  width: 100%;
+  min-height: 56px;
+  letter-spacing: .34em;
+  text-align: center;
+  font-size: 1.28rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+#accountDialog[data-sever-otp="v112"] #severOtpHint {
+  display: block;
+  color: var(--muted, rgba(255,255,255,.58));
+  font-size: .78rem;
+  line-height: 1.35;
+}
+
+#accountDialog[data-sever-otp="v112"] .sever-otp-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+
+#accountDialog[data-sever-otp="v112"] .sever-otp-actions .text-action {
+  min-height: 44px;
+  padding: 8px 2px;
+}
+
+#accountDialog[data-sever-otp="v112"] .sever-otp-actions button:disabled {
+  opacity: .52;
+  cursor: default;
+}
+
+#accountDialog[data-sever-otp="v112"] .account-error[data-kind="success"] {
+  color: var(--success, #47b881);
+}
+
+@media (max-width: 430px) {
+  #accountDialog[data-sever-otp="v112"] .sever-otp-actions {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  #accountDialog[data-sever-otp="v112"] .sever-otp-actions .text-action {
+    width: 100%;
+    text-align: left;
+  }
+}
