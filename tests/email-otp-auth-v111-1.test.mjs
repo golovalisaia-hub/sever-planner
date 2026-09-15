@@ -7,13 +7,13 @@ const auth = fs.readFileSync('sever2-email-otp-auth-v111-1.js', 'utf8');
 const bootstrap = fs.readFileSync('sever2-notes-org-repair-v95.js', 'utf8');
 const sw = fs.readFileSync('sw.js', 'utf8');
 
- test('v111.1 passwordless auth layer is syntax-valid and sends email OTP', () => {
+test('v111.1 passwordless auth layer is syntax-valid and sends email OTP', () => {
   assert.doesNotThrow(() => new vm.Script(auth));
   assert.match(auth, /auth\.signInWithOtp\(\{/);
   assert.match(auth, /shouldCreateUser:\s*true/);
   assert.match(auth, /auth\.verifyOtp\(\{\s*email:\s*requestedEmail,\s*token,\s*type:\s*'email'\s*\}\)/);
-  assert.match(auth, /autocomplete=\"one-time-code\"/);
-  assert.match(auth, /pattern=\"\[0-9\]\{6\}\"/);
+  assert.ok(auth.includes('autocomplete="one-time-code"'));
+  assert.ok(auth.includes('pattern="[0-9]{6}"'));
   assert.match(auth, /RESEND_SECONDS\s*=\s*60/);
 });
 
