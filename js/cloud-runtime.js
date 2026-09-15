@@ -1,4 +1,4 @@
-import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState, settleCloudOperations, changedCollections, changedRecordIds, stableStringify } from './sync-core.mjs?v=55';
+import { CLOUD_TABLES, collectionsFor, prepareState, diffCollections, queueLatest, hasPlannerData, mergeStates, rowsToState, settleCloudOperations, changedCollections, changedRecordIds, stableStringify } from './sync-core.mjs?v=113';
 
 const QUEUE_PREFIX = 'sever-cloud-queue-v2';
 const MARKER_PREFIX = 'sever-cloud-migration-v2';
@@ -45,7 +45,7 @@ const authMessage = reason => {
 
 function rowFor(collection, record, userId) {
   const base = { user_id: userId, updated_at: cloudTime(record.updatedAt), deleted_at: record.deletedAt ? cloudTime(record.deletedAt) : null, ...(record.syncVersions ? { sync_versions: record.syncVersions } : {}) };
-  if (collection === 'tasks') return { ...base, id: record.id, title: record.title, scheduled_for: record.date || null, scheduled_time: record.time || null, duration_minutes: record.duration, category: record.category, priority: record.priority, challenge: record.challenge, completed: record.completed, completed_at: record.completedAt ? cloudTime(record.completedAt) : null };
+  if (collection === 'tasks') return { ...base, id: record.id, title: record.title, scheduled_for: record.date || null, scheduled_time: record.time || null, duration_minutes: record.duration, category: record.category, priority: record.priority, challenge: record.challenge, recurrence_series_id: record.recurrenceSeriesId || null, recurrence_rule: record.recurrenceRule || null, recurrence_occurrence: record.recurrenceOccurrence || null, completed: record.completed, completed_at: record.completedAt ? cloudTime(record.completedAt) : null };
   if (collection === 'habits') return { ...base, id: record.id, title: record.title };
   if (collection === 'habitEntries') return { ...base, habit_id: record.habitId, entry_date: record.date, completed: !record.deletedAt && Boolean(record.completed) };
   if (collection === 'notes') return { ...base, id: record.id, folder_id: record.folderId || null, title: record.protected ? '' : record.title || '', body: record.protected ? '' : record.body || '', kind: record.kind, items: record.protected ? [] : record.items || [], done: Boolean(record.done), protected: Boolean(record.protected), secure: record.protected ? record.secure || null : null };
@@ -305,7 +305,7 @@ class SeverCloud {
       if (!this.protocolReady) {
         const client=await this.client();
         const { data, error }=await client.rpc('sever_sync_protocol');
-        if(error || data!==1){
+        if(error || data!==2){
           this.lastErrorCode='SYNC_SCHEMA_UPGRADE_REQUIRED';
           this.setStatus('pending');
           return;
