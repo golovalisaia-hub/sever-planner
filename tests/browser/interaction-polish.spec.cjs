@@ -140,12 +140,19 @@ test('habit completion keeps edit button and seven-day geometry stable in every 
     await setTheme(page, theme);
     const today = habit.locator('.habit-day.today');
     await expect(today).toBeVisible();
+    await today.scrollIntoViewIfNeeded();
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 
     const before = await habit.evaluate(el => {
       const edit = el.querySelector('.habit-edit').getBoundingClientRect();
       const week = el.querySelector('.habit-week').getBoundingClientRect();
       const today = el.querySelector('.habit-day.today').getBoundingClientRect();
-      return { edit: { x: edit.x, y: edit.y, width: edit.width, height: edit.height }, week: { x: week.x, width: week.width }, today: { x: today.x, y: today.y, width: today.width, height: today.height } };
+      return {
+        scrollY,
+        edit: { x: edit.x, y: edit.y, width: edit.width, height: edit.height },
+        week: { x: week.x, width: week.width },
+        today: { x: today.x, y: today.y, width: today.width, height: today.height }
+      };
     });
 
     await today.click();
@@ -159,6 +166,7 @@ test('habit completion keeps edit button and seven-day geometry stable in every 
       const today = el.querySelector('.habit-day.today').getBoundingClientRect();
       const editStyle = getComputedStyle(el.querySelector('.habit-edit'));
       return {
+        scrollY,
         edit: { x: edit.x, y: edit.y, width: edit.width, height: edit.height, background: editStyle.backgroundColor },
         week: { x: week.x, width: week.width },
         today: { x: today.x, y: today.y, width: today.width, height: today.height },
@@ -168,6 +176,7 @@ test('habit completion keeps edit button and seven-day geometry stable in every 
 
     expect(after.edit.width).toBeGreaterThanOrEqual(43);
     expect(after.edit.height).toBeGreaterThanOrEqual(43);
+    expect(closeEnough(before.scrollY, after.scrollY, 2)).toBe(true);
     expect(closeEnough(before.edit.x, after.edit.x, 2)).toBe(true);
     expect(closeEnough(before.edit.y, after.edit.y, 2)).toBe(true);
     expect(closeEnough(before.week.x, after.week.x, 2)).toBe(true);
