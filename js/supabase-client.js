@@ -45,6 +45,22 @@
     return client;
   }
 
+  function loadPasswordlessAuthPack() {
+    if (!document.querySelector('link[data-sever-email-otp-v112]')) {
+      const style = document.createElement('link');
+      style.rel = 'stylesheet';
+      style.href = 'sever2-email-otp-v112.css?v=112';
+      style.dataset.severEmailOtpV112 = 'style';
+      document.head.append(style);
+    }
+    if (!document.querySelector('script[data-sever-email-otp-v112]')) {
+      const script = document.createElement('script');
+      script.src = 'sever2-email-otp-v112.js?v=112';
+      script.dataset.severEmailOtpV112 = 'script';
+      document.head.append(script);
+    }
+  }
+
   window.SeverSupabase = {
     configured,
     sdkLoaded,
@@ -58,5 +74,6 @@
     }
   };
 
+  loadPasswordlessAuthPack();
   window.dispatchEvent(new CustomEvent('sever:supabase-ready', { detail: health() }));
 })();
