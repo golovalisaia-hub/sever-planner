@@ -34,12 +34,15 @@ async function prepare(page) {
 }
 
 async function login(page) {
-  await page.evaluate(() => window.SeverCloudUI.openAccount());
-  await expect(page.locator('#accountDialog')).toBeVisible();
-  await page.locator('#accountEmailInput').fill(cloud.email);
-  await page.locator('#accountPassword').fill(cloud.password);
-  await page.locator('#accountSubmit').click();
-  await expect(page.locator('#accountDialog')).toBeHidden({ timeout: 20000 });
+  // This marathon exercises real cloud persistence and account isolation.
+  // Establish its disposable fixture session through the SDK; the public OTP
+  // interface is exercised by email-otp-v112.spec.cjs. No inbox is available here.
+  await page.evaluate(async ({ email, password }) => {
+    const client = await window.SeverSupabase.getClient();
+    const { error } = await client.auth.signInWithPassword({ email, password });
+    if (error) throw new Error('Cloud marathon fixture authentication failed');
+    await window.SeverCloud.restoreSession({ throwOnError: true });
+  }, { email: cloud.email, password: cloud.password });
   await expect.poll(() => page.evaluate(() => ({
     id: window.SeverCloud?.user?.id || '',
     hydrated: Boolean(window.SeverCloud?.hydrated)

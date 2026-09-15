@@ -80,7 +80,7 @@ test('installed release reloads offline with one complete active asset set', asy
       '/sever2-efficiency.css?v=102','/sever2-efficiency.js?v=102','/sever2-calendar-clarity.css?v=68','/sever2-calendar-clarity.js?v=68',
       '/sever2-create-flow.js?v=69','/sever2-home-core.css?v=85','/sever2-home-core.js?v=85','/sever2-notes-core.css?v=71','/sever2-notes-core.js?v=71',
       '/sever2-notes-organization.css?v=72','/sever2-notes-organization.js?v=72','/sever2-notes-editor-flow.css?v=90','/sever2-notes-editor-flow.js?v=73',
-      '/sever2-notes-navigation.css?v=74','/sever2-notes-navigation.js?v=74','/sever2-notes-polish.css?v=92','/sever2-notes-polish.js?v=93',
+      '/sever2-notes-navigation.css?v=74','/sever2-notes-navigation.js?v=74','/sever2-notes-polish.css?v=92','/sever2-notes-polish.js?v=104',
       '/sever2-mobile-consistency.css?v=76','/sever2-notes-compact-v87.css?v=87','/sever2-notes-compact-v87.js?v=87',
       '/sever2-experience-v94.css?v=101','/sever2-experience-v94.js?v=101',
       '/sever2-money.css?v=83','/sever2-money.js?v=83','/sever2-finance-v111.css?v=111','/sever2-finance-v111.js?v=111','/sever2-usability-v84.css?v=93','/sever2-usability-v84.js?v=84',
