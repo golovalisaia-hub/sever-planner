@@ -86,8 +86,12 @@ test('document capture wins before the legacy Settings listener on iPhone and st
     }
   };
   const listeners = new Map();
+  const notificationApi = { permission:'default' };
+  const PushManagerApi = function PushManager(){};
   const window = {
     matchMedia:query => ({ matches:query === '(display-mode: standalone)' }),
+    Notification:notificationApi,
+    PushManager:PushManagerApi,
     SeverApp:{
       getState:() => state,
       persist:async () => { persisted += 1; }
@@ -107,8 +111,8 @@ test('document capture wins before the legacy Settings listener on iPhone and st
     window,
     document,
     navigator,
-    Notification:{ permission:'default' },
-    PushManager:function PushManager(){},
+    Notification:notificationApi,
+    PushManager:PushManagerApi,
     HTMLInputElement:FakeInput,
     Uint8Array,
     atob:value => Buffer.from(value, 'base64').toString('binary'),
