@@ -152,7 +152,7 @@ test('quick orientation ends by opening creation of the first real task', async 
   await page.locator('#tourNext').click();
   await expect(page.locator('#sever110GuideStep')).toHaveText('5 / 5');
   await expect(page.locator('#tourTitle')).toHaveText('Всё под рукой');
-  await expect(page.locator('#tourText')).toContainText('Деньги');
+  await expect(page.locator('#tourText')).toContainText('Финансы');
   await expect(page.locator('#tourNext')).toHaveText('Добавить первую задачу');
   await expectStableGuideContrast(page);
   await expectUntargetedBackdropStable(page);
