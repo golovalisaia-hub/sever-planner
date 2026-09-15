@@ -34,10 +34,10 @@ test('accepted task checkbox clicks stay isolated from later row interaction lay
 });
 
 test('rapid action guard still does not debounce deliberate task completion taps', () => {
-  const rapidTarget = usability.match(/const target = event\.target\.closest\(\s*'([^']+)'\s*\)/)?.[1] || '';
-  assert.ok(rapidTarget.length > 0, 'rapid-click target selector should stay discoverable');
-  assert.doesNotMatch(rapidTarget, /\.check/);
-  assert.match(usability, /Task completion is intentionally NOT debounced/);
+  const rapidBody = usability.match(/function rapidClickGuard\(event\) \{([\s\S]*?)\n  \}\n\n  function settingsTitle/)?.[1] || '';
+  assert.ok(rapidBody.length > 0, 'rapidClickGuard body should stay discoverable');
+  assert.doesNotMatch(rapidBody, /\.task \.check|\.check/);
+  assert.match(rapidBody, /Task completion is intentionally NOT debounced/);
 });
 
 test('installed PWA receives the v113 task input runtime before the legacy v109 alias', () => {
