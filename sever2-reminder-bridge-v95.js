@@ -5,6 +5,8 @@
   let bootAttempts = 0;
   let bootTimer = 0;
   let bound = false;
+  let healthTimer = 0;
+  let healthPromise = null;
 
   function retireLegacyState() {
     const current = window.SeverApp?.getState?.();
@@ -60,6 +62,82 @@
     } catch {}
   }
 
+  function taskStamp(date, time) {
+    if (!date || !time) return NaN;
+    return new Date(`${String(date).slice(0,10)}T${String(time).slice(0,8)}`).getTime();
+  }
+
+  function futureLocalTimedTasks() {
+    const now = Date.now();
+    const tasks = window.SeverApp?.getState?.()?.tasks || [];
+    return tasks.filter(task => {
+      if (!task || task.completed || task.deletedAt || task.deleted_at) return false;
+      const stamp = taskStamp(task.date || task.scheduled_for, task.time || task.scheduled_time);
+      return Number.isFinite(stamp) && stamp > now;
+    }).length;
+  }
+
+  function taskWord(count) {
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+    if (mod10 === 1 && mod100 !== 11) return 'задача';
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'задачи';
+    return 'задач';
+  }
+
+  async function refreshReminderHealth() {
+    if (healthPromise) return healthPromise;
+    healthPromise = (async () => {
+      const master = $('#settingsNotificationToggle');
+      const status = $('#severReminderStatus');
+      if (!master?.checked || !status || !window.SeverSupabase?.getClient) return;
+
+      try {
+        const client = await window.SeverSupabase.getClient();
+        const session = await client.auth.getSession();
+        const user = session.data?.session?.user;
+        if (!user) return;
+
+        const result = await client.from('tasks')
+          .select('scheduled_for,scheduled_time,completed,deleted_at')
+          .eq('user_id', user.id)
+          .eq('completed', false)
+          .is('deleted_at', null)
+          .not('scheduled_for', 'is', null)
+          .not('scheduled_time', 'is', null);
+        if (result.error) return;
+
+        const now = Date.now();
+        const cloudCount = (result.data || []).filter(task => {
+          const stamp = taskStamp(task.scheduled_for, task.scheduled_time);
+          return Number.isFinite(stamp) && stamp > now;
+        }).length;
+        const localCount = futureLocalTimedTasks();
+
+        if (cloudCount > 0) {
+          status.textContent = `Подписка работает · ${cloudCount} ${taskWord(cloudCount)} с временем ${cloudCount === 1 ? 'готова' : 'готовы'} к напоминаниям.`;
+          status.dataset.kind = 'ok';
+        } else if (localCount > 0) {
+          status.textContent = `Уведомления включены, но ${localCount} ${taskWord(localCount)} с временем ещё ${localCount === 1 ? 'не появилась' : 'не появились'} в облаке. Проверьте синхронизацию.`;
+          status.dataset.kind = 'warning';
+        } else {
+          status.textContent = 'Подписка работает · пока нет будущих задач с датой и временем.';
+          status.dataset.kind = 'neutral';
+        }
+        document.documentElement.dataset.severReminderHealth = 'v111';
+      } catch {
+        // The v82 reminder layer already reports connection/auth failures. Health
+        // diagnostics are intentionally additive and never replace that warning.
+      }
+    })().finally(() => { healthPromise = null; });
+    return healthPromise;
+  }
+
+  function scheduleReminderHealth(delay = 450) {
+    clearTimeout(healthTimer);
+    healthTimer = setTimeout(() => void refreshReminderHealth(), delay);
+  }
+
   function boot() {
     if (!window.SeverApp?.getState || document.documentElement.dataset.severReminders !== 'v82') return false;
     const master = detachLegacySettingsBridges();
@@ -69,12 +147,23 @@
     isolateLegacyReminderMirror(master);
     if (!bound) {
       bound = true;
-      master.addEventListener('change', () => queueMicrotask(retireLegacyState));
-      window.addEventListener('sever:ready', retireLegacyState);
-      window.addEventListener('sever:cloud-ready', retireLegacyState);
+      master.addEventListener('change', () => {
+        queueMicrotask(retireLegacyState);
+        scheduleReminderHealth(800);
+      });
+      window.addEventListener('sever:ready', () => {
+        retireLegacyState();
+        scheduleReminderHealth();
+      });
+      window.addEventListener('sever:cloud-ready', () => {
+        retireLegacyState();
+        scheduleReminderHealth(700);
+      });
+      window.addEventListener('focus', () => scheduleReminderHealth(700));
     }
 
     document.documentElement.dataset.severReminderBridge = 'v98';
+    scheduleReminderHealth();
     return true;
   }
 
