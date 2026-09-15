@@ -82,6 +82,9 @@ test('v110 untargeted slides render on a separate deterministic backdrop layer',
   assert.match(css, /data-has-target="false"\] #guideSpotlight\{[^}]*display:none!important;[^}]*box-shadow:none!important;[^}]*transition:none!important/);
   assert.match(css, /html\[data-theme="light"\][\s\S]*data-has-target="false"\]::before[\s\S]*background:rgba\(26,26,30,\.47\)/);
   assert.match(css, /data-has-target="true"\]::before\{content:none\}/);
+  assert.match(css, /data-step="5"\]\[data-has-target="false"\] \.guide-mask-ring\{display:none!important\}/);
+  assert.match(css, /data-step="5"\]\[data-has-target="false"\] \.guide-mask-top\{[^}]*left:0!important;[^}]*top:0!important;[^}]*width:100vw!important;[^}]*height:100vh!important/);
+  assert.match(css, /data-step="5"\]\[data-has-target="false"\] \.guide-mask-left,[\s\S]*guide-mask-bottom\{display:none!important\}/);
 });
 
 test('v110 targeted slides explicitly own a real spotlight instead of relying on legacy CSS', () => {
