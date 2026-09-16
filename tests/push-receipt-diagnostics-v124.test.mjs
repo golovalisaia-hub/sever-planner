@@ -31,3 +31,13 @@ test('diagnostic page is separate from app navigation and exposes no subscriptio
   assert.doesNotMatch(client, /(?:console\.log|fetch)\s*\(\s*(?:sub|subscription)/);
   assert.doesNotMatch(client, /unsubscribe\(|\.delete\(\)/);
 });
+
+test('iPhone opens diagnosis inside installed SEVER instead of Safari storage', async () => {
+  const ios = await read('sever2-ios-push-corefix-v1111.js');
+  assert.match(ios, /function installDiagnosticLink\(\)/);
+  assert.match(ios, /link\.href = '\.\/push-check\.html'/);
+  assert.match(ios, /test\.insertAdjacentElement\('afterend', link\)/);
+  assert.match(ios, /DOMContentLoaded', installDiagnosticLink/);
+  assert.match(ios, /sever:ready', \(\) => \{ void prewarm\(\); installDiagnosticLink\(\); \}/);
+  assert.doesNotMatch(ios, /unsubscribe\(/);
+});
