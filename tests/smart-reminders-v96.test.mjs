@@ -28,9 +28,12 @@ test('smart reminder copy stays short, supportive and contextual', async () => {
   assert.doesNotMatch(source, /Напоминание за 1 день\./);
 });
 
-test('v96 coalesces repeated pushes and keeps urgency proportional', async () => {
+test('v96 coalesces repeated pushes without unsafe HTTP Topic and keeps urgency proportional', async () => {
   const source = await read('supabase/functions/sever-push-dispatch/index.ts');
-  assert.match(source, /topic:payload\.topic/);
+  assert.match(source, /function groupJobs/);
+  assert.match(source, /sever_claim_due_pushes_v96/);
+  assert.match(source, /tag:`sever-task-/);
+  assert.doesNotMatch(source, /topic:payload\.topic/);
   assert.match(source, /TTL:first\.reminder_kind==='day_before'\?43200:1200/);
   assert.match(source, /urgency:first\.reminder_kind==='fifteen_minutes'\?'high':'normal'/);
   assert.match(source, /Начни с важного — остальное подождёт/);

@@ -361,8 +361,7 @@ export default {
           JSON.stringify(payload),
           {
             TTL:first.reminder_kind==='day_before'?43200:1200,
-            urgency:first.reminder_kind==='fifteen_minutes'?'high':'normal',
-            topic:payload.topic
+            urgency:first.reminder_kind==='fifteen_minutes'?'high':'normal'
           }
         );
         const ids=group.jobs.map(job=>job.delivery_id);
@@ -396,8 +395,7 @@ export default {
           JSON.stringify(payload),
           {
             TTL:rhythmTtl(job.rhythm_kind),
-            urgency:'normal',
-            topic:payload.topic
+            urgency:'normal'
           }
         );
         await admin.from('push_rhythm_deliveries')
