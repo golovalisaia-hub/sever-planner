@@ -43,6 +43,7 @@ test('v116 keeps one primary Home action and moves detail density behind native 
   assert.doesNotMatch(source, /sever2-home-now-actions[\s\S]{0,900}data-home-action="tasks"/);
   assert.match(css, /\.sever2-home-plan>summary/);
   assert.match(css, /\.sever2-home-plan\[open\] \.sever2-home-plan-arrow/);
+  assert.match(css, /#todayView \.sever2-home-plan:not\(\[open\]\) > \.sever2-home-plan-body\s*\{\s*display:none!important\s*\}/);
 });
 
 test('v116 keeps readiness stable while exposing an explicit runtime version', async () => {
