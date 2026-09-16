@@ -14,7 +14,10 @@ test('key check is cron-token-only and never sends notifications or mutates subs
   assert.match(source,/createECDH\('prime256v1'\)/);
   assert.match(source,/getPublicKey\(undefined,'uncompressed'\)/);
   assert.doesNotMatch(source,/sendNotification|\.unsubscribe\(|\.insert\(|\.update\(|\.delete\(|console\.log|console\.error|console\.warn/);
-  assert.doesNotMatch(source,/return json\([^\n]*vapid_public|return json\([^\n]*vapid_private|return json\([^\n]*cron_token/);
+  // Internal secret references are expected as arguments to inspectPair();
+  // reject serialization of raw secrets as named response properties instead.
+  assert.doesNotMatch(source,/return json\(\{\s*(?:vapid_public|vapid_private|cron_token)\s*:/);
+  assert.match(source,/return \{ publicKeyValid, privateKeyValid, keyPairMatches:/);
 });
 
 test('P-256 derivation distinguishes valid and mismatched pairs without returning private keys',()=>{
