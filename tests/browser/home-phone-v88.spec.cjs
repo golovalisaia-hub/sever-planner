@@ -87,16 +87,20 @@ test('all three themes keep the same phone Home order and no page overflow', asy
     const result = await page.evaluate(() => {
       const order = ['.today-hero', '#sever2HomeCore', '.today-list-head', '#todayFilters', '#todayTasks']
         .map(selector => document.querySelector(`#todayView > ${selector}`)?.getBoundingClientRect().top ?? -1);
+      const priority = document.querySelector('#todayView .sever2-home-priority');
+      const plan = document.querySelector('#todayView [data-home-plan]');
       return {
         order,
         utilities: getComputedStyle(document.querySelector('#todayView .today-utilities')).display,
-        priority: getComputedStyle(document.querySelector('#todayView .sever2-home-priority')).display,
+        priorityVisible: Boolean(priority && priority.getClientRects().length),
+        planOpen: Boolean(plan?.open),
         overflow: Math.max(0, document.documentElement.scrollWidth - innerWidth)
       };
     });
     expect(result.order.every((value, index, arr) => index === 0 || value > arr[index - 1]), `${theme} Home order`).toBe(true);
     expect(result.utilities).toBe('none');
-    expect(result.priority).toBe('none');
+    expect(result.planOpen).toBe(false);
+    expect(result.priorityVisible).toBe(false);
     expect(result.overflow).toBeLessThanOrEqual(1);
   }
 });
