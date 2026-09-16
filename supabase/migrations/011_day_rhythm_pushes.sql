@@ -175,7 +175,7 @@ as $$
       greatest(c.total_habits - c.completed_habits, 0)::integer pending_habits
     from context c
     where
-      (c.rhythm_kind = 'morning' and (c.total_tasks > 0 or c.total_habits > 0))
+      (c.rhythm_kind = 'morning' and (c.pending_tasks > 0 or c.total_habits - c.completed_habits > 0))
       or (c.rhythm_kind = 'afternoon' and (c.pending_tasks > 0 or c.total_habits - c.completed_habits > 0))
       or (c.rhythm_kind = 'evening' and (c.total_tasks > 0 or c.total_habits > 0))
     order by c.due_at, c.subscription_id
