@@ -36,7 +36,7 @@ test('current service worker installs the guarded v111 release assets atomically
   handlers.get('install')({ waitUntil: promise => { work = promise; } });
   await work;
   for (const asset of [
-    './index.html','./sever2-efficiency.css?v=102','./sever2-home-core.css?v=85','./sever2-home-core.js?v=85','./sever2-notes-core.js?v=71','./sever2-notes-organization.js?v=72',
+    './index.html','./sever2-efficiency.css?v=102','./sever2-home-core.css?v=116','./sever2-home-core.js?v=116','./sever2-home-core.css?v=85','./sever2-home-core.js?v=85','./sever2-notes-core.js?v=71','./sever2-notes-organization.js?v=72',
     './sever2-notes-editor-flow.css?v=90','./sever2-notes-editor-flow.js?v=73','./sever2-notes-navigation.css?v=74','./sever2-notes-navigation.js?v=74',
     './sever2-notes-polish.css?v=92','./sever2-notes-polish.js?v=104','./sever2-notes-responsiveness-v104.js?v=104','./sever2-mobile-consistency.css?v=76',
     './sever2-notes-compact-v87.css?v=87','./sever2-notes-compact-v87.js?v=87','./sever2-experience-v94.css?v=101','./sever2-experience-v94.js?v=101',
@@ -69,7 +69,7 @@ test('current service worker installs the guarded v111 release assets atomically
   assert.equal(skipped, true);
 });
 
-test('installed current release serves planner, Notes, progress, onboarding, Finance and v115 notifications from one release cache', async () => {
+test('installed current release serves planner, Notes, progress, onboarding, Finance, v115 notifications and v116 Home from one release cache', async () => {
   const handlers = new Map();
   const requests = [];
   let network = 0;
@@ -88,8 +88,8 @@ test('installed current release serves planner, Notes, progress, onboarding, Fin
   const cases = [
     ['?verify=new','navigate','./index.html'],
     ['sever2-efficiency.css?v=old','cors','./sever2-efficiency.css?v=102'],
-    ['sever2-home-core.css?v=old','cors','./sever2-home-core.css?v=85'],
-    ['sever2-home-core.js?v=old','cors','./sever2-home-core.js?v=85'],
+    ['sever2-home-core.css?v=old','cors','./sever2-home-core.css?v=116'],
+    ['sever2-home-core.js?v=old','cors','./sever2-home-core.js?v=116'],
     ['sever2-notes-core.js?v=old','cors','./sever2-notes-core.js?v=71'],
     ['sever2-notes-organization.js?v=old','cors','./sever2-notes-organization.js?v=72'],
     ['sever2-notes-editor-flow.css?v=old','cors','./sever2-notes-editor-flow.css?v=90'],

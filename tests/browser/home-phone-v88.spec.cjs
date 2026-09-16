@@ -87,16 +87,20 @@ test('all three themes keep the same phone Home order and no page overflow', asy
     const result = await page.evaluate(() => {
       const order = ['.today-hero', '#sever2HomeCore', '.today-list-head', '#todayFilters', '#todayTasks']
         .map(selector => document.querySelector(`#todayView > ${selector}`)?.getBoundingClientRect().top ?? -1);
+      const priority = document.querySelector('#todayView .sever2-home-priority');
+      const plan = document.querySelector('#todayView [data-home-plan]');
       return {
         order,
         utilities: getComputedStyle(document.querySelector('#todayView .today-utilities')).display,
-        priority: getComputedStyle(document.querySelector('#todayView .sever2-home-priority')).display,
+        priorityVisible: Boolean(priority && priority.getClientRects().length),
+        planOpen: Boolean(plan?.open),
         overflow: Math.max(0, document.documentElement.scrollWidth - innerWidth)
       };
     });
     expect(result.order.every((value, index, arr) => index === 0 || value > arr[index - 1]), `${theme} Home order`).toBe(true);
     expect(result.utilities).toBe('none');
-    expect(result.priority).toBe('none');
+    expect(result.planOpen).toBe(false);
+    expect(result.priorityVisible).toBe(false);
     expect(result.overflow).toBeLessThanOrEqual(1);
   }
 });
@@ -125,6 +129,7 @@ test('Home Inbox action activates Calendar Inbox exactly once', async ({ page })
     });
     app.render();
   });
+  await page.locator('[data-home-plan] > summary').click();
   await expect(page.locator('#sever2HomeCore [data-home-inbox]')).toBeVisible();
   await page.evaluate(() => {
     window.__homeInboxModeClicks = 0;
@@ -139,15 +144,14 @@ test('Home Inbox action activates Calendar Inbox exactly once', async ({ page })
   expect(await page.evaluate(() => window.__homeInboxModeClicks)).toBe(1);
 });
 
-test('empty Home offers creation without a pointless jump to an empty task list', async ({ browser }, info) => {
+test('empty Home offers one creation action without a pointless jump to an empty task list', async ({ browser }, info) => {
   const context = await browser.newContext({ viewport: info.project.use.viewport, serviceWorkers: 'block' });
   try {
     const page = await context.newPage();
     await boot(page, { tasks: 'empty' });
-    await expect(page.locator('#sever2HomeCore [data-home-now-title]')).toHaveText('План на сегодня свободен');
+    await expect(page.locator('#sever2HomeCore [data-home-now-title]')).toHaveText('Свободный день');
     await expect(page.locator('#sever2HomeCore [data-home-action="create"]')).toBeVisible();
-    await expect(page.locator('#sever2HomeCore [data-home-action="tasks"]')).toHaveCount(2);
-    await expect(page.locator('#sever2HomeCore [data-home-action="tasks"]').first()).toBeHidden();
+    await expect(page.locator('#sever2HomeCore [data-home-action="tasks"]:visible')).toHaveCount(0);
     await expect(page.locator('#sever2HomeCore [data-home-action="focus"]')).toBeHidden();
   } finally {
     await context.close();
