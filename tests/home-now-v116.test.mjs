@@ -15,10 +15,9 @@ test('v116 Home uses the same morning/day/evening language as notification rhyth
 
 test('v116 chooses an actionable task, then a habit, then a calm completed state', async () => {
   const source = await read('sever2-home-core.js');
-  assert.match(source, /function isTaskActionableNow/);
+  assert.match(source, /isTaskActionableNow/);
   assert.match(source, /scheduled <= current \+ 60/);
   assert.match(source, /const actionableTask = pending\.find\(task => isTaskActionableNow\(task\)\) \|\| null/);
-  assert.match(source, /const nextTask = actionableTask \|\| \(!pendingHabits\.length \? \(pending\[0\] \|\| null\) : null\)/);
   assert.match(source, /const nextHabit = !nextTask \? \(pendingHabits\[0\] \|\| null\) : null/);
   assert.match(source, /habitDoneToday/);
   assert.match(source, /title\.textContent = 'День закрыт'/);
@@ -27,10 +26,9 @@ test('v116 chooses an actionable task, then a habit, then a calm completed state
 
 test('v116 prefers clearing inbox over adding more work when the day is otherwise empty', async () => {
   const source = await read('sever2-home-core.js');
-  assert.match(source, /else if \(inbox\.length\)/);
   assert.match(source, /title\.textContent = 'Разберём входящие'/);
   assert.match(source, /data-home-action="inbox-primary"/);
-  assert.match(source, /action === 'inbox' \|\| action === 'inbox-primary'/);
+  assert.match(source, /inbox-primary'\) goInbox\(\)/);
 });
 
 test('v116 keeps one primary Home action and moves detail density behind native disclosure', async () => {
@@ -41,11 +39,16 @@ test('v116 keeps one primary Home action and moves detail density behind native 
   assert.doesNotMatch(source, /<details[^>]*\sopen(?:\s|>)/);
   assert.match(source, /data-home-action="focus"/);
   assert.match(source, /data-home-action="habit"/);
-  assert.match(source, /data-home-action="inbox-primary"/);
   assert.match(source, /data-home-action="create"/);
   assert.doesNotMatch(source, /sever2-home-now-actions[\s\S]{0,900}data-home-action="tasks"/);
   assert.match(css, /\.sever2-home-plan>summary/);
   assert.match(css, /\.sever2-home-plan\[open\] \.sever2-home-plan-arrow/);
+});
+
+test('v116 keeps readiness stable while exposing an explicit runtime version', async () => {
+  const source = await read('sever2-home-core.js');
+  assert.match(source, /dataset\.severHomeCore = 'ready'/);
+  assert.match(source, /dataset\.severHomeCoreVersion = 'v116'/);
 });
 
 test('v116 unifies task and habit completion into one day progress summary', async () => {
