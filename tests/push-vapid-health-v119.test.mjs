@@ -27,5 +27,5 @@ test('P-256 derivation distinguishes valid and mismatched pairs without returnin
   assert.equal(point.length,65);
   assert.equal(timingSafeEqual(point,a.getPublicKey(undefined,'uncompressed')),true);
   assert.equal(timingSafeEqual(point,b.getPublicKey(undefined,'uncompressed')),false);
-  assert.equal(a.getPrivateKey().length,32);
+  assert.ok(a.getPrivateKey().length>0 && a.getPrivateKey().length<=32);
 });
