@@ -15,7 +15,7 @@ async function boot(page) {
       appearance: { theme: 'light', animations: 'off', reduceEffects: true },
       focusSessions: [], stats: { focusMs: 0, sessions: 0 },
       reminders: { enabled: true, time: '19:00', lastDate: '2026-09-12' },
-      pushReminders: { enabled: false, dayBefore: true, fifteenMinutes: true, legacyRetired: true },
+      pushReminders: { enabled: false, dayBefore: false, fifteenMinutes: false, legacyRetired: true },
       security: { protectedNotesAutoLockMinutes: 5, lockInBackground: true }
     }));
     localStorage.setItem('sever-theme', 'light');
@@ -60,50 +60,48 @@ test('legacy daily reminder stays retired even when its old persisted flag was e
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().reminders.enabled)).toBe(false);
 });
 
-test('task reminder settings are readable and responsive on desktop and phone', async ({ page }) => {
+test('v114 reminder settings are one clear automatic mode on desktop and phone', async ({ page }) => {
   await expect(page.locator('#settingsNotificationToggle').locator('xpath=ancestor::label[1]')).toContainText('Напоминания о задачах');
-  await expect(page.locator('#severReminderDayBefore')).toBeAttached();
-  await expect(page.locator('#severReminderFifteen')).toBeAttached();
+  await expect(page.locator('#settingsNotificationToggle').locator('xpath=ancestor::label[1]')).toContainText('Автоматически по задачам со временем');
+  await expect(page.locator('.sever-reminder-note')).toContainText('SEVER напомнит сам');
+  await expect(page.locator('.sever-reminder-note')).toContainText('За день — чтобы подготовиться. За 15 минут — чтобы начать.');
+  await expect(page.locator('#severReminderDayBefore')).toHaveCount(0);
+  await expect(page.locator('#severReminderFifteen')).toHaveCount(0);
 
   const geometry = await page.evaluate(() => {
-    const day = document.querySelector('#severReminderDayBefore').closest('.sever-reminder-option').getBoundingClientRect();
-    const fifteen = document.querySelector('#severReminderFifteen').closest('.sever-reminder-option').getBoundingClientRect();
     const options = document.querySelector('.sever-reminder-options').getBoundingClientRect();
+    const note = document.querySelector('.sever-reminder-note').getBoundingClientRect();
     return {
       width: innerWidth,
-      dayTop: day.top,
-      fifteenTop: fifteen.top,
-      dayWidth: day.width,
-      fifteenWidth: fifteen.width,
+      noteWidth: note.width,
       optionsWidth: options.width,
       overflow: Math.max(0, document.documentElement.scrollWidth - innerWidth)
     };
   });
 
   expect(geometry.overflow).toBeLessThanOrEqual(1);
-  if (geometry.width > 900) {
-    expect(Math.abs(geometry.dayTop - geometry.fifteenTop)).toBeLessThanOrEqual(2);
-    expect(Math.abs(geometry.dayWidth - geometry.fifteenWidth)).toBeLessThanOrEqual(2);
-    expect(geometry.dayWidth).toBeLessThan(geometry.optionsWidth * 0.6);
-  } else {
-    expect(geometry.fifteenTop).toBeGreaterThan(geometry.dayTop);
-    expect(geometry.dayWidth).toBeGreaterThan(geometry.optionsWidth * 0.9);
-  }
+  expect(geometry.noteWidth).toBeGreaterThan(geometry.optionsWidth * 0.8);
+  expect(geometry.noteWidth).toBeLessThanOrEqual(geometry.optionsWidth + 1);
 });
 
-test('disabled reminder kinds look inactive without losing the saved choices', async ({ page }) => {
+test('v114 migrates old per-kind choices to automatic defaults without enabling push by itself', async ({ page }) => {
   const master = page.locator('#settingsNotificationToggle');
-  const day = page.locator('#severReminderDayBefore');
-  const fifteen = page.locator('#severReminderFifteen');
   await expect(master).not.toBeChecked();
-  await expect(day).toBeDisabled();
-  await expect(fifteen).toBeDisabled();
-  await expect(day).toBeChecked();
-  await expect(fifteen).toBeChecked();
 
-  // Reproduce the old phone race deterministically: the retired legacy renderer
-  // writes `true`, then mobile-ui runs its resize sync. v111 must leave the task
-  // push master authoritative instead of copying that stale legacy value back.
+  const prefs = await page.evaluate(() => ({
+    ...window.SeverApp.getState().pushReminders,
+    mode: document.documentElement.dataset.severReminderMode,
+    version: document.documentElement.dataset.severRemindersVersion
+  }));
+  expect(prefs.enabled).toBe(false);
+  expect(prefs.dayBefore).toBe(true);
+  expect(prefs.fifteenMinutes).toBe(true);
+  expect(prefs.automatic).toBe(true);
+  expect(prefs.mode).toBe('automatic-v114');
+  expect(prefs.version).toBe('v114');
+
+  // Reproduce the old phone mirror race: writes to the retired hidden source
+  // must never turn the visible push master on.
   await page.evaluate(() => {
     const legacy = document.querySelector('#notificationToggle');
     const nativeChecked = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'checked');
@@ -111,23 +109,6 @@ test('disabled reminder kinds look inactive without losing the saved choices', a
     window.dispatchEvent(new Event('resize'));
   });
   await expect(master).not.toBeChecked();
-  await expect(day).toBeDisabled();
-  await expect(fifteen).toBeDisabled();
-
-  const visual = await page.evaluate(() => {
-    const row = document.querySelector('#severReminderDayBefore').closest('.sever-reminder-option');
-    const toggle = row.querySelector('.switch');
-    const rowStyle = getComputedStyle(row);
-    const toggleStyle = getComputedStyle(toggle);
-    return {
-      opacity: Number(rowStyle.opacity),
-      cursor: rowStyle.cursor,
-      switchOpacity: Number(toggleStyle.opacity),
-      background: rowStyle.backgroundColor
-    };
-  });
-  expect(visual.opacity).toBeLessThanOrEqual(0.7);
-  expect(visual.cursor).toBe('not-allowed');
-  expect(visual.switchOpacity).toBeLessThanOrEqual(0.55);
-  expect(visual.background).not.toBe('rgba(0, 0, 0, 0)');
+  await expect(page.locator('#severReminderDayBefore')).toHaveCount(0);
+  await expect(page.locator('#severReminderFifteen')).toHaveCount(0);
 });
