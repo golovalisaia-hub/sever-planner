@@ -45,7 +45,7 @@ returns table(
   pending_habits integer,
   next_habit_title text
 )
-language sql security definer set search_path = public, pg_catalog, pg_temp
+language sql security invoker set search_path = public, pg_catalog, pg_temp
 as $$
   with subscription_clock as (
     select
