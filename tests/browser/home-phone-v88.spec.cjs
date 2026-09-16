@@ -125,6 +125,7 @@ test('Home Inbox action activates Calendar Inbox exactly once', async ({ page })
     });
     app.render();
   });
+  await page.locator('[data-home-plan] > summary').click();
   await expect(page.locator('#sever2HomeCore [data-home-inbox]')).toBeVisible();
   await page.evaluate(() => {
     window.__homeInboxModeClicks = 0;
@@ -139,15 +140,14 @@ test('Home Inbox action activates Calendar Inbox exactly once', async ({ page })
   expect(await page.evaluate(() => window.__homeInboxModeClicks)).toBe(1);
 });
 
-test('empty Home offers creation without a pointless jump to an empty task list', async ({ browser }, info) => {
+test('empty Home offers one creation action without a pointless jump to an empty task list', async ({ browser }, info) => {
   const context = await browser.newContext({ viewport: info.project.use.viewport, serviceWorkers: 'block' });
   try {
     const page = await context.newPage();
     await boot(page, { tasks: 'empty' });
-    await expect(page.locator('#sever2HomeCore [data-home-now-title]')).toHaveText('План на сегодня свободен');
+    await expect(page.locator('#sever2HomeCore [data-home-now-title]')).toHaveText('Свободный день');
     await expect(page.locator('#sever2HomeCore [data-home-action="create"]')).toBeVisible();
-    await expect(page.locator('#sever2HomeCore [data-home-action="tasks"]')).toHaveCount(2);
-    await expect(page.locator('#sever2HomeCore [data-home-action="tasks"]').first()).toBeHidden();
+    await expect(page.locator('#sever2HomeCore [data-home-action="tasks"]:visible')).toHaveCount(0);
     await expect(page.locator('#sever2HomeCore [data-home-action="focus"]')).toBeHidden();
   } finally {
     await context.close();
