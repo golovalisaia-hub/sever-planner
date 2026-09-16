@@ -28,6 +28,15 @@ test('afternoon rhythm does not duplicate future exact-time task reminders', asy
   assert.ok(occurrences.length >= 3, 'pending, priority and next-task queries must all exclude future timed tasks in the afternoon');
 });
 
+test('a nearby exact task reminder suppresses the general rhythm slot on that device', async () => {
+  const migration = await read('supabase/migrations/011_day_rhythm_pushes.sql');
+  assert.match(migration, /from public\.push_deliveries pd/);
+  assert.match(migration, /pd\.subscription_id = c\.subscription_id/);
+  assert.match(migration, /pd\.status in \('claimed','sent'\)/);
+  assert.match(migration, /pd\.due_at >= now\(\) - interval '12 minutes'/);
+  assert.match(migration, /pd\.due_at <= now\(\) \+ interval '1 minute'/);
+});
+
 test('habits are aggregated into the same rhythm instead of producing one push per habit', async () => {
   const migration = await read('supabase/migrations/011_day_rhythm_pushes.sql');
   assert.match(migration, /from public\.habits h/);
