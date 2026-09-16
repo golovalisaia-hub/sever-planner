@@ -27,6 +27,22 @@ test('task reminders request permission only from explicit controls and use Web 
   assert.match(reminders, /isStandalone\(\)/);
 });
 
+test('v114 makes the reminder cadence automatic instead of exposing two user switches', () => {
+  assert.match(reminders, /current\.pushReminders\.dayBefore = true/);
+  assert.match(reminders, /current\.pushReminders\.fifteenMinutes = true/);
+  assert.match(reminders, /current\.pushReminders\.automatic = true/);
+  assert.match(reminders, /remind_day_before:\s*true/);
+  assert.match(reminders, /remind_15_minutes:\s*true/);
+  assert.match(reminders, /severReminderMode = 'automatic-v114'/);
+  assert.match(reminders, /SEVER напомнит сам/);
+  assert.doesNotMatch(reminders, /function saveReminderKinds/);
+  assert.doesNotMatch(reminders, /severReminderDayBefore[^\n]*addEventListener/);
+  assert.doesNotMatch(reminders, /severReminderFifteen[^\n]*addEventListener/);
+  const currentAsset = sw.indexOf("./sever2-task-reminders.js?v=114");
+  const legacyAsset = sw.indexOf("./sever2-task-reminders.js?v=82");
+  assert.ok(currentAsset >= 0 && legacyAsset > currentAsset, 'automatic reminder runtime must win pathname cache lookup');
+});
+
 test('legacy daily reminder is retired and cannot be re-enabled by old Settings bridges', () => {
   assert.match(reminders, /current\.reminders\.enabled = false/);
   assert.match(bridge, /current\.reminders\.enabled = false/);
@@ -102,18 +118,17 @@ test('reminder settings have dedicated wide desktop and compact mobile layouts',
   assert.match(reminderCss, /grid-template-columns: minmax\(0, 1fr\)/);
 });
 
-test('disabled reminder sub-options stay saved but look clearly inactive', () => {
-  assert.match(reminderCss, /\.sever-reminder-option:has\(input:disabled\)/);
-  assert.match(reminderCss, /opacity:\s*\.66/);
-  assert.match(reminderCss, /cursor:\s*not-allowed/);
-  assert.match(reminderCss, /\.sever-reminder-option:has\(input:disabled\) \.switch/);
-  assert.match(reminderCss, /filter:\s*saturate\(\.45\)/);
+test('automatic reminders keep one explanation block instead of disabled per-kind controls', () => {
+  assert.match(reminders, /Автоматически по задачам со временем/);
+  assert.match(reminders, /За день — чтобы подготовиться\. За 15 минут — чтобы начать/);
+  assert.match(reminders, /Только для задач с точным временем/);
   assert.match(sw, /sever2-reminders\.css\?v=86/);
 });
 
 test('service worker immediately displays visible push notifications and opens the routed SEVER view', () => {
   assert.match(sw, /addEventListener\('push'/);
   assert.match(sw, /showNotification/);
+  assert.match(sw, /sever2-task-reminders\.js\?v=114/);
   assert.match(sw, /sever2-task-reminders\.js\?v=82/);
   assert.match(sw, /sever2-reminder-bridge-v95\.js\?v=111/);
   assert.match(sw, /new URL\(event\.notification\.data\?\.url/);
