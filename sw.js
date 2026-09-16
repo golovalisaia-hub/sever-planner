@@ -19,6 +19,7 @@
 // v114 makes task reminders automatic: timed tasks get the calm day-before + 15-minute cadence without per-kind switches.
 // v115 unifies task, habit and morning/day/evening rhythm notifications behind one calm SEVER notification setting.
 // v116 makes Home choose one next step first and moves stats/follow-ups behind an explicit Plan disclosure.
+// v124 records receipt locally without sending or storing push content or subscription URLs.
 // Previous atomic asset keys retained for release-audit lineage only: './sever2-experience-v94.css?v=94' './sever2-experience-v94.js?v=99' './sever2-interaction-polish.js?v=78'.
 const CACHE = 'sever-v111-push-key-repair-v2';
 const ASSETS = [
@@ -31,6 +32,18 @@ self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(
 // CacheStorage is origin-wide on GitHub Pages. Never delete another project's caches.
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('sever-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
 self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});
-self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;const asset=ASSETS.find(asset=>{const cachedUrl=new URL(asset,self.registration.scope);return cachedUrl.pathname===url.pathname});const core=event.request.mode==='navigate'||CORE_PATHS.some(path=>url.pathname.endsWith(path));if(core||asset){const key=event.request.mode==='navigate'?'./index.html':asset;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=key?await cache.match(key):null;return hit||new Response('Release asset unavailable',{status:503})}));return}event.respondWith(fetch(event.request))});
+self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;
+// Unlike app navigation, the private on-device diagnostics is a separate static page.
+if(url.pathname===new URL('./push-check.html',self.registration.scope).pathname)return;
+const asset=ASSETS.find(asset=>{const cachedUrl=new URL(asset,self.registration.scope);return cachedUrl.pathname===url.pathname});const core=event.request.mode==='navigate'||CORE_PATHS.some(path=>url.pathname.endsWith(path));if(core||asset){const key=event.request.mode==='navigate'?'./index.html':asset;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=key?await cache.match(key):null;return hit||new Response('Release asset unavailable',{status:503})}));return}event.respondWith(fetch(event.request))});
 self.addEventListener('push',event=>{let payload={};try{payload=event.data?.json()||{}}catch{try{payload={body:event.data?.text()||''}}catch{payload={}}}const options={body:payload.body||'',icon:'./icon-192.png',badge:'./icon-192.png',tag:payload.tag||'sever-task-reminder',renotify:false,data:{url:payload.url||'./?view=today',taskId:payload.taskId||null,reminderKind:payload.reminderKind||null,rhythmKind:payload.rhythmKind||null}};event.waitUntil(self.registration.showNotification(payload.title||'SEVER',options))});
 self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const target=new URL(event.notification.data?.url||'./',self.registration.scope).href;const windows=await clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){if('navigate'in client&&client.url!==target){try{await client.navigate(target)}catch{}}if('focus'in client)return client.focus()}return clients.openWindow(target)})())});
+// Local receipt evidence only. Never store the push payload, URL, keys or account data.
+function recordPushReceipt(){return new Promise((resolve,reject)=>{
+  const open=indexedDB.open('sever-push-diagnostics-v124',1);
+  open.onupgradeneeded=()=>{if(!open.result.objectStoreNames.contains('events'))open.result.createObjectStore('events',{keyPath:'name'})};
+  open.onerror=()=>reject(new Error('IDB_OPEN_FAILED'));
+  open.onsuccess=()=>{const db=open.result;try{const tx=db.transaction('events','readwrite');tx.objectStore('events').put({name:'last',receivedAt:new Date().toISOString()});tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(new Error('IDB_WRITE_FAILED'))}}catch{db.close();reject(new Error('IDB_WRITE_FAILED'))}};
+})}
+self.addEventListener('push',event=>{event.waitUntil(recordPushReceipt().catch(()=>{}))});
+self.addEventListener('message',event=>{if(event.data?.type==='SEVER_PUSH_DIAG_VERSION')event.ports?.[0]?.postMessage({type:'SEVER_PUSH_DIAG_VERSION',version:'v124'})});
