@@ -15,9 +15,9 @@
   const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
   const supportsPush = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 
-  // v114: SEVER owns the default reminder cadence. The legacy booleans remain
-  // in local state and push_subscriptions only for backwards compatibility with
-  // already deployed clients/database columns. They are no longer user choices.
+  // v115: one SEVER notification master owns both the day rhythm and the exact-task
+  // cadence. The legacy per-kind booleans remain only for compatibility with the
+  // already deployed database/client contract; they are not user-facing choices.
   function settings() {
     const current = state();
     current.pushReminders ??= { enabled:false, dayBefore:true, fifteenMinutes:true, legacyRetired:false };
@@ -110,11 +110,11 @@
     const master = $('#settingsNotificationToggle');
     if (master) master.checked = Boolean(prefs.enabled);
     document.documentElement.dataset.severPushEnabled = prefs.enabled ? 'true' : 'false';
-    document.documentElement.dataset.severReminderMode = 'automatic-v114';
+    document.documentElement.dataset.severReminderMode = 'rhythm-v115';
     const hint = $('#severTaskReminderHint');
     if (hint) hint.textContent = prefs.enabled
-      ? 'SEVER сам напомнит: за день — подготовиться, за 15 минут — начать. Только для задач с точным временем.'
-      : 'Напоминания можно включить в Настройки → Уведомления.';
+      ? 'Точное время включает отдельные напоминания: за день и за 15 минут.'
+      : 'Уведомления можно включить в Настройки → Уведомления SEVER.';
   }
 
   async function refreshServerState() {
@@ -136,7 +136,7 @@
         prefs.enabled = false;
         syncUI();
         status(Notification.permission === 'granted'
-          ? 'Напоминания пока не подключены на этом устройстве.'
+          ? 'Уведомления пока не подключены на этом устройстве.'
           : 'Разрешение появится только после вашего нажатия на переключатель.');
         return;
       }
@@ -150,11 +150,11 @@
           .maybeSingle();
         if (result.error) throw result.error;
         prefs.enabled = Boolean(result.data && result.data.enabled !== false);
-        // Opening an existing enabled installation migrates old per-kind choices
-        // to the new automatic cadence without requiring a schema migration.
+        // Opening an existing enabled installation keeps legacy subscription rows
+        // normalized for the automatic exact-task cadence used by the v115 rhythm.
         if (prefs.enabled) await upsertSubscription(subscription);
         syncUI();
-        if (prefs.enabled) status('Включено · SEVER сам напомнит за день и за 15 минут до задач со временем.', 'ok');
+        if (prefs.enabled) status('Включено · SEVER держит ритм дня и отдельно напоминает о задачах с точным временем.', 'ok');
         await persist();
       } catch {
         syncUI();
@@ -228,7 +228,7 @@
     settings().enabled = false;
     await persist();
     syncUI();
-    status('Выключено. SEVER не будет присылать напоминания.');
+    status('Выключено. SEVER не будет присылать уведомления.');
   }
 
   async function testNotification() {
@@ -247,7 +247,7 @@
     }
     const registration = await navigator.serviceWorker.ready;
     await registration.showNotification('SEVER · проверка', {
-      body:'Так будет выглядеть спокойное напоминание о задаче.',
+      body:'Так выглядит спокойное уведомление SEVER: коротко и по делу.',
       icon:'./icon-192.png', badge:'./icon-192.png', tag:'sever-reminder-test', renotify:false,
       data:{url:'./?view=today'}
     });
@@ -273,8 +273,8 @@
 
     const title = master.closest('.settings-row')?.querySelector('b');
     const copy = master.closest('.settings-row')?.querySelector('em');
-    if (title) title.textContent = 'Напоминания о задачах';
-    if (copy) copy.textContent = 'Автоматически по задачам со временем';
+    if (title) title.textContent = 'Уведомления SEVER';
+    if (copy) copy.textContent = 'Ритм дня, задачи и привычки';
     const oldTime = $('#settingsNotificationTime')?.closest('.settings-row');
     if (oldTime) oldTime.hidden = true;
 
@@ -291,7 +291,7 @@
       section.insertBefore(options, test || null);
     }
     options.innerHTML = `
-      <div class="sever-reminder-note"><b>SEVER напомнит сам</b><span>За день — чтобы подготовиться. За 15 минут — чтобы начать. Только для задач с точным временем; одновременные задачи объединяются, завершённые и перенесённые не беспокоят.</span></div>
+      <div class="sever-reminder-note"><b>SEVER напомнит сам</b><span>Утром — план дня, днём — один следующий шаг, вечером — спокойное завершение. Привычки входят в общий ритм. Задачи с точным временем отдельно: за день и за 15 минут. SEVER объединяет сигналы, чтобы не спамить.</span></div>
       <p id="severReminderStatus" class="sever-reminder-status" data-kind="neutral"></p>`;
 
     const test = $('#settingsTestNotification');
@@ -371,7 +371,7 @@
           settings().enabled = false;
           void pushSubscription().then(subscription => subscription?.unsubscribe()).catch(() => {});
           syncUI();
-          status('Войдите в SEVER, чтобы снова включить напоминания.');
+          status('Войдите в SEVER, чтобы снова включить уведомления.');
         } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           void refreshServerState();
         }
@@ -389,9 +389,9 @@
     applyDeepLink();
     void installAuthListener();
     void refreshServerState();
-    // Keep v82 compatibility for the iOS bridge; v114 is exposed separately.
+    // Keep v82 compatibility for the iOS bridge; v115 is exposed separately.
     document.documentElement.dataset.severReminders = 'v82';
-    document.documentElement.dataset.severRemindersVersion = 'v114';
+    document.documentElement.dataset.severRemindersVersion = 'v115';
     return true;
   }
 

@@ -27,20 +27,26 @@ test('task reminders request permission only from explicit controls and use Web 
   assert.match(reminders, /isStandalone\(\)/);
 });
 
-test('v114 makes the reminder cadence automatic instead of exposing two user switches', () => {
+test('v115 keeps automatic exact-task cadence while presenting one SEVER rhythm setting', () => {
   assert.match(reminders, /current\.pushReminders\.dayBefore = true/);
   assert.match(reminders, /current\.pushReminders\.fifteenMinutes = true/);
   assert.match(reminders, /current\.pushReminders\.automatic = true/);
   assert.match(reminders, /remind_day_before:\s*true/);
   assert.match(reminders, /remind_15_minutes:\s*true/);
-  assert.match(reminders, /severReminderMode = 'automatic-v114'/);
+  assert.match(reminders, /severReminderMode = 'rhythm-v115'/);
+  assert.match(reminders, /Уведомления SEVER/);
+  assert.match(reminders, /Ритм дня, задачи и привычки/);
   assert.match(reminders, /SEVER напомнит сам/);
+  assert.match(reminders, /Утром — план дня, днём — один следующий шаг, вечером — спокойное завершение/);
+  assert.match(reminders, /Привычки входят в общий ритм/);
+  assert.match(reminders, /Задачи с точным временем отдельно: за день и за 15 минут/);
   assert.doesNotMatch(reminders, /function saveReminderKinds/);
   assert.doesNotMatch(reminders, /severReminderDayBefore[^\n]*addEventListener/);
   assert.doesNotMatch(reminders, /severReminderFifteen[^\n]*addEventListener/);
-  const currentAsset = sw.indexOf("./sever2-task-reminders.js?v=114");
+  const currentAsset = sw.indexOf("./sever2-task-reminders.js?v=115");
+  const v114Asset = sw.indexOf("./sever2-task-reminders.js?v=114");
   const legacyAsset = sw.indexOf("./sever2-task-reminders.js?v=82");
-  assert.ok(currentAsset >= 0 && legacyAsset > currentAsset, 'automatic reminder runtime must win pathname cache lookup');
+  assert.ok(currentAsset >= 0 && v114Asset > currentAsset && legacyAsset > v114Asset, 'v115 notification runtime must win pathname cache lookup while retaining old aliases');
 });
 
 test('legacy daily reminder is retired and cannot be re-enabled by old Settings bridges', () => {
@@ -118,19 +124,24 @@ test('reminder settings have dedicated wide desktop and compact mobile layouts',
   assert.match(reminderCss, /grid-template-columns: minmax\(0, 1fr\)/);
 });
 
-test('automatic reminders keep one explanation block instead of disabled per-kind controls', () => {
-  assert.match(reminders, /Автоматически по задачам со временем/);
-  assert.match(reminders, /За день — чтобы подготовиться\. За 15 минут — чтобы начать/);
-  assert.match(reminders, /Только для задач с точным временем/);
+test('unified notification settings explain rhythm and exact tasks without extra controls', () => {
+  assert.match(reminders, /Ритм дня, задачи и привычки/);
+  assert.match(reminders, /Утром — план дня/);
+  assert.match(reminders, /днём — один следующий шаг/);
+  assert.match(reminders, /вечером — спокойное завершение/);
+  assert.match(reminders, /за день и за 15 минут/);
+  assert.match(reminders, /объединяет сигналы, чтобы не спамить/);
   assert.match(sw, /sever2-reminders\.css\?v=86/);
 });
 
 test('service worker immediately displays visible push notifications and opens the routed SEVER view', () => {
   assert.match(sw, /addEventListener\('push'/);
   assert.match(sw, /showNotification/);
+  assert.match(sw, /sever2-task-reminders\.js\?v=115/);
   assert.match(sw, /sever2-task-reminders\.js\?v=114/);
   assert.match(sw, /sever2-task-reminders\.js\?v=82/);
   assert.match(sw, /sever2-reminder-bridge-v95\.js\?v=111/);
+  assert.match(sw, /rhythmKind:payload\.rhythmKind\|\|null/);
   assert.match(sw, /new URL\(event\.notification\.data\?\.url/);
 });
 
