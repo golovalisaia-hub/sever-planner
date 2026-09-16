@@ -119,7 +119,7 @@ test('installed current release serves planner, Notes, progress, onboarding and 
     ['sever2-onboarding-v110.js?v=old','cors','./sever2-onboarding-v110.js?v=110'],
     ['sever2-notes-org-repair-v95.js?v=old','cors','./sever2-notes-org-repair-v95.js?v=111'],
     ['sever2-reminders.css?v=old','cors','./sever2-reminders.css?v=86'],
-    ['sever2-task-reminders.js?v=old','cors','./sever2-task-reminders.js?v=82'],
+    ['sever2-task-reminders.js?v=old','cors','./sever2-task-reminders.js?v=114'],
     ['sever2-cloud-recovery.css?v=old','cors','./sever2-cloud-recovery.css?v=80'],
     ['sever2-cloud-recovery.js?v=old','cors','./sever2-cloud-recovery.js?v=80'],
     ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=92'],
