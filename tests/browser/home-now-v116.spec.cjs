@@ -38,7 +38,8 @@ async function boot(page, mode = 'task') {
     localStorage.setItem('sever-theme', 'light');
   }, { mode });
   await page.goto('/');
-  await page.waitForFunction(() => document.documentElement.dataset.severHomeCore === 'v116');
+  await page.waitForFunction(() => document.documentElement.dataset.severHomeCore === 'ready'
+    && document.documentElement.dataset.severHomeCoreVersion === 'v116');
   await expect(page.locator('#sever2HomeCore')).toBeVisible();
 }
 
