@@ -8,11 +8,12 @@
     plus: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
     list: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>',
     inbox: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-2 13H6L4 5Z"/><path d="M7 13h3l1 2h2l1-2h3"/></svg>',
+    habit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5 10 16l8-9"/><circle cx="12" cy="12" r="9"/></svg>',
     arrow: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>'
   };
 
   const dayISO = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-  const state = () => window.SeverApp?.getState?.() || { tasks: [] };
+  const state = () => window.SeverApp?.getState?.() || { tasks: [], habits: [], checks: {} };
   let bootAttempts = 0;
   let bootTimer = 0;
   let renderQueued = false;
@@ -20,6 +21,15 @@
   function todayTasks() {
     const today = dayISO();
     return (state().tasks || []).filter(task => task?.date === today);
+  }
+
+  function todayHabits() {
+    return (state().habits || []).filter(habit => habit && !habit.deletedAt);
+  }
+
+  function habitDoneToday(habit) {
+    const checks = state().checks?.[habit.id] || [];
+    return Array.isArray(checks) && checks.includes(dayISO());
   }
 
   function inboxTasks() {
@@ -35,6 +45,22 @@
     return Number(a.createdAt || 0) - Number(b.createdAt || 0);
   }
 
+  function taskTimeMinutes(task) {
+    const match = /^(\d{1,2}):(\d{2})/.exec(String(task?.time || ''));
+    if (!match) return null;
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    if (hours > 23 || minutes > 59) return null;
+    return hours * 60 + minutes;
+  }
+
+  function isTaskActionableNow(task, now = new Date()) {
+    const scheduled = taskTimeMinutes(task);
+    if (scheduled === null) return true;
+    const current = now.getHours() * 60 + now.getMinutes();
+    return scheduled <= current + 60;
+  }
+
   function taskMeta(task) {
     const parts = [];
     if (task.challenge) parts.push('Цель');
@@ -47,6 +73,13 @@
 
   function plannedMinutes(tasks) {
     return tasks.reduce((sum, task) => sum + (Number(task.duration) || 0), 0);
+  }
+
+  function dayPhase(now = new Date()) {
+    const minutes = now.getHours() * 60 + now.getMinutes();
+    if (minutes < 14 * 60) return { key: 'morning', label: 'СТАРТ ДНЯ' };
+    if (minutes < 20 * 60 + 30) return { key: 'afternoon', label: 'РИТМ ДНЯ' };
+    return { key: 'evening', label: 'ЗАКРОЕМ ДЕНЬ' };
   }
 
   function visibleCreateButton() {
@@ -79,6 +112,10 @@
     requestAnimationFrame(() => {
       if (!open()) setTimeout(open, 80);
     });
+  }
+
+  function goHabits() {
+    window.SeverApp?.switchView?.('habits');
   }
 
   function startFocus(taskId) {
@@ -121,39 +158,78 @@
 
     const items = todayTasks();
     const pending = items.filter(task => !task.completed).sort(taskRank);
-    const completed = items.length - pending.length;
+    const completedTasks = items.length - pending.length;
+    const habits = todayHabits();
+    const pendingHabits = habits.filter(habit => !habitDoneToday(habit));
+    const completedHabits = habits.length - pendingHabits.length;
     const inbox = inboxTasks();
     const minutes = plannedMinutes(pending);
-    const next = pending[0] || null;
-    const followUps = pending.slice(1);
-    const progress = items.length ? Math.round((completed / items.length) * 100) : 0;
+    const actionableTask = pending.find(task => isTaskActionableNow(task)) || null;
+    const nextTask = actionableTask || (!pendingHabits.length ? (pending[0] || null) : null);
+    const nextHabit = !nextTask ? (pendingHabits[0] || null) : null;
+    const followUps = pending.filter(task => task.id !== nextTask?.id);
+    const totalUnits = items.length + habits.length;
+    const doneUnits = completedTasks + completedHabits;
+    const remainingUnits = pending.length + pendingHabits.length;
+    const progress = totalUnits ? Math.round((doneUnits / totalUnits) * 100) : 0;
+    const phase = dayPhase();
 
+    const phaseLabel = root.querySelector('[data-home-phase]');
     const title = root.querySelector('[data-home-now-title]');
     const meta = root.querySelector('[data-home-now-meta]');
     const focus = root.querySelector('[data-home-action="focus"]');
+    const habit = root.querySelector('[data-home-action="habit"]');
+    const inboxPrimary = root.querySelector('[data-home-action="inbox-primary"]');
     const create = root.querySelector('[data-home-action="create"]');
+    const planSummary = root.querySelector('[data-home-plan-summary]');
     const taskActions = [...root.querySelectorAll('[data-home-action="tasks"]')];
 
-    if (next) {
-      title.textContent = next.title || 'Следующее дело';
-      meta.textContent = taskMeta(next);
+    phaseLabel.textContent = phase.label;
+    focus.classList.add('hidden');
+    habit.classList.add('hidden');
+    inboxPrimary.classList.add('hidden');
+    create.classList.add('hidden');
+    focus.dataset.taskId = '';
+    focus.removeAttribute('aria-label');
+
+    if (nextTask) {
+      title.textContent = nextTask.title || 'Следующее дело';
+      meta.textContent = taskMeta(nextTask);
       focus.classList.remove('hidden');
-      focus.dataset.taskId = next.id;
-      focus.setAttribute('aria-label', `Начать фокус: ${next.title || 'следующая задача'}`);
-      create.classList.add('hidden');
+      focus.dataset.taskId = nextTask.id;
+      focus.setAttribute('aria-label', `Начать фокус: ${nextTask.title || 'следующая задача'}`);
+      root.dataset.homeState = 'task';
+    } else if (nextHabit) {
+      title.textContent = nextHabit.title || 'Привычка на сегодня';
+      meta.textContent = habits.length > 1
+        ? `Привычка на сегодня · ${completedHabits} из ${habits.length} уже отмечено`
+        : 'Привычка на сегодня';
+      habit.classList.remove('hidden');
+      root.dataset.homeState = 'habit';
+    } else if (totalUnits > 0) {
+      title.textContent = 'День закрыт';
+      meta.textContent = 'Всё запланированное на сегодня отмечено. Отдых тоже часть ритма.';
+      root.dataset.homeState = 'complete';
+    } else if (inbox.length) {
+      title.textContent = 'Разберём входящие';
+      meta.textContent = `${inbox.length} ${inbox.length === 1 ? 'задача ждёт' : inbox.length < 5 ? 'задачи ждут' : 'задач ждут'} даты или решения.`;
+      inboxPrimary.classList.remove('hidden');
+      root.dataset.homeState = 'inbox';
     } else {
-      title.textContent = items.length ? 'План на сегодня выполнен' : 'План на сегодня свободен';
-      meta.textContent = items.length ? 'Можно завершать день без лишней суеты.' : 'Добавь только то, что действительно нужно сделать.';
-      focus.classList.add('hidden');
-      focus.dataset.taskId = '';
-      focus.removeAttribute('aria-label');
+      title.textContent = 'Свободный день';
+      meta.textContent = 'Добавь только то, что действительно важно.';
       create.classList.remove('hidden');
+      root.dataset.homeState = 'empty';
     }
 
     taskActions.forEach(button => button.classList.toggle('hidden', items.length === 0));
-    root.querySelector('[data-home-stat="remaining"]').textContent = String(pending.length);
+    root.querySelector('[data-home-stat="remaining"]').textContent = String(remainingUnits);
     root.querySelector('[data-home-stat="minutes"]').textContent = minutes ? `${minutes} мин` : '—';
-    root.querySelector('[data-home-stat="progress"]').textContent = items.length ? `${progress}%` : '—';
+    root.querySelector('[data-home-stat="progress"]').textContent = totalUnits ? `${progress}%` : '—';
+    planSummary.textContent = remainingUnits
+      ? `${remainingUnits} ${remainingUnits === 1 ? 'шаг' : remainingUnits < 5 ? 'шага' : 'шагов'} осталось`
+      : totalUnits ? 'Всё закрыто' : inbox.length ? `${inbox.length} во входящих` : 'План пуст';
+
     root.querySelector('[data-home-inbox-count]').textContent = String(inbox.length);
     root.querySelector('[data-home-inbox]').classList.toggle('hidden', inbox.length === 0);
 
@@ -165,7 +241,6 @@
     else topLabel.textContent = '';
 
     renderTopTasks(root.querySelector('[data-home-priority-list]'), followUps, { startAt: 2 });
-    root.dataset.homeState = next ? 'active' : items.length ? 'complete' : 'empty';
   }
 
   function install() {
@@ -175,34 +250,40 @@
     const section = document.createElement('section');
     section.id = 'sever2HomeCore';
     section.className = 'sever2-home-core';
-    section.setAttribute('aria-label', 'План на сегодня');
+    section.setAttribute('aria-label', 'Главное на сегодня');
     section.innerHTML = `
       <div class="sever2-home-now">
         <div class="sever2-home-now-copy" aria-live="polite">
-          <small>ГЛАВНОЕ СЕЙЧАС</small>
+          <small data-home-phase>ГЛАВНОЕ СЕЙЧАС</small>
           <h2 data-home-now-title></h2>
           <p data-home-now-meta></p>
           <div class="sever2-home-now-actions">
             <button type="button" class="primary" data-home-action="focus">${svg.play}<span>Начать фокус</span></button>
+            <button type="button" class="primary hidden" data-home-action="habit">${svg.habit}<span>Открыть привычки</span></button>
+            <button type="button" class="primary hidden" data-home-action="inbox-primary">${svg.inbox}<span>Разобрать входящие</span></button>
             <button type="button" class="primary hidden" data-home-action="create">${svg.plus}<span>Добавить задачу</span></button>
-            <button type="button" data-home-action="tasks" aria-label="Перейти к списку задач на сегодня">${svg.list}<span>К списку</span></button>
           </div>
         </div>
-        <div class="sever2-home-stats" aria-label="Сводка дня">
-          <span><small>ОСТАЛОСЬ</small><b data-home-stat="remaining">0</b></span>
-          <span><small>ПЛАН</small><b data-home-stat="minutes">—</b></span>
-          <span><small>ГОТОВО</small><b data-home-stat="progress">—</b></span>
+      </div>
+      <details class="sever2-home-plan" data-home-plan>
+        <summary><span><b>План дня</b><small data-home-plan-summary>План пуст</small></span><span class="sever2-home-plan-arrow">${svg.arrow}</span></summary>
+        <div class="sever2-home-plan-body">
+          <div class="sever2-home-stats" aria-label="Сводка дня">
+            <span><small>ОСТАЛОСЬ</small><b data-home-stat="remaining">0</b></span>
+            <span><small>ФОКУС</small><b data-home-stat="minutes">—</b></span>
+            <span><small>ГОТОВО</small><b data-home-stat="progress">—</b></span>
+          </div>
+          <div class="sever2-home-priority hidden">
+            <header><span><small>ДАЛЬШЕ</small><b>Что после главного</b></span><button type="button" data-home-action="tasks">Все задачи ${svg.arrow}</button></header>
+            <p data-home-priority-caption></p>
+            <div class="sever2-home-priority-list" data-home-priority-list></div>
+          </div>
+          <button type="button" class="sever2-home-inbox-link hidden" data-home-inbox data-home-action="inbox">
+            <span>${svg.inbox}<span><small>ВХОДЯЩИЕ</small><b><i data-home-inbox-count>0</i> без даты</b></span></span>
+            <span>Разобрать ${svg.arrow}</span>
+          </button>
         </div>
-      </div>
-      <div class="sever2-home-priority hidden">
-        <header><span><small>ДАЛЬШЕ</small><b>Что после главного</b></span><button type="button" data-home-action="tasks">Все задачи ${svg.arrow}</button></header>
-        <p data-home-priority-caption></p>
-        <div class="sever2-home-priority-list" data-home-priority-list></div>
-      </div>
-      <button type="button" class="sever2-home-inbox-link hidden" data-home-inbox data-home-action="inbox">
-        <span>${svg.inbox}<span><small>ВХОДЯЩИЕ</small><b><i data-home-inbox-count>0</i> без даты</b></span></span>
-        <span>Разобрать ${svg.arrow}</span>
-      </button>`;
+      </details>`;
 
     $('#todayPageTitle').after(section);
     section.addEventListener('click', event => {
@@ -211,7 +292,8 @@
       const action = button.dataset.homeAction;
       if (action === 'create') openCreate();
       else if (action === 'tasks') goToTasks();
-      else if (action === 'inbox') goInbox();
+      else if (action === 'inbox' || action === 'inbox-primary') goInbox();
+      else if (action === 'habit') goHabits();
       else if (action === 'focus') startFocus(button.dataset.taskId);
     });
 
@@ -220,7 +302,9 @@
     const view = $('#todayView');
     new MutationObserver(scheduleRender).observe(view, { attributes: true, attributeFilter: ['class'] });
     window.addEventListener('sever:ready', scheduleRender);
+    window.addEventListener('focus', scheduleRender);
     document.documentElement.dataset.severHomeCore = 'ready';
+    document.documentElement.dataset.severHomeCoreVersion = 'v116';
     render();
     return true;
   }

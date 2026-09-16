@@ -50,14 +50,16 @@ test('Home keeps one primary task without mutating planner data', async ({ page 
   await expect(page.locator('[data-home-stat="minutes"]')).toHaveText('65 мин');
   await expect(page.locator('[data-home-stat="progress"]')).toHaveText('25%');
   await expect(page.locator('[data-home-inbox-count]')).toHaveText('1');
+  await expect(page.locator('[data-home-plan]')).not.toHaveAttribute('open', '');
 
   const followUp = page.locator('.sever2-home-priority');
+  await expect(followUp).toBeHidden();
   if (phone) {
-    await expect(followUp).toBeHidden();
     await expect(page.locator('#todayTasks')).toContainText('Шаг по цели');
     await expect(page.locator('#todayTasks')).toContainText('Важное дело');
     await expect(page.locator('#todayTasks')).toContainText('Позднее дело');
   } else {
+    await page.locator('[data-home-plan] > summary').click();
     await expect(followUp).toBeVisible();
     await expect(followUp.locator('header')).toContainText('ДАЛЬШЕ');
     await expect(page.locator('.sever2-home-priority-copy b')).toHaveText(['Важное дело', 'Позднее дело']);
@@ -78,18 +80,17 @@ test('Home keeps one primary task without mutating planner data', async ({ page 
   expect(await page.evaluate(() => JSON.stringify(window.SeverApp.getState()))).toBe(before);
 });
 
-test('Home Create and Inbox actions keep the existing product flows', async ({ page }, info) => {
+test('Home Inbox-first and Create actions keep the existing product flows', async ({ page }, info) => {
   await boot(page, [
     { id: 'inbox', title: 'Разобрать позже', date: '9999-12-31', time: '', duration: null, completed: false, category: 'Личное', createdAt: 1 }
   ]);
 
-  await expect(page.locator('[data-home-action="create"]')).toBeVisible();
+  await expect(page.locator('[data-home-now-title]')).toHaveText('Разберём входящие');
+  await expect(page.locator('[data-home-action="inbox-primary"]')).toBeVisible();
+  await expect(page.locator('[data-home-action="create"]')).toBeHidden();
   await expect(page.locator('.sever2-home-priority')).toBeHidden();
-  await page.locator('[data-home-action="create"]').click();
-  await expect(page.locator('#quickAddDialog')).toBeVisible();
-  await page.locator('[data-close="quickAddDialog"]').click();
 
-  await page.locator('[data-home-inbox]').click();
+  await page.locator('[data-home-action="inbox-primary"]').click();
   await expect(page.locator('#calendarView')).toBeVisible();
   await expect(page.locator('#sever2InboxPanel')).toBeVisible();
   await expect(page.locator('#sever2InboxPanel')).toContainText('Разобрать позже');
