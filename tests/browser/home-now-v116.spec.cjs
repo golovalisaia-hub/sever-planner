@@ -13,9 +13,16 @@ async function boot(page, mode = 'task') {
       category: 'Учёба', priority: true, challenge: false, completed: mode === 'complete', createdAt: Date.now() - 2000
     };
     const habit = { id: 'home-v116-habit', title: '30 минут чтения', createdAt: Date.now() - 86400000 };
-    const tasks = mode === 'habit' ? [] : [task];
-    const habits = [habit];
-    const checks = mode === 'complete' ? { [habit.id]: [today] } : {};
+    let tasks = mode === 'habit' ? [] : [task];
+    let habits = [habit];
+    let checks = mode === 'complete' ? { [habit.id]: [today] } : {};
+
+    if (mode === 'inbox') {
+      tasks = [{ ...task, id: 'home-v116-inbox', title: 'Разобрать идею', date: '9999-12-31', completed: false }];
+      habits = [];
+      checks = {};
+    }
+
     localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({
       version: 11,
       onboarded: true,
@@ -58,6 +65,16 @@ test('v116 falls back to one unfinished habit when there is no task', async ({ p
   await expect(visibleActions).toContainText('Открыть привычки');
   await visibleActions.click();
   await expect(page.locator('#habitsView')).toBeVisible();
+});
+
+test('v116 prefers inbox cleanup over creating more work on an otherwise empty day', async ({ page }) => {
+  await boot(page, 'inbox');
+  await expect(page.locator('[data-home-now-title]')).toHaveText('Разберём входящие');
+  await expect(page.locator('[data-home-now-meta]')).toContainText('1 задача ждёт');
+  const visibleActions = page.locator('.sever2-home-now-actions button:visible');
+  await expect(visibleActions).toHaveCount(1);
+  await expect(visibleActions).toContainText('Разобрать входящие');
+  await expect(page.locator('[data-home-plan-summary]')).toHaveText('1 во входящих');
 });
 
 test('v116 closes the day without inventing another action when tasks and habits are done', async ({ page }) => {
