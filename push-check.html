@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>SEVER · Диагностика уведомлений</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#f3f6ff;background:#0d1523}*{box-sizing:border-box}body{margin:0;padding:24px 16px 60px}main{max-width:600px;margin:auto}a{color:#a9c9ff}h1{font-size:clamp(24px,6vw,34px);letter-spacing:-.04em;margin:20px 0 8px}p{line-height:1.55;color:#bcc9db}.eyebrow{color:#8db7ff;text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:800}.panel{margin:20px 0;border:1px solid #30405c;background:#162337;border-radius:22px;padding:20px;box-shadow:0 12px 40px #0002}dl{margin:0}dt{color:#aabdd8;font-size:13px;margin-top:19px}dt:first-child{margin-top:0}dd{margin:5px 0 0;font-weight:650;overflow-wrap:anywhere;font-size:16px}button{display:block;width:100%;min-height:49px;border:1px solid #6d97dd;border-radius:14px;background:#2d64be;color:white;font:inherit;font-weight:650;margin:12px 0;padding:12px;cursor:pointer}button.secondary{background:#192943;border-color:#445e83}button:disabled{opacity:.6}#message{min-height:28px;font-weight:600;color:#d4e5ff}small{color:#9eb0cb;line-height:1.5;display:block}.footer{margin-top:30px;font-size:13px}
+</style>
+<script src="push-check.js?v=124" defer></script>
+</head>
+<body>
+<main>
+<a href="./?view=settings">← Назад в SEVER</a>
+<p class="eyebrow">Диагностика · только на этом устройстве</p>
+<h1>Почему не приходят уведомления?</h1>
+<p>Это локальная проверка без отправки задач, ключей или адреса подписки. Данные проверки видны только в браузере этого устройства.</p>
+<section class="panel" aria-live="polite"><dl>
+<dt>Разрешение системы</dt><dd id="permission">Проверяю…</dd>
+<dt>Установка на экран «Домой»</dt><dd id="standalone">Проверяю…</dd>
+<dt>Обработчик уведомлений</dt><dd id="worker">Проверяю…</dd>
+<dt>Подписка Web Push</dt><dd id="subscription">Проверяю…</dd>
+<dt>Ключ текущей подписки</dt><dd id="key">Проверяю…</dd>
+<dt>Последнее push-событие на устройстве</dt><dd id="receipt">Проверяю…</dd>
+</dl></section>
+<button id="localTest" type="button">Показать локальное уведомление</button>
+<button id="refresh" type="button" class="secondary">Обновить результаты</button>
+<p id="message" role="status" aria-live="polite"></p>
+<small>Локальная проверка не проходит через Apple, Google или Supabase. Ответ сервера «201» также не доказывает, что iPhone получил push-событие или показал баннер. Запись события появится только после установки версии диагностики v124.</small>
+<p class="footer"><a href="./?view=settings">Настройки уведомлений SEVER</a></p>
+</main>
+</body>
+</html>
