@@ -16,7 +16,7 @@ test('v124 keeps the existing visible push handler and adds local receipt teleme
   assert.match(source, /url\.pathname===new URL\('\.\/push-check\.html',self\.registration\.scope\)\.pathname\)return/);
 });
 
-test('diagnostic page is separate from app navigation and exposes no subscription secrets', async () => {
+test('diagnostic page remains independently accessible without leaking credentials', async () => {
   const html = await read('push-check.html');
   const client = await read('push-check.js');
   assert.match(html, /push-check\.js\?v=124/);
@@ -32,12 +32,12 @@ test('diagnostic page is separate from app navigation and exposes no subscriptio
   assert.doesNotMatch(client, /unsubscribe\(|\.delete\(\)/);
 });
 
-test('iPhone opens diagnosis inside installed SEVER instead of Safari storage', async () => {
+test('ordinary iPhone settings have no subscription diagnostic link', async () => {
   const ios = await read('sever2-ios-push-corefix-v1111.js');
-  assert.match(ios, /function installDiagnosticLink\(\)/);
-  assert.match(ios, /link\.href = '\.\/push-check\.html'/);
-  assert.match(ios, /test\.insertAdjacentElement\('afterend', link\)/);
-  assert.match(ios, /DOMContentLoaded', installDiagnosticLink/);
-  assert.match(ios, /sever:ready', \(\) => \{ void prewarm\(\); installDiagnosticLink\(\); \}/);
+  assert.match(ios, /function removeDiagnosticLink\(\)/);
+  assert.match(ios, /\$\('#severPushDiagnosticLink'\)\?\.remove\(\)/);
+  assert.match(ios, /DOMContentLoaded', removeDiagnosticLink/);
+  assert.match(ios, /sever:ready', \(\) => \{ void prewarm\(\); removeDiagnosticLink\(\); \}/);
+  assert.doesNotMatch(ios, /insertAdjacentElement\('afterend', link\)|link\.textContent\s*=\s*'Проверить доставку/);
   assert.doesNotMatch(ios, /unsubscribe\(/);
 });
