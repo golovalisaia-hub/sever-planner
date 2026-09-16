@@ -60,11 +60,16 @@ test('legacy daily reminder stays retired even when its old persisted flag was e
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().reminders.enabled)).toBe(false);
 });
 
-test('v114 reminder settings are one clear automatic mode on desktop and phone', async ({ page }) => {
-  await expect(page.locator('#settingsNotificationToggle').locator('xpath=ancestor::label[1]')).toContainText('Напоминания о задачах');
-  await expect(page.locator('#settingsNotificationToggle').locator('xpath=ancestor::label[1]')).toContainText('Автоматически по задачам со временем');
+test('v115 settings expose one clear SEVER notification mode on desktop and phone', async ({ page }) => {
+  const row = page.locator('#settingsNotificationToggle').locator('xpath=ancestor::label[1]');
+  await expect(row).toContainText('Уведомления SEVER');
+  await expect(row).toContainText('Ритм дня, задачи и привычки');
   await expect(page.locator('.sever-reminder-note')).toContainText('SEVER напомнит сам');
-  await expect(page.locator('.sever-reminder-note')).toContainText('За день — чтобы подготовиться. За 15 минут — чтобы начать.');
+  await expect(page.locator('.sever-reminder-note')).toContainText('Утром — план дня');
+  await expect(page.locator('.sever-reminder-note')).toContainText('днём — один следующий шаг');
+  await expect(page.locator('.sever-reminder-note')).toContainText('вечером — спокойное завершение');
+  await expect(page.locator('.sever-reminder-note')).toContainText('Привычки входят в общий ритм');
+  await expect(page.locator('.sever-reminder-note')).toContainText('за день и за 15 минут');
   await expect(page.locator('#severReminderDayBefore')).toHaveCount(0);
   await expect(page.locator('#severReminderFifteen')).toHaveCount(0);
 
@@ -84,7 +89,7 @@ test('v114 reminder settings are one clear automatic mode on desktop and phone',
   expect(geometry.noteWidth).toBeLessThanOrEqual(geometry.optionsWidth + 1);
 });
 
-test('v114 migrates old per-kind choices to automatic defaults without enabling push by itself', async ({ page }) => {
+test('v115 keeps automatic exact-task defaults without enabling push by itself', async ({ page }) => {
   const master = page.locator('#settingsNotificationToggle');
   await expect(master).not.toBeChecked();
 
@@ -97,8 +102,8 @@ test('v114 migrates old per-kind choices to automatic defaults without enabling 
   expect(prefs.dayBefore).toBe(true);
   expect(prefs.fifteenMinutes).toBe(true);
   expect(prefs.automatic).toBe(true);
-  expect(prefs.mode).toBe('automatic-v114');
-  expect(prefs.version).toBe('v114');
+  expect(prefs.mode).toBe('rhythm-v115');
+  expect(prefs.version).toBe('v115');
 
   // Reproduce the old phone mirror race: writes to the retired hidden source
   // must never turn the visible push master on.
