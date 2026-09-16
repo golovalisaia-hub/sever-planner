@@ -112,7 +112,7 @@ test('installed current release serves planner, Notes, progress, onboarding and 
     ['sever2-usability-v84.js?v=old','cors','./sever2-usability-v84.js?v=84'],
     ['sever2-interaction-polish.css?v=old','cors','./sever2-interaction-polish.css?v=103'],
     ['sever2-missed-tasks-v106.css?v=old','cors','./sever2-missed-tasks-v106.css?v=106'],
-    ['sever2-interaction-polish.js?v=old','cors','./sever2-interaction-polish.js?v=109'],
+    ['sever2-interaction-polish.js?v=old','cors','./sever2-interaction-polish.js?v=113'],
     ['sever2-progress-habits-v109.css?v=old','cors','./sever2-progress-habits-v109.css?v=109'],
     ['sever2-progress-habits-v109.js?v=old','cors','./sever2-progress-habits-v109.js?v=109'],
     ['sever2-onboarding-v110.css?v=old','cors','./sever2-onboarding-v110.css?v=110'],
