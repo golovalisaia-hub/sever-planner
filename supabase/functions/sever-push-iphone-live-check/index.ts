@@ -29,6 +29,23 @@ function providerReason(error:unknown){
     return typeof reason==='string'&&reasons.has(reason)?reason:'UNCLASSIFIED';
   }catch{return 'UNCLASSIFIED';}
 }
+type Device={id:string;endpoint:string;p256dh:string;auth:string;user_agent:string|null;last_seen_at:string|null};
+function chooseIphone(subscriptions:Device[]):Device|null{
+  // Do not silently pick one among equally active devices or touch another
+  // installation's subscription. The account currently has an older iPhone
+  // record, so a strict one-Apple-only condition would reject a legitimate test.
+  const apple=subscriptions.filter(item=>isAppleEndpoint(item.endpoint)&&/iPhone/i.test(item.user_agent||''));
+  if(apple.length<1||apple.length>2) return null;
+  const sorted=apple.sort((a,b)=>Date.parse(b.last_seen_at||'')-Date.parse(a.last_seen_at||''));
+  const newest=Date.parse(sorted[0].last_seen_at||'');
+  const now=Date.now();
+  if(!Number.isFinite(newest)||newest>now+300000||now-newest>86400000) return null;
+  if(sorted.length===2){
+    const older=Date.parse(sorted[1].last_seen_at||'');
+    if(!Number.isFinite(older)||newest-older<1800000) return null;
+  }
+  return sorted[0];
+}
 export default {
   async fetch(req:Request):Promise<Response>{
     if(req.method!=='POST') return reply({error:'METHOD_NOT_ALLOWED'},405);
@@ -44,12 +61,11 @@ export default {
 
     const owners=await admin.from('profiles').select('id').eq('role','owner').limit(2);
     if(owners.error||owners.data?.length!==1) return reply({error:'OWNER_SCOPE'},409);
-    const subs=await admin.from('push_subscriptions').select('id,endpoint,p256dh,auth')
-      .eq('user_id',owners.data[0].id).eq('enabled',true).order('created_at',{ascending:true}).limit(4);
-    if(subs.error) return reply({error:'DEVICE_SCOPE'},409);
-    const apple=subs.data?.filter(item=>isAppleEndpoint(item.endpoint))||[];
-    if(apple.length!==1) return reply({error:'APPLE_SCOPE'},409);
-    const device=apple[0];
+    const subs=await admin.from('push_subscriptions').select('id,endpoint,p256dh,auth,user_agent,last_seen_at')
+      .eq('user_id',owners.data[0].id).eq('enabled',true).order('last_seen_at',{ascending:false}).limit(5);
+    if(subs.error||!subs.data||subs.data.length>4) return reply({error:'DEVICE_SCOPE'},409);
+    const device=chooseIphone(subs.data as Device[]);
+    if(!device) return reply({error:'APPLE_SCOPE'},409);
 
     const claim=await admin.from(TABLE).insert({subscription_id:device.id,status:'claimed'})
       .select('subscription_id').single();
