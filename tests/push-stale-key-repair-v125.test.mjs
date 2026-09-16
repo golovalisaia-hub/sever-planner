@@ -26,7 +26,7 @@ function harness({stale=true, unknown=false, auth=true, disabledError=false, uns
   const client={
     auth:{async getUser(){recorded.push('getUser');return auth?{data:{user:{id:'signed-in-owner'}},error:null}:{data:{user:null},error:{code:'NO_SESSION'}}}},
     from(name){assert.equal(name,'push_subscriptions');return {
-      update(value){assert.deepEqual(value,{enabled:false});return rows('disable',disabledError)},
+      update(value){assert.equal(value?.enabled,false);assert.deepEqual(Object.keys(value),['enabled']);return rows('disable',disabledError)},
       delete(){return rows('delete')}
     }}
   };
