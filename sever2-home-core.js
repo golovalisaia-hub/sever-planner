@@ -303,7 +303,8 @@
     new MutationObserver(scheduleRender).observe(view, { attributes: true, attributeFilter: ['class'] });
     window.addEventListener('sever:ready', scheduleRender);
     window.addEventListener('focus', scheduleRender);
-    document.documentElement.dataset.severHomeCore = 'v116';
+    document.documentElement.dataset.severHomeCore = 'ready';
+    document.documentElement.dataset.severHomeCoreVersion = 'v116';
     render();
     return true;
   }
