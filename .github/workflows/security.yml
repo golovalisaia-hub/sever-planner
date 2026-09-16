@@ -1,7 +1,13 @@
 name: Security and regression tests
 on:
   push:
+    branches: [main]
   pull_request:
+# Branch pushes are validated by their PR; main retains its independent post-merge run.
+# New commits supersede old runs of the same PR, never another workflow or main.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 permissions:
   contents: read
 jobs:
