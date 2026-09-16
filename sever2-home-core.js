@@ -45,6 +45,22 @@
     return Number(a.createdAt || 0) - Number(b.createdAt || 0);
   }
 
+  function taskTimeMinutes(task) {
+    const match = /^(\d{1,2}):(\d{2})/.exec(String(task?.time || ''));
+    if (!match) return null;
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    if (hours > 23 || minutes > 59) return null;
+    return hours * 60 + minutes;
+  }
+
+  function isTaskActionableNow(task, now = new Date()) {
+    const scheduled = taskTimeMinutes(task);
+    if (scheduled === null) return true;
+    const current = now.getHours() * 60 + now.getMinutes();
+    return scheduled <= current + 60;
+  }
+
   function taskMeta(task) {
     const parts = [];
     if (task.challenge) parts.push('Цель');
@@ -148,9 +164,10 @@
     const completedHabits = habits.length - pendingHabits.length;
     const inbox = inboxTasks();
     const minutes = plannedMinutes(pending);
-    const nextTask = pending[0] || null;
+    const actionableTask = pending.find(task => isTaskActionableNow(task)) || null;
+    const nextTask = actionableTask || (!pendingHabits.length ? (pending[0] || null) : null);
     const nextHabit = !nextTask ? (pendingHabits[0] || null) : null;
-    const followUps = pending.slice(1);
+    const followUps = pending.filter(task => task.id !== nextTask?.id);
     const totalUnits = items.length + habits.length;
     const doneUnits = completedTasks + completedHabits;
     const remainingUnits = pending.length + pendingHabits.length;
@@ -162,6 +179,7 @@
     const meta = root.querySelector('[data-home-now-meta]');
     const focus = root.querySelector('[data-home-action="focus"]');
     const habit = root.querySelector('[data-home-action="habit"]');
+    const inboxPrimary = root.querySelector('[data-home-action="inbox-primary"]');
     const create = root.querySelector('[data-home-action="create"]');
     const planSummary = root.querySelector('[data-home-plan-summary]');
     const taskActions = [...root.querySelectorAll('[data-home-action="tasks"]')];
@@ -169,6 +187,7 @@
     phaseLabel.textContent = phase.label;
     focus.classList.add('hidden');
     habit.classList.add('hidden');
+    inboxPrimary.classList.add('hidden');
     create.classList.add('hidden');
     focus.dataset.taskId = '';
     focus.removeAttribute('aria-label');
@@ -186,12 +205,16 @@
         ? `Привычка на сегодня · ${completedHabits} из ${habits.length} уже отмечено`
         : 'Привычка на сегодня';
       habit.classList.remove('hidden');
-      habit.querySelector('span').textContent = 'Открыть привычки';
       root.dataset.homeState = 'habit';
     } else if (totalUnits > 0) {
       title.textContent = 'День закрыт';
       meta.textContent = 'Всё запланированное на сегодня отмечено. Отдых тоже часть ритма.';
       root.dataset.homeState = 'complete';
+    } else if (inbox.length) {
+      title.textContent = 'Разберём входящие';
+      meta.textContent = `${inbox.length} ${inbox.length === 1 ? 'задача ждёт' : inbox.length < 5 ? 'задачи ждут' : 'задач ждут'} даты или решения.`;
+      inboxPrimary.classList.remove('hidden');
+      root.dataset.homeState = 'inbox';
     } else {
       title.textContent = 'Свободный день';
       meta.textContent = 'Добавь только то, что действительно важно.';
@@ -237,6 +260,7 @@
           <div class="sever2-home-now-actions">
             <button type="button" class="primary" data-home-action="focus">${svg.play}<span>Начать фокус</span></button>
             <button type="button" class="primary hidden" data-home-action="habit">${svg.habit}<span>Открыть привычки</span></button>
+            <button type="button" class="primary hidden" data-home-action="inbox-primary">${svg.inbox}<span>Разобрать входящие</span></button>
             <button type="button" class="primary hidden" data-home-action="create">${svg.plus}<span>Добавить задачу</span></button>
           </div>
         </div>
@@ -268,7 +292,7 @@
       const action = button.dataset.homeAction;
       if (action === 'create') openCreate();
       else if (action === 'tasks') goToTasks();
-      else if (action === 'inbox') goInbox();
+      else if (action === 'inbox' || action === 'inbox-primary') goInbox();
       else if (action === 'habit') goHabits();
       else if (action === 'focus') startFocus(button.dataset.taskId);
     });
