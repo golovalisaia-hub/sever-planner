@@ -2,6 +2,8 @@ import webpush from 'npm:web-push@3.6.7';
 import { createClient } from 'npm:@supabase/supabase-js@2.57.4';
 
 type ReminderKind = 'day_before' | 'fifteen_minutes';
+type RhythmKind = 'morning' | 'afternoon' | 'evening';
+
 type PushJob = {
   delivery_id:number;
   subscription_id:string;
@@ -19,6 +21,28 @@ type PushJob = {
   reminder_kind:ReminderKind;
   due_at:string;
 };
+
+type RhythmJob = {
+  delivery_id:number;
+  subscription_id:string;
+  endpoint:string;
+  p256dh:string;
+  auth:string;
+  user_id:string;
+  timezone:string;
+  rhythm_kind:RhythmKind;
+  local_date:string;
+  due_at:string;
+  total_tasks:number;
+  pending_tasks:number;
+  priority_tasks:number;
+  next_task_title?:string | null;
+  total_habits:number;
+  completed_habits:number;
+  pending_habits:number;
+  next_habit_title?:string | null;
+};
+
 type PushGroup = { key:string; jobs:PushJob[] };
 
 type PushPayload = {
@@ -30,6 +54,15 @@ type PushPayload = {
   taskId?:string;
   reminderKind:ReminderKind;
   count?:number;
+};
+
+type RhythmPayload = {
+  title:string;
+  body:string;
+  tag:string;
+  topic:string;
+  url:string;
+  rhythmKind:RhythmKind;
 };
 
 const json = (body:unknown, status=200) => new Response(JSON.stringify(body), {
@@ -62,6 +95,12 @@ function pluralTasks(count:number){
   if(mod10===1&&mod100!==11)return `${count} задача`;
   if(mod10>=2&&mod10<=4&&(mod100<12||mod100>14))return `${count} задачи`;
   return `${count} задач`;
+}
+function pluralHabits(count:number){
+  const mod10=count%10,mod100=count%100;
+  if(mod10===1&&mod100!==11)return `${count} привычка`;
+  if(mod10>=2&&mod10<=4&&(mod100<12||mod100>14))return `${count} привычки`;
+  return `${count} привычек`;
 }
 
 function taskKind(job:PushJob){
@@ -195,6 +234,98 @@ function payloadFor(group:PushGroup):PushPayload{
   };
 }
 
+function remainingSummary(job:RhythmJob){
+  const parts:string[]=[];
+  if(Number(job.pending_tasks)>0) parts.push(pluralTasks(Number(job.pending_tasks)));
+  if(Number(job.pending_habits)>0) parts.push(pluralHabits(Number(job.pending_habits)));
+  return parts.join(' · ');
+}
+
+function nextStep(job:RhythmJob){
+  const task=clip(normalize(job.next_task_title),34);
+  const habit=clip(normalize(job.next_habit_title),34);
+  if(task) return Number(job.priority_tasks)>0
+    ? `Сначала важное: «${task}».`
+    : `Следующий шаг: «${task}».`;
+  if(habit) return `Можно начать с привычки «${habit}».`;
+  return '';
+}
+
+function rhythmPayloadFor(job:RhythmJob):RhythmPayload{
+  const pending=remainingSummary(job);
+  const step=nextStep(job);
+  const seed=`${job.subscription_id}:${job.rhythm_kind}:${job.local_date}`;
+
+  if(job.rhythm_kind==='morning'){
+    const body=stablePick([
+      `${pending}. ${step}`,
+      `${pending}. Один спокойный шаг задаст ритм дню. ${step}`,
+      `${pending}. Не нужно охватывать всё сразу. ${step}`
+    ],seed).replace(/\s+/g,' ').trim();
+    return {
+      title:'Старт дня',
+      body,
+      tag:`sever-rhythm-morning-${job.local_date}`,
+      topic:topicFor(seed),
+      url:'./?view=today',
+      rhythmKind:'morning'
+    };
+  }
+
+  if(job.rhythm_kind==='afternoon'){
+    const habitProgress=Number(job.total_habits)>0 && Number(job.completed_habits)>0
+      ? `${job.completed_habits} из ${job.total_habits} привычек уже сделаны. `
+      : '';
+    const body=stablePick([
+      `${habitProgress}${pending} ещё на сегодня. ${step}`,
+      `${habitProgress}День ещё идёт: ${pending}. Выбери один следующий шаг. ${step}`,
+      `${habitProgress}${pending}. Вернись к одному делу — остальное подождёт. ${step}`
+    ],seed).replace(/\s+/g,' ').trim();
+    return {
+      title:'Ритм дня',
+      body,
+      tag:`sever-rhythm-afternoon-${job.local_date}`,
+      topic:topicFor(seed),
+      url:'./?view=today',
+      rhythmKind:'afternoon'
+    };
+  }
+
+  if(Number(job.pending_tasks)===0 && Number(job.pending_habits)===0){
+    return {
+      title:'День закрыт',
+      body:stablePick([
+        'Всё запланированное на сегодня сделано. Хороший ритм — завтра продолжим.',
+        'На сегодня всё закрыто. Можно спокойно завершать день.',
+        'День собран: задачи и привычки отмечены. Отдых тоже часть ритма.'
+      ],seed),
+      tag:`sever-rhythm-evening-${job.local_date}`,
+      topic:topicFor(seed),
+      url:'./?view=progress',
+      rhythmKind:'evening'
+    };
+  }
+
+  const body=stablePick([
+    `Осталось ${pending}. Выбери один небольшой шаг; остальное можно перенести осознанно.`,
+    `Осталось ${pending}. Не нужно догонять всё — закрой одно важное или перенеси остальное.`,
+    `${pending} ещё открыты. Один спокойный шаг — и день можно завершать без суеты.`
+  ],seed).replace(/\s+/g,' ').trim();
+  return {
+    title:'Закроем день спокойно',
+    body,
+    tag:`sever-rhythm-evening-${job.local_date}`,
+    topic:topicFor(seed),
+    url:'./?view=today',
+    rhythmKind:'evening'
+  };
+}
+
+function rhythmTtl(kind:RhythmKind){
+  if(kind==='evening') return 10800;
+  return 14400;
+}
+
 export default {
   async fetch(req:Request):Promise<Response>{
     if(req.method!=='POST') return json({error:'METHOD_NOT_ALLOWED'},405);
@@ -250,6 +381,53 @@ export default {
       }
     }
 
-    return json({ok:true,claimed:jobs.length,groups:groups.length,sent,failed,retired,copyVersion:'v96'});
+    // v115 is additive. If the migration has not reached production yet, exact-time
+    // task reminders must keep working instead of failing the whole dispatcher.
+    const rhythmClaim=await admin.rpc('sever_claim_due_rhythm_pushes_v115',{p_limit:120});
+    const rhythmJobs=(rhythmClaim.error?[]:(rhythmClaim.data||[])) as RhythmJob[];
+    const rhythmClaimError=rhythmClaim.error?'CLAIM_FAILED':null;
+    if(rhythmClaim.error) console.warn('SEVER: day rhythm claim unavailable', rhythmClaim.error.code||'UNKNOWN');
+
+    for(const job of rhythmJobs){
+      const payload=rhythmPayloadFor(job);
+      try{
+        await webpush.sendNotification(
+          {endpoint:job.endpoint,keys:{p256dh:job.p256dh,auth:job.auth}},
+          JSON.stringify(payload),
+          {
+            TTL:rhythmTtl(job.rhythm_kind),
+            urgency:'normal',
+            topic:payload.topic
+          }
+        );
+        await admin.from('push_rhythm_deliveries')
+          .update({status:'sent',sent_at:new Date().toISOString(),error_code:null})
+          .eq('id',job.delivery_id);
+        sent+=1;
+      }catch(error:any){
+        const statusCode=Number(error?.statusCode||error?.status||0);
+        const code=statusCode?`HTTP_${statusCode}`:'SEND_FAILED';
+        await admin.from('push_rhythm_deliveries')
+          .update({status:'failed',error_code:code})
+          .eq('id',job.delivery_id);
+        if(statusCode===404||statusCode===410){
+          await admin.from('push_subscriptions').update({enabled:false,updated_at:new Date().toISOString()}).eq('id',job.subscription_id);
+          retired+=1;
+        }
+        failed+=1;
+      }
+    }
+
+    return json({
+      ok:true,
+      claimed:jobs.length,
+      groups:groups.length,
+      rhythmClaimed:rhythmJobs.length,
+      rhythmClaimError,
+      sent,
+      failed,
+      retired,
+      copyVersion:'v115'
+    });
   }
 };
