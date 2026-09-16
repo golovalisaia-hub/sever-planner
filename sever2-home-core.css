@@ -125,6 +125,8 @@ html[data-theme="black"] .sever2-home-now-actions button{color:#06110d}
 .sever2-home-plan-arrow{display:grid;width:32px;height:32px;place-items:center;border-radius:9px;color:var(--text-secondary,var(--muted));transition:transform .16s ease,background-color .16s ease}
 .sever2-home-plan-arrow svg{width:16px;height:16px}
 .sever2-home-plan[open] .sever2-home-plan-arrow{transform:rotate(90deg);background:var(--surface-2,var(--panel2))}
+/* Author-level display:grid must not override the browser's closed-details hiding rule. */
+#todayView .sever2-home-plan:not([open]) > .sever2-home-plan-body{display:none!important}
 .sever2-home-plan-body{display:grid;gap:9px;padding:0 12px 12px}
 
 .sever2-home-stats{
