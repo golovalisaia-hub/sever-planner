@@ -2,10 +2,12 @@ const { test, expect } = require('@playwright/test');
 
 async function seed(page) {
   await page.addInitScript(() => {
-    const today = new Date().toLocaleDateString('sv-SE');
+    const now = new Date();
+    const today = now.toLocaleDateString('sv-SE');
+    const currentTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
     localStorage.setItem('sever-anonymous-state-v1', JSON.stringify({
       version: 11, onboarded: true, tasks: [
-        { id:'t1', title:'Первое дело', date:today, time:'10:00', duration:30, category:'Личное', priority:true, challenge:false, completed:false, createdAt:Date.now(), updatedAt:Date.now() },
+        { id:'t1', title:'Первое дело', date:today, time:currentTime, duration:30, category:'Личное', priority:true, challenge:false, completed:false, createdAt:Date.now(), updatedAt:Date.now() },
         { id:'t2', title:'Второе дело', date:today, time:'', duration:15, category:'Работа', priority:false, challenge:false, completed:false, createdAt:Date.now(), updatedAt:Date.now() },
         { id:'t3', title:'Дело без даты', date:'9999-12-31', time:'', duration:20, category:'Личное', priority:false, challenge:false, completed:false, createdAt:Date.now(), updatedAt:Date.now() }
       ], notes:[], folders:[], habits:[], checks:{}, taskMemory:[], profile:{name:''}, appearance:{theme:'light',animations:'off',reduceEffects:true}, focusSessions:[], stats:{focusMs:0,sessions:0}, reminders:{enabled:false,time:'19:00',lastDate:''}, security:{protectedNotesAutoLockMinutes:5,lockInBackground:true}
@@ -25,6 +27,12 @@ async function waitHomeCore(page) {
   await expect(page.locator('#sever2HomeCore')).toBeVisible();
 }
 
+async function openHomePlan(page) {
+  const plan = page.locator('#sever2HomeCore [data-home-plan]');
+  if (!(await plan.getAttribute('open'))) await plan.locator('> summary').click();
+  await expect(plan).toHaveAttribute('open', '');
+}
+
 test('home gets one compact workload summary with one-click focus', async ({ page }) => {
   await seed(page);
   await page.goto('/');
@@ -42,6 +50,7 @@ test('home surfaces Inbox count without mixing unscheduled tasks into today', as
   await seed(page);
   await page.goto('/');
   await waitHomeCore(page);
+  await openHomePlan(page);
   const inbox = page.locator('#sever2HomeCore [data-home-inbox]');
   await expect(inbox).toBeVisible();
   await expect(inbox.locator('[data-home-inbox-count]')).toHaveText('1');
@@ -90,6 +99,7 @@ test('quick create can save a task without a date and persistence survives rende
   await page.locator('#quickCaptureForm button[type="submit"]').click();
   await expect.poll(() => page.evaluate(() => window.SeverApp.getState().tasks.find(task => task.title === 'Новая входящая задача')?.date)).toBe('9999-12-31');
   await expect(page.locator('#quickAddDialog')).toBeHidden();
+  await openHomePlan(page);
   await expect(page.locator('#sever2HomeCore [data-home-inbox]')).toBeVisible();
   await expect(page.locator('#sever2HomeCore [data-home-inbox-count]')).toHaveText('2');
   await expect(page.locator('#todayTasks')).not.toContainText('Новая входящая задача');
