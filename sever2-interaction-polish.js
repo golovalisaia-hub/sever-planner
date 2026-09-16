@@ -11,6 +11,9 @@
   let calendarQueued = false;
   let checksQueued = false;
   let habitChecksQueued = false;
+  let taskPointerSequence = 0;
+  let taskConsumedSequence = 0;
+  let taskPointerAt = -Infinity;
   const pendingTaskCards = new Set();
   const pendingHabitButtons = new Set();
 
@@ -168,6 +171,56 @@
     document.head.appendChild(style);
   }
 
+  function installTaskInputStyles() {
+    if (document.querySelector('style[data-sever-task-input-v113]')) return;
+    const style = document.createElement('style');
+    style.dataset.severTaskInputV113 = 'true';
+    style.textContent = `
+      .task,
+      .task .check,
+      .task .task-open,
+      .task .edit,
+      .task .task-name,
+      .task .task-meta {
+        -webkit-user-select: none !important;
+        user-select: none !important;
+        -webkit-touch-callout: none !important;
+      }
+      .task .check,
+      .task .task-open,
+      .task .edit {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function taskCheckFromEvent(event) {
+    return event.target instanceof Element ? event.target.closest('.task .check') : null;
+  }
+
+  function guardTaskPointerDown(event) {
+    if (!taskCheckFromEvent(event)) return;
+    if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
+    taskPointerSequence += 1;
+    taskPointerAt = performance.now();
+    const selection = window.getSelection?.();
+    if (selection?.rangeCount) selection.removeAllRanges();
+  }
+
+  function guardTaskClick(event) {
+    if (!taskCheckFromEvent(event)) return;
+    const fromRecentPointer = taskPointerSequence > 0 && performance.now() - taskPointerAt < 900;
+    if (!fromRecentPointer) return;
+    if (taskConsumedSequence === taskPointerSequence) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return;
+    }
+    taskConsumedSequence = taskPointerSequence;
+  }
+
   function taskSummaryFor(date) {
     const tasks = (state().tasks || []).filter(task => task?.date === date);
     const done = tasks.filter(task => task.completed).length;
@@ -246,10 +299,19 @@
     node.querySelectorAll?.('.task').forEach(card => pendingTaskCards.add(card));
   }
 
+  function hardenTaskCheck(check) {
+    if (!(check instanceof HTMLElement) || check.dataset.severTaskInput === 'v113') return;
+    check.dataset.severTaskInput = 'v113';
+    check.addEventListener('click', event => event.stopPropagation());
+    check.addEventListener('selectstart', event => event.preventDefault());
+    check.addEventListener('contextmenu', event => event.preventDefault());
+  }
+
   function syncTaskCard(task) {
     if (!task?.isConnected) return;
     const check = task.querySelector('.check');
     if (!check) return;
+    hardenTaskCheck(check);
     const done = task.classList.contains('done');
     check.setAttribute('aria-pressed', String(done));
     check.setAttribute('aria-label', done ? 'Отметить задачу как невыполненную' : 'Отметить задачу выполненной');
@@ -337,10 +399,11 @@
 
   function boot() {
     if (!window.SeverApp?.getState || !$('#calendar') || !$('#todayTasks') || !$('#habitList')) return false;
+    installTaskInputStyles();
     installObservers();
     scheduleCalendar();
     document.documentElement.dataset.severInteractionPolish = 'ready';
-    document.documentElement.dataset.severInteractionPolishVersion = 'v109';
+    document.documentElement.dataset.severInteractionPolishVersion = 'v113';
     return true;
   }
 
@@ -354,6 +417,8 @@
     bootTimer = setTimeout(scheduleBoot, 50);
   }
 
+  document.addEventListener('pointerdown', guardTaskPointerDown, true);
+  document.addEventListener('click', guardTaskClick, true);
   document.addEventListener('submit', guardMoneyLifecycleSubmit, true);
   document.addEventListener('click', guardMoneyLifecycleDelete, true);
   document.documentElement.dataset.severMoneyLifecycle = 'v96.3';

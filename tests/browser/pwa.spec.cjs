@@ -104,7 +104,7 @@ test('installed release reloads offline with one complete active asset set', asy
     for (const key of ['severProductivity','severFocusFlow','severEfficiency','severCalendarClarity','severCreateFlow','severHomeCore','severNotesCore','severNotesOrganization','severNotesEditorFlow','severNotesNavigation','severNotesPolish','severMoney','severInteractionPolish','severProgressHabits','severCloudRecovery']) {
       await expect.poll(() => page.evaluate(name => document.documentElement.dataset[name], key)).toBe('ready');
     }
-    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severInteractionPolishVersion)).toBe('v109');
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severInteractionPolishVersion)).toBe('v113');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severProgressHabitsVersion)).toBe('v109');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severOnboarding)).toBe('v110');
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.severFinance)).toBe('v111');
