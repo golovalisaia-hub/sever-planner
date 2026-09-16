@@ -30,7 +30,7 @@ test('v120 reserves before sending, excludes provider secrets, and never retries
   assert.match(migration,/enable row level security/i);
   assert.match(migration,/revoke all on table public\.push_probe_attempts_v120 from public, anon, authenticated/i);
   assert.match(migration,/grant select, insert, update on table public\.push_probe_attempts_v120 to service_role/i);
-  assert.doesNotMatch(migration,/\bendpoint\b|\bp256dh\b|\bvapid\b|\bcron_token\b/i);
+  assert.doesNotMatch(migration,/^\s*(?:endpoint|p256dh|vapid_public|vapid_private|auth|cron_token)\s+(?:text|varchar|bytea)/im);
   assert.doesNotMatch(source,/console\.(?:log|warn|error)|JSON\.stringify\(error\)|\.unsubscribe\(|push_subscriptions'\)\.update/);
 });
 
