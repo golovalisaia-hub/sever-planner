@@ -191,33 +191,20 @@
     })();
   }
 
-  // A link inside the installed PWA is required: opening a URL from another
-  // app can inspect Safari's separate storage instead of SEVER's own device state.
-  function installDiagnosticLink() {
-    if (!isIOS()) return;
-    const test = $('#settingsTestNotification');
-    if (!test || $('#severPushDiagnosticLink')) return;
-    const link = document.createElement('a');
-    link.id = 'severPushDiagnosticLink';
-    link.href = './push-check.html';
-    link.textContent = 'Проверить доставку и подписку →';
-    link.style.display = 'inline-flex';
-    link.style.alignItems = 'center';
-    link.style.minHeight = '44px';
-    link.style.marginTop = '12px';
-    link.style.color = 'inherit';
-    link.style.textDecoration = 'underline';
-    test.insertAdjacentElement('afterend', link);
+  // Keep ordinary settings clean. An obsolete link from an earlier running UI
+  // is removed on boot; the explicit diagnostic URL remains available for support.
+  function removeDiagnosticLink() {
+    $('#severPushDiagnosticLink')?.remove();
   }
 
   if (isIOS()) {
     document.addEventListener('change', interceptEnable, true);
     void prewarm();
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installDiagnosticLink, {once:true});
-    else installDiagnosticLink();
-    window.addEventListener('load', () => { void prewarm(); installDiagnosticLink(); }, { once:true });
-    window.addEventListener('sever:ready', () => { void prewarm(); installDiagnosticLink(); });
-    window.addEventListener('sever:cloud-ready', () => { void prewarm(); installDiagnosticLink(); });
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', removeDiagnosticLink, {once:true});
+    else removeDiagnosticLink();
+    window.addEventListener('load', () => { void prewarm(); removeDiagnosticLink(); }, { once:true });
+    window.addEventListener('sever:ready', () => { void prewarm(); removeDiagnosticLink(); });
+    window.addEventListener('sever:cloud-ready', () => { void prewarm(); removeDiagnosticLink(); });
   }
 
   document.documentElement.dataset.severIosPushCoreFix = VERSION;
