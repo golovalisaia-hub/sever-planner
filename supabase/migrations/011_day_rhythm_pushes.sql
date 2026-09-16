@@ -19,6 +19,8 @@ create table if not exists public.push_rhythm_deliveries (
 
 create index if not exists push_rhythm_deliveries_status_idx
   on public.push_rhythm_deliveries(status, claimed_at);
+create index if not exists habits_user_active_idx
+  on public.habits(user_id, deleted_at);
 
 alter table public.push_rhythm_deliveries enable row level security;
 revoke all on public.push_rhythm_deliveries from public, anon, authenticated;
@@ -174,10 +176,22 @@ as $$
       c.*,
       greatest(c.total_habits - c.completed_habits, 0)::integer pending_habits
     from context c
-    where
+    where (
       (c.rhythm_kind = 'morning' and (c.pending_tasks > 0 or c.total_habits - c.completed_habits > 0))
       or (c.rhythm_kind = 'afternoon' and (c.pending_tasks > 0 or c.total_habits - c.completed_habits > 0))
       or (c.rhythm_kind = 'evening' and (c.total_tasks > 0 or c.total_habits > 0))
+    )
+      -- One voice at a time: if an exact task reminder has just been claimed or
+      -- sent for this device, skip the general rhythm slot instead of stacking
+      -- a second notification next to it.
+      and not exists (
+        select 1
+        from public.push_deliveries pd
+        where pd.subscription_id = c.subscription_id
+          and pd.status in ('claimed','sent')
+          and pd.due_at >= now() - interval '12 minutes'
+          and pd.due_at <= now() + interval '1 minute'
+      )
     order by c.due_at, c.subscription_id
     limit greatest(1, least(coalesce(p_limit, 100), 500))
   ), inserted as (
