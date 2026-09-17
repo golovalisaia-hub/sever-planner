@@ -7,9 +7,9 @@ import vm from 'node:vm';
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 const RELEASE_CACHE = source.match(/const CACHE = '([^']+)'/)?.[1] || '';
-assert.equal(RELEASE_CACHE, 'sever-v126-push-ui-v1', 'security suite must run against the current v126 atomic release');
+assert.equal(RELEASE_CACHE, 'sever-v127-push-cloud-state-v1', 'security suite must run against the current v127 atomic release');
 
-test('current service worker installs the guarded v126 release assets atomically and removes stale caches', async () => {
+test('current service worker installs the guarded v127 release assets atomically and removes stale caches', async () => {
   const handlers = new Map();
   const deleted = [];
   let cachedAssets = [];
@@ -27,7 +27,7 @@ test('current service worker installs the guarded v126 release assets atomically
       'sever-v82-reminders-desktop-v9','sever-v92-unified-release-v1','sever-v93-complete-release-v1','sever-v94-experience-release-v1',
       'sever-v101-reliability-release-v1','sever-v102-desktop-polish-release-v1','sever-v106-missed-tasks-release-v1',
       'sever-v107-instant-response-release-v1','sever-v108-observer-batching-release-v1','sever-v109-progress-habits-release-v1',
-      'sever-v110-first-run-onboarding-release-v1','sever-v111-push-key-repair-v2', RELEASE_CACHE
+      'sever-v110-first-run-onboarding-release-v1','sever-v111-push-key-repair-v2','sever-v126-push-ui-v1',RELEASE_CACHE
     ],
     delete: async name => { deleted.push(name); return true; }
   };
@@ -44,7 +44,7 @@ test('current service worker installs the guarded v126 release assets atomically
     './sever2-usability-v84.css?v=93','./sever2-usability-v84.js?v=84','./sever2-interaction-polish.css?v=103','./sever2-missed-tasks-v106.css?v=106',
     './sever2-interaction-polish.js?v=109','./sever2-progress-habits-v109.css?v=109','./sever2-progress-habits-v109.js?v=109','./sever2-onboarding-v110.css?v=110',
     './sever2-onboarding-v110.js?v=110','./sever2-notes-org-repair-v95.js?v=111','./sever2-reminders.css?v=86','./sever2-task-reminders.js?v=115','./sever2-task-reminders.js?v=114','./sever2-task-reminders.js?v=82',
-    './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./app.js?v=106','./js/theme-init.js?v=92','./js/sever-ai.js?v=100'
+    './sever2-cloud-recovery.css?v=80','./sever2-cloud-recovery.js?v=80','./app.js?v=106','./js/theme-init.js?v=92','./js/sever-ai.js?v=100','./sever2-ios-push-corefix-v1111.js?v=1111'
   ]) assert.ok(cachedAssets.includes(asset), `missing ${asset}`);
   assert.ok(!cachedAssets.includes('./app.js?v=51'));
   assert.ok(!cachedAssets.includes('./sever2-efficiency.css?v=67'));
@@ -62,7 +62,7 @@ test('current service worker installs the guarded v126 release assets atomically
     'sever-v82-reminders-desktop-v9','sever-v92-unified-release-v1','sever-v93-complete-release-v1','sever-v94-experience-release-v1',
     'sever-v101-reliability-release-v1','sever-v102-desktop-polish-release-v1','sever-v106-missed-tasks-release-v1',
     'sever-v107-instant-response-release-v1','sever-v108-observer-batching-release-v1','sever-v109-progress-habits-release-v1',
-    'sever-v110-first-run-onboarding-release-v1','sever-v111-push-key-repair-v2'
+    'sever-v110-first-run-onboarding-release-v1','sever-v111-push-key-repair-v2','sever-v126-push-ui-v1'
   ]) assert.ok(deleted.includes(stale), `stale cache not deleted: ${stale}`);
   assert.ok(!deleted.includes(RELEASE_CACHE));
   assert.equal(claimed, true);
@@ -81,7 +81,7 @@ test('installed current release serves planner, Notes, progress, onboarding, Fin
   const caches = {
     open: async name => {
       assert.equal(name, RELEASE_CACHE);
-      return { match: async key => { requests.push(key); return { release: 126, key }; } };
+      return { match: async key => { requests.push(key); return { release: 127, key }; } };
     }
   };
   vm.runInNewContext(source, { self, caches, URL, Response, fetch: async () => { network++; throw Error('network must not update a release'); } });
@@ -120,6 +120,7 @@ test('installed current release serves planner, Notes, progress, onboarding, Fin
     ['sever2-notes-org-repair-v95.js?v=old','cors','./sever2-notes-org-repair-v95.js?v=111'],
     ['sever2-reminders.css?v=old','cors','./sever2-reminders.css?v=86'],
     ['sever2-task-reminders.js?v=old','cors','./sever2-task-reminders.js?v=115'],
+    ['sever2-ios-push-corefix-v1111.js?v=old','cors','./sever2-ios-push-corefix-v1111.js?v=1111'],
     ['sever2-cloud-recovery.css?v=old','cors','./sever2-cloud-recovery.css?v=80'],
     ['sever2-cloud-recovery.js?v=old','cors','./sever2-cloud-recovery.js?v=80'],
     ['js/theme-init.js?v=old','cors','./js/theme-init.js?v=92'],

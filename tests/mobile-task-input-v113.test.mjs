@@ -41,7 +41,7 @@ test('rapid action guard still does not debounce deliberate task completion taps
 });
 
 test('installed PWA receives the v113 task input runtime before the legacy v109 alias', () => {
-  assert.match(sw, /const CACHE = 'sever-v126-push-ui-v1'/);
+  assert.match(sw, /const CACHE = 'sever-v127-push-cloud-state-v1'/);
   assert.match(sw, /sever2-interaction-polish\.js\?v=113/);
   assert.match(sw, /v113 hardens iPhone task completion/);
   const current = sw.indexOf('./sever2-interaction-polish.js?v=113');
