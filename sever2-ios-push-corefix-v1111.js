@@ -2,7 +2,7 @@
   'use strict';
 
   const VAPID_PUBLIC_KEY = 'BJebqzKOHHkvVsoNnlt4tJpVcvYWFyI93tcLQgO2JJZyDkQ66UsKscOTZsV9NFqqviSZY26lGapm3S7gCV4GsMM';
-  const VERSION = 'v1111';
+  const VERSION = 'v127';
   const IOS_RE = /iPad|iPhone|iPod/i;
   let registration = null;
   let subscription = null;
@@ -34,7 +34,7 @@
   function syncUi(master, enabled) {
     const current = prefs();
     if (current) current.enabled = Boolean(enabled);
-    if (master) master.checked = Boolean(enabled);
+    if (master) { master.checked = Boolean(enabled); master.indeterminate = false; }
     const day = $('#severReminderDayBefore');
     const fifteen = $('#severReminderFifteen');
     if (day) day.disabled = !enabled;
@@ -101,13 +101,14 @@
 
     subscription = value;
     syncUi(master, true);
+    delete document.documentElement.dataset.severIosPushCloud;
     await window.SeverApp?.persist?.().catch?.(() => {});
     status('Включено на iPhone · Web Push подключён.', 'ok');
     window.dispatchEvent(new CustomEvent('sever:push-connected', { detail:{ platform:'ios', version:VERSION } }));
   }
 
   function errorCode(error) {
-    return String(error?.name || error?.code || error?.message || 'UNKNOWN').slice(0,80);
+    return String(error?.code || error?.name || error?.message || 'UNKNOWN').slice(0,80);
   }
 
   function errorText(error) {
@@ -115,7 +116,7 @@
     if (code === 'NotAllowedError') return ['iPhone не разрешил уведомления. Проверьте Настройки iOS → Уведомления → SEVER.', code];
     if (code === 'InvalidStateError') return ['iPhone хранит несовместимую push-подписку. Полностью закройте SEVER, откройте снова и повторите.', code];
     if (code === 'AbortError') return ['iOS не смог создать push-подписку. Полностью закройте SEVER, откройте с экрана «Домой» и повторите.', code];
-    if (code === 'AUTH_REQUIRED') return ['Push создан, но аккаунт SEVER не подтверждён. Перезайдите в аккаунт и включите уведомления ещё раз.', code];
+    if (code === 'AUTH_REQUIRED') return ['Push создан, но аккаунт SEVER не подтверждён. Проверьте вход и повторите.', code];
     if (code === 'CLOUD_UNAVAILABLE') return ['Push создан, но облако SEVER недоступно. Проверьте интернет и повторите.', code];
     return [`Не удалось подключить Web Push на iPhone. Код: ${code}.`, code];
   }
@@ -126,6 +127,7 @@
 
     event.preventDefault();
     event.stopImmediatePropagation();
+    const wasEnabled = prefs()?.enabled === true;
     master.disabled = true;
 
     if (!isStandalone()) {
@@ -147,8 +149,8 @@
       return;
     }
     if (!registration) {
-      syncUi(master, false);
-      status('SEVER ещё подключает системный Push. Подождите секунду и включите уведомления ещё раз.', 'warning', 'SW_NOT_READY');
+      syncUi(master, wasEnabled);
+      status('SEVER ещё подключает системный Push. Откройте настройки повторно и включите уведомления.', 'warning', 'SW_NOT_READY');
       master.disabled = false;
       void prewarm();
       return;
@@ -172,15 +174,26 @@
     }
 
     void (async () => {
+      let localSubscription = null;
       try {
         const value = await subscribePromise;
+        localSubscription = value;
+        subscription = value;
         await saveSubscription(value, master);
       } catch (error) {
-        console.warn('SEVER: document-level iOS Web Push failed', error);
-        const [message, code] = errorText(error);
-        syncUi(master, false);
-        status(message, 'warning', code);
-        await window.SeverApp?.persist?.().catch?.(() => {});
+        console.warn('SEVER: iOS push registration failed', errorCode(error));
+        if (localSubscription) {
+          // The device subscription exists; an unconfirmed cloud write is NOT
+          // evidence that iOS unsubscribed or that an older saved row was disabled.
+          syncUi(master, wasEnabled);
+          master.indeterminate = !wasEnabled;
+          document.documentElement.dataset.severIosPushCloud = 'unconfirmed';
+          status('Подписка на iPhone существует, но связь с облаком не подтверждена. Проверьте интернет и повторите включение. Не удаляйте приложение.', 'warning', 'CLOUD_UNCONFIRMED');
+        } else {
+          const [message, code] = errorText(error);
+          syncUi(master, false);
+          status(message, 'warning', code);
+        }
       } finally {
         master.disabled = false;
       }
