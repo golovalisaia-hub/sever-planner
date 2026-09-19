@@ -11,6 +11,7 @@ import { TavroStore, type Account } from './store.ts';
 import { previewPayload, runCapture, MAX_PHRASE_CHARS } from './capture.ts';
 import { parseStoredItems } from './ai/schema.ts';
 import { aiConfigured, providerFromEnv } from './ai/provider.ts';
+import { MAX_VOICE_BYTES, MAX_VOICE_SECONDS, assertVoiceWithinLimits, speechConfigured, speechFromEnv } from './ai/speech.ts';
 import { answerQuestion } from './search.ts';
 import { PLANS, fairUseNotice, planOf, sellablePlans, starsFor } from './billing.ts';
 import { createInvoice } from './payments.ts';
@@ -24,11 +25,16 @@ export type ApiDeps = {
   env: (name: string) => string | undefined;
   telegramFactory?: (token: string) => TelegramApi;
   providerFactory?: typeof providerFromEnv;
+  speechFactory?: typeof speechFromEnv;
 };
+
+/** Base64 audio, bounded before it is decoded so a huge body cannot be expanded. */
+const MAX_AUDIO_BASE64 = Math.ceil(MAX_VOICE_BYTES * 4 / 3) + 1024;
 
 export function createApiHandler(deps: ApiDeps) {
   const env = deps.env;
   const providerFactory = deps.providerFactory || providerFromEnv;
+  const speechFactory = deps.speechFactory || speechFromEnv;
 
   const allowedOrigins = (env('TAVRO_APP_ORIGINS') || 'https://golovalisaia-hub.github.io')
     .split(',').map(origin => origin.trim()).filter(Boolean);
@@ -59,7 +65,9 @@ export function createApiHandler(deps: ApiDeps) {
       });
       const store = new TavroStore(db);
 
-      const body = request.method === 'POST' ? await readJson(request) : {};
+      const body = request.method === 'POST'
+        ? await readJson(request, route === '/capture/voice' ? MAX_AUDIO_BASE64 : MAX_BODY_BYTES)
+        : {};
 
       // ---- quick capture: its own scoped credential, nothing else allowed ----
       if (route === '/quick/capture') {
@@ -136,6 +144,42 @@ export function createApiHandler(deps: ApiDeps) {
       }
 
       if (request.method !== 'POST') fail('METHOD_NOT_ALLOWED', 'Метод не поддерживается.', 405);
+
+      if (route === '/capture/voice') {
+        await enforceRate(db, account.id, 'capture', 30, 3600);
+        if (!speechConfigured(env)) fail('SPEECH_NOT_CONFIGURED', 'Распознавание речи ещё не подключено. Напишите фразу текстом — разберу так же.', 503);
+        const durationSeconds = integer(body.durationSeconds, 1, MAX_VOICE_SECONDS);
+        const encoded = text(body.audio, MAX_AUDIO_BASE64, { field: 'запись' });
+        const audio = decodeBase64(encoded);
+        assertVoiceWithinLimits(durationSeconds, audio.length);
+
+        const entitlement = await store.entitlement(account.id);
+        const { claimAiAction, releaseAiAction } = await import('./capture.ts');
+        const requestId = crypto.randomUUID();
+        const quota = await claimAiAction(db, account, entitlement, requestId, 'transcribe');
+        if (!quota.allowed) fail('QUOTA_EXCEEDED', `Дневной лимит ИИ исчерпан: ${quota.limit} в сутки.`, 429);
+
+        let transcript: string;
+        try {
+          const recognised = await speechFactory(env).transcribe({
+            audio, mimeType: text(body.mimeType || 'audio/webm', 80, { field: 'формат' }),
+            durationSeconds, language: 'ru-RU',
+          });
+          transcript = recognised.text;
+          await db.from('tavro_ai_usage').update({ audio_seconds: recognised.seconds, success: true }).eq('request_id', requestId);
+        } catch (error) {
+          await releaseAiAction(db, requestId, error instanceof AppError ? error.code : 'SPEECH_ERROR');
+          throw error;
+        }
+
+        // The transcription already spent this phrase's action; parsing it is
+        // the same user action and is recorded without charging again.
+        const outcome = await runCapture({ db, store, provider: providerFactory(env) }, {
+          account, entitlement, phrase: transcript, source: 'miniapp',
+          requestId: crypto.randomUUID(), transcript, billable: false,
+        });
+        return json({ captureId: outcome.captureId, transcript, preview: previewPayload(outcome.draft) });
+      }
 
       if (route === '/capture') {
         await enforceRate(db, account.id, 'capture', 30, 3600);
@@ -216,12 +260,21 @@ export function createApiHandler(deps: ApiDeps) {
   };
 }
 
-async function readJson(request: Request): Promise<any> {
-  if (Number(request.headers.get('content-length') || 0) > MAX_BODY_BYTES) fail('TOO_LARGE', 'Слишком большой запрос.', 413);
+async function readJson(request: Request, limit = MAX_BODY_BYTES): Promise<any> {
+  if (Number(request.headers.get('content-length') || 0) > limit + 2048) fail('TOO_LARGE', 'Слишком большой запрос.', 413);
   const raw = await request.text();
-  if (raw.length > MAX_BODY_BYTES) fail('TOO_LARGE', 'Слишком большой запрос.', 413);
+  if (raw.length > limit + 2048) fail('TOO_LARGE', 'Слишком большой запрос.', 413);
   if (!raw) return {};
   try { return object(JSON.parse(raw)); } catch (error) { if (error instanceof AppError) throw error; return fail('VALIDATION', 'Некорректный JSON.'); }
+}
+
+function decodeBase64(encoded: string): Uint8Array {
+  try {
+    const binary = atob(encoded.replace(/^data:[^,]*,/, ''));
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+    return bytes;
+  } catch { return fail('VALIDATION', 'Некорректная запись.'); }
 }
 
 function indexList(raw: unknown, length: number): number[] {
