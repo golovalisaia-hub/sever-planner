@@ -59,12 +59,16 @@ async function finishAiAction(db: any, requestId: string, patch: Record<string, 
  */
 export async function runCapture(
   { db, store, provider }: { db: any; store: TavroStore; provider: AIProvider },
-  input: { account: Account; entitlement: Entitlement; phrase: string; source: 'text' | 'voice' | 'photo' | 'miniapp' | 'quick'; requestId: string; transcript?: string | null; chatId?: number | null; signal?: AbortSignal },
+  input: { account: Account; entitlement: Entitlement; phrase: string; source: 'text' | 'voice' | 'photo' | 'miniapp' | 'quick'; requestId: string; transcript?: string | null; chatId?: number | null; signal?: AbortSignal; billable?: boolean },
 ): Promise<CaptureOutcome> {
   const account = input.account;
   const phrase = textField(input.phrase, MAX_PHRASE_CHARS, { field: 'фразу' });
 
-  const quota = await claimAiAction(db, account, input.entitlement, input.requestId, 'capture', provider.name, provider.model);
+  // A voice note already spent this phrase's action on transcription; parsing it
+  // is the same user action, so it is recorded but not charged again.
+  const billable = input.billable !== false;
+  const budget = billable ? input.entitlement : { ...input.entitlement, dailyAiActions: -1 };
+  const quota = await claimAiAction(db, account, budget, input.requestId, 'capture', provider.name, provider.model);
   if (!quota.allowed) {
     fail('QUOTA_EXCEEDED',
       `Дневной лимит ИИ исчерпан: ${quota.limit} ${plural(quota.limit, 'действие', 'действия', 'действий')} в сутки на тарифе ${quota.plan === 'free' ? 'FREE' : 'PRO'}. Записи можно создавать вручную в приложении — планер не ограничен.`,
@@ -98,6 +102,7 @@ export async function runCapture(
     input_tokens: usage.inputTokens,
     output_tokens: usage.outputTokens,
     success: true,
+    billable,
   });
 
   const capture = await store.createCapture(account.id, {

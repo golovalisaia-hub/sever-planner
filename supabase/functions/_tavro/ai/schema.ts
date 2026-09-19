@@ -162,3 +162,40 @@ export function dedupeItems(items: CaptureItem[]): CaptureItem[] {
   }
   return unique;
 }
+
+const STORED_KEYS = ['type', 'title', 'details', 'body', 'date', 'dateSource', 'dateToken', 'time', 'durationMinutes', 'category', 'priority', 'location', 'participants'];
+
+/**
+ * Re-validates a draft read back from the database before it becomes real
+ * records. The row is service-role only, but a draft is still parsed rather than
+ * trusted: a stored shape is data, and the save path is the last gate before a
+ * write.
+ */
+export function parseStoredItems(raw: unknown, today: string): CaptureItem[] {
+  const rows = list(raw ?? [], MAX_ITEMS, 'записи');
+  return rows.map(entry => {
+    const value = object(entry, 'Черновик повреждён.');
+    for (const key of Object.keys(value)) {
+      if (!STORED_KEYS.includes(key)) fail('AI_SCHEMA', 'Черновик повреждён.');
+    }
+    const type = oneOf(value.type, ITEM_TYPES, 'тип записи');
+    const isNoteLike = type === 'note' || type === 'diary' || type === 'meal';
+    const date = value.date === null || value.date === undefined ? null : isDay(value.date);
+    if (date) assertPlausible(date, today);
+    return {
+      type,
+      title: text(value.title, 200, { field: 'название' }),
+      details: value.details === null || value.details === undefined ? null : text(value.details, 2000, { field: 'описание' }),
+      body: isNoteLike ? text(value.body ?? value.title, 4000, { field: 'текст записи' }) : null,
+      date,
+      dateSource: value.dateSource === 'absolute' || value.dateSource === 'relative' ? value.dateSource : 'none',
+      dateToken: value.dateToken === null || value.dateToken === undefined ? null : text(value.dateToken, 40, { field: 'дату' }),
+      time: timeField(value.time ?? null),
+      durationMinutes: value.durationMinutes === null || value.durationMinutes === undefined ? null : integer(value.durationMinutes, 1, 1440),
+      category: value.category === null || value.category === undefined ? null : text(value.category, 80, { field: 'категорию' }),
+      priority: value.priority === true,
+      location: value.location === null || value.location === undefined ? null : text(value.location, 200, { field: 'место' }),
+      participants: value.participants === null || value.participants === undefined ? [] : list(value.participants, 20, 'участников').map(one => text(one, 80, { field: 'участника' })),
+    };
+  });
+}

@@ -9,7 +9,10 @@ export class AppError extends Error {
 
 export const fail = (code: string, message: string, status = 422): never => { throw new AppError(code, message, status); };
 
-const FORBIDDEN_KEYS = ['__proto__', 'constructor', 'prototype', 'user_id', 'userId', 'account_id', 'accountId', 'role', 'telegram_id', 'telegramId', 'plan', 'entitlement'];
+// Identity and granted-access fields only. A *chosen* plan (`plan`) is a
+// legitimate request field — it is validated against the catalogue and
+// re-priced server-side — whereas a granted entitlement never is.
+const FORBIDDEN_KEYS = ['__proto__', 'constructor', 'prototype', 'user_id', 'userId', 'account_id', 'accountId', 'role', 'telegram_id', 'telegramId', 'entitlement', 'dailyAiActions'];
 
 export function object(value: any, message = 'Ожидался объект.'): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) fail('VALIDATION', message);
