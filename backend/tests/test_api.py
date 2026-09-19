@@ -1,7 +1,9 @@
 from uuid import uuid4
 
+import pytest
 from fastapi.testclient import TestClient
 
+from app.config import get_settings
 from app.database import Base, engine
 from app.main import app
 
@@ -25,6 +27,25 @@ def test_task_is_owned_by_its_creator():
     task_id = response.json()["id"]
     assert client.patch(f"/api/tasks/{task_id}", headers=headers(USER_B), json={"completed": True}).status_code == 404
     assert client.get("/api/tasks", headers=headers(USER_B)).json() == []
+
+
+def test_self_asserted_identity_is_refused_outside_development(monkeypatch):
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    get_settings.cache_clear()
+    try:
+        assert client.get("/api/tasks", headers=headers()).status_code == 503
+        assert client.get("/api/tasks").status_code == 503
+        assert client.get("/health").status_code == 200
+    finally:
+        get_settings.cache_clear()
+
+
+@pytest.mark.parametrize("field", ["title", "category", "priority", "completed"])
+def test_patch_rejects_null_for_a_required_field(field):
+    task_id = client.post("/api/tasks", headers=headers(), json={"title": "Задача"}).json()["id"]
+    assert client.patch(f"/api/tasks/{task_id}", headers=headers(), json={field: None}).status_code == 422
+    # A nullable field still accepts an explicit null.
+    assert client.patch(f"/api/tasks/{task_id}", headers=headers(), json={"scheduled_for": None}).status_code == 200
 
 
 def test_calendar_rejects_conflicts_and_naive_datetimes():

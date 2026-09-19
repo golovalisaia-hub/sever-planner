@@ -7,7 +7,7 @@ import vm from 'node:vm';
 const root = path.resolve(import.meta.dirname, '..', '..');
 const source = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 const RELEASE_CACHE = source.match(/const CACHE = '([^']+)'/)?.[1] || '';
-assert.equal(RELEASE_CACHE, 'sever-v126-push-ui-v1', 'security suite must run against the current v126 atomic release');
+assert.equal(RELEASE_CACHE, 'sever-v127-sync-security-v1', 'security suite must run against the current v127 atomic release');
 
 test('current service worker installs the guarded v126 release assets atomically and removes stale caches', async () => {
   const handlers = new Map();

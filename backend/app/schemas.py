@@ -20,6 +20,15 @@ class TaskUpdate(BaseModel):
     priority: bool | None = None
     completed: bool | None = None
 
+    @field_validator("title", "category", "priority", "completed")
+    @classmethod
+    def reject_explicit_null(cls, value):
+        # None here means the client sent an explicit null for a non-nullable column,
+        # which reaches the database as a constraint violation instead of a 422.
+        if value is None:
+            raise ValueError("Field cannot be null")
+        return value
+
 
 class TaskRead(TaskCreate):
     model_config = ConfigDict(from_attributes=True)

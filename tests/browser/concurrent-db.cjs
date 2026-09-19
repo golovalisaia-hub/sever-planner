@@ -32,9 +32,13 @@ async function dbRequest(uid, request) {
     try {
       if(request.type==='select') {
         const key=request.table==='profiles'?'id':'user_id';
-        const data=await db.query(`select * from public.${request.table} where ${key}=$1 order by ${request.table==='user_settings'?'user_id':'id'}`, [request.filter || uid]);
+        const cursor=request.table==='user_settings'?'user_id':'id';
+        // Keyset paging, as PostgREST applies order + gt(cursor) + limit.
+        const params=[request.filter || uid];
+        if(request.after!==undefined)params.push(request.after);
+        const data=await db.query(`select * from public.${request.table} where ${key}=$1${request.after!==undefined?` and ${cursor}>$2`:''} order by ${cursor}`, params);
         // PostgREST returns JSON/ISO timestamps, not PGlite's JS Date objects.
-        const rows=JSON.parse(JSON.stringify(data.rows.slice(request.start||0,(request.end??99999)+1)));
+        const rows=JSON.parse(JSON.stringify(data.rows.slice(0,request.limit??99999)));
         for(const row of rows)for(const k of ['scheduled_for','entry_date'])if(row[k])row[k]=row[k].slice(0,10);
         return {data:rows,error:null};
       }
@@ -61,7 +65,7 @@ function adapter({uid}) {
     signInWithPassword:async()=>{localStorage.setItem(key,uid);const session={user:user()};authListener?.('SIGNED_IN',session);return{data:{session,user:user()},error:null};}
   };
   const client={auth,rpc:async name=>({data:name==='sever_sync_protocol'?1:null,error:null}),from(table){return {
-    select(){const req={type:'select',table};return{eq(k,v){req.filter=v;return this;},order(){return this;},range(start,end){return navigator.onLine?window.__db({...req,start,end}):Promise.resolve({data:null,error:{code:'NETWORK_ERROR'}});}};},
+    select(){const req={type:'select',table};return{eq(k,v){req.filter=v;return this;},order(){return this;},gt(k,v){req.after=v;return this;},limit(count){return navigator.onLine?window.__db({...req,limit:count}):Promise.resolve({data:null,error:{code:'NETWORK_ERROR'}});}};},
     upsert(row){return navigator.onLine?window.__db({type:'upsert',table,row}):Promise.resolve({error:{code:'NETWORK_ERROR'}});}
   };},channel(){const c={handlers:[],active:false,on(type,filter,fn){this.handlers.push({filter,fn});return this;},subscribe(fn){this.status=fn;this.active=true;channels.push(this);queueMicrotask(()=>fn('SUBSCRIBED'));return this;},async unsubscribe(){this.active=false;this.status?.('CLOSED');}};return c;}};
   window.__deliver=(id,table)=>{if(!navigator.onLine)return;for(const c of channels)if(c.active)for(const h of c.handlers)if(h.filter.table===table&&h.filter.filter===`user_id=eq.${id}`)h.fn();};
