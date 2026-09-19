@@ -421,11 +421,14 @@ class SeverCloud {
     const userId = this.user?.id, version = this.sessionVersion;
     const client = await this.client();
     const entries = await Promise.all(tables.map(async table => {
-      const rows = [], pageSize = 500;
-      for (let offset = 0; ; offset += pageSize) {
+      // Keyset pagination. A row written by another device between two OFFSET pages
+      // shifts the window and silently drops a record from the downloaded snapshot.
+      const rows = [], pageSize = 500, cursorColumn = table === 'user_settings' ? 'user_id' : 'id';
+      for (let cursor = null; ;) {
         if (this.user?.id !== userId || this.sessionVersion !== version) throw new Error('Session changed');
-        const { data, error } = await client.from(table).select('*').eq('user_id', userId)
-          .order(table === 'user_settings' ? 'user_id' : 'id').range(offset, offset + pageSize - 1);
+        let query = client.from(table).select('*').eq('user_id', userId).order(cursorColumn);
+        if (cursor !== null) query = query.gt(cursorColumn, cursor);
+        const { data, error } = await query.limit(pageSize);
         if (error) {
           // Preserve the failing collection for a useful, non-sensitive UI
           // diagnosis instead of leaving the user at a generic pending state.
@@ -434,6 +437,7 @@ class SeverCloud {
         }
         rows.push(...(data || []));
         if (!data || data.length < pageSize) break;
+        cursor = data[data.length - 1][cursorColumn];
       }
       return [table, rows];
     }));

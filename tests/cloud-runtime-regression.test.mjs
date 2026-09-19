@@ -14,6 +14,24 @@ const operation = record => ({ collection: 'tasks', id: record.id, type: 'upsert
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 const turn = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
 
+// Mimics PostgREST keyset paging: order by id, optionally after a cursor, capped by limit.
+function pagedTable(rows, onPage = () => {}) {
+  let after = null;
+  const query = {
+    select() { return this; },
+    eq() { return this; },
+    order() { return this; },
+    gt(_column, value) { after = value; return this; },
+    limit(count) {
+      onPage();
+      const sorted = [...rows].sort((a, b) => a.id - b.id);
+      const page = sorted.filter(row => after === null || row.id > after).slice(0, count);
+      return Promise.resolve({ data: page, error: null });
+    }
+  };
+  return query;
+}
+
 function harness() {
   let state = fresh();
   const storage = new Map(), timers = new Map(), channels = [], broadcasts = [];
@@ -155,18 +173,27 @@ test('late initial download cannot replace a signed-out planner', async () => {
 });
 
 test('cloud loading reads all pages beyond the server row limit', async () => {
-  const h = harness(), all = Array.from({ length: 1205 }, (_, id) => ({ id }));
-  h.client.from = table => {
-    const rows = table === 'tasks' ? all : [];
-    const query = {
-      select() { return this; }, eq() { return this; }, order() { return this; },
-      range(from, to) { return Promise.resolve({ data: rows.slice(from, to + 1), error: null }); },
-      then(resolve) { return Promise.resolve({ data: rows.slice(0, 1000), error: null }).then(resolve); }
-    };
-    return query;
-  };
+  const h = harness(), all = Array.from({ length: 1205 }, (_, index) => ({ id: index + 1 }));
+  h.client.from = table => pagedTable(table === 'tasks' ? all : []);
   const rows = await h.cloud.fetchAll();
-  assert.equal(rows.tasks.length, all.length);
+  // The runtime runs in a vm realm, so compare primitives rather than array identity.
+  assert.equal(rows.tasks.map(row => row.id).join(','), all.map(row => row.id).join(','));
+});
+
+// A cursor keeps every page anchored to the last row already read. With OFFSET,
+// a row inserted ahead of the cursor shifts the window and one row is never returned.
+test('a row written by another device mid-download cannot drop a row from the snapshot', async () => {
+  const h = harness(), all = Array.from({ length: 1205 }, (_, index) => ({ id: index + 1 }));
+  let inserted = false;
+  h.client.from = table => pagedTable(table === 'tasks' ? all : [], () => {
+    if (inserted) return;
+    inserted = true;
+    all.unshift({ id: 0 });
+  });
+  const rows = await h.cloud.fetchAll();
+  const ids = rows.tasks.map(row => row.id);
+  assert.equal(new Set(ids).size, ids.length, 'no row may be downloaded twice');
+  for (const row of all.slice(1)) assert.ok(ids.includes(row.id), `row ${row.id} must survive the concurrent write`);
 });
 
 test('unchanged ordinary notes do not receive a new timestamp on every save', () => {

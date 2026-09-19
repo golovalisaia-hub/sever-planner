@@ -70,6 +70,25 @@ const json = (body:unknown, status=200) => new Response(JSON.stringify(body), {
   headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}
 });
 
+// A subscription row is user-supplied: `authenticated` may insert any endpoint under
+// its own user_id. Without this allowlist the service-role dispatcher would issue
+// attacker-directed outbound requests from trusted infrastructure (SSRF).
+const PUSH_HOSTS=new Set([
+  'web.push.apple.com',
+  'fcm.googleapis.com',
+  'updates.push.services.mozilla.com'
+]);
+
+function isTrustedEndpoint(endpoint:string){
+  try{
+    const url=new URL(endpoint);
+    if(url.protocol!=='https:'||url.port||url.username||url.password||url.hash) return false;
+    return PUSH_HOSTS.has(url.hostname)||/^[a-z0-9-]+\.notify\.windows\.com$/.test(url.hostname);
+  }catch{
+    return false;
+  }
+}
+
 function safeEqual(left:string,right:string){
   const a=new TextEncoder().encode(left), b=new TextEncoder().encode(right);
   if(a.length!==b.length) return false;
@@ -355,6 +374,14 @@ export default {
     for(const group of groups){
       const first=group.jobs[0];
       const payload=payloadFor(group);
+      if(!isTrustedEndpoint(first.endpoint)){
+        const ids=group.jobs.map(job=>job.delivery_id);
+        await admin.from('push_deliveries').update({status:'failed',error_code:'ENDPOINT_NOT_ALLOWED'}).in('id',ids);
+        await admin.from('push_subscriptions').update({enabled:false,updated_at:new Date().toISOString()}).eq('id',first.subscription_id);
+        failed+=group.jobs.length;
+        retired+=1;
+        continue;
+      }
       try{
         await webpush.sendNotification(
           {endpoint:first.endpoint,keys:{p256dh:first.p256dh,auth:first.auth}},
@@ -389,6 +416,15 @@ export default {
 
     for(const job of rhythmJobs){
       const payload=rhythmPayloadFor(job);
+      if(!isTrustedEndpoint(job.endpoint)){
+        await admin.from('push_rhythm_deliveries')
+          .update({status:'failed',error_code:'ENDPOINT_NOT_ALLOWED'})
+          .eq('id',job.delivery_id);
+        await admin.from('push_subscriptions').update({enabled:false,updated_at:new Date().toISOString()}).eq('id',job.subscription_id);
+        failed+=1;
+        retired+=1;
+        continue;
+      }
       try{
         await webpush.sendNotification(
           {endpoint:job.endpoint,keys:{p256dh:job.p256dh,auth:job.auth}},
