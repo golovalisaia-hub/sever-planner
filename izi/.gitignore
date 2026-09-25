@@ -1,1 +1,3 @@
 node_modules/
+scripts/phase3a/*.json
+*.inventory.json

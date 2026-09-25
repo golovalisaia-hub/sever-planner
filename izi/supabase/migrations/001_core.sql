@@ -565,7 +565,9 @@ begin
     end loop;
     if exists (select 1 from pg_catalog.pg_roles where rolname = 'service_role') then
       execute format('revoke all on table izi.%I from service_role', t.tablename);
-      if t.tablename in ('activity_log') then
+      if t.tablename = 'system_config' then
+        execute format('grant select on table izi.%I to service_role', t.tablename);
+      elsif t.tablename in ('activity_log') then
         execute format('grant select, insert on table izi.%I to service_role', t.tablename);
       else
         execute format('grant select, insert, update, delete on table izi.%I to service_role', t.tablename);

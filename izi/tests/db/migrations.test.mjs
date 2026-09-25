@@ -10,7 +10,7 @@ test('migrations apply cleanly on PostgreSQL 17 (Supabase major version)', async
   const tables = (await pg.query(`select tablename from pg_tables where schemaname = 'izi' order by 1`)).rows.map(r => r.tablename);
   assert.deepEqual(tables, [
     'account_settings', 'accounts', 'activity_log', 'ai_runs', 'captures', 'events', 'identities', 'inbound_updates',
-    'inbox_items', 'notes', 'pending_actions', 'rate_limits', 'tasks', 'telegram_chats',
+    'inbox_items', 'notes', 'pending_actions', 'rate_limits', 'system_config', 'tasks', 'telegram_chats',
   ]);
 });
 
@@ -68,7 +68,7 @@ test('every izi table has row level security enabled', async () => {
   const pg = await createPg();
   await migrate(pg);
   const rows = (await pg.query(`select c.relname, c.relrowsecurity from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'izi' and c.relkind = 'r'`)).rows;
-  assert.ok(rows.length >= 14);
+  assert.ok(rows.length >= 15);
   for (const row of rows) assert.equal(row.relrowsecurity, true, row.relname);
   const policies = (await pg.query(`select count(*)::int n from pg_policies where schemaname = 'izi'`)).rows[0].n;
   assert.equal(policies, 0, 'server-only tables: deny-all, no placeholder policies');

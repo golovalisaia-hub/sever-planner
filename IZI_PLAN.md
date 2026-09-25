@@ -917,8 +917,18 @@ Mutation Engine; **Reminders + Digest + Quick Capture раньше Mini App**.
 - **Цель**: доказать на настоящем Postgres, что фундамент ведёт себя так же,
   как в PGlite, и **по измерениям** выбрать production DB adapter. Бот и webhook
   не начинаются, пока 3A не закрыта.
-- **Где**: отдельный staging Supabase-проект IZI (создаётся только после
-  отдельного согласования владельца).
+- **Где (решение владельца после SEVER retirement)**: существующий проект
+  `sever-planner` (`vdhazibkfpgclcwyvvbi`), общий с Academy. IZI живёт **только**
+  в схеме `izi`; нет ссылок IZI↔SEVER и IZI↔Academy; `public`, `academy_*`,
+  `academy-tutor`, Auth, Storage, Vault и cron не трогаются.
+- **Маркер окружения** (миграция `004_system_config.sql`): `izi.system_config`
+  (`product = izi_planner`, `environment`), строка вставляется оператором один
+  раз; `izi.assert_environment(expected)` — любой интеграционный тест или
+  скрипт останавливается без маркера или при другом окружении.
+- **Инструменты**: `izi/scripts/phase3a/RUNBOOK.md`, `inventory.mjs`
+  (снимок до/после всего вне `izi`, сравнение по хешам определений),
+  `set-environment-marker.sql`, `data-api-probe.mjs` (Option A),
+  `izi/tests/integration/real-db.test.mjs` (контракт + A–D, Option B).
 - **Шаги**:
   1. применить `izi/supabase/migrations/001–003` на staging;
   2. проверить версию PostgreSQL (ожидается 17);
@@ -949,8 +959,29 @@ Mutation Engine; **Reminders + Digest + Quick Capture раньше Mini App**.
     `inbound_update`;
   - D. несколько разных update одного `chat_key` при нескольких воркерах →
     порядок обработки сохраняется.
-- **Результат измерений**: _пока не выполнено_ (заполняется в PHASE 3A:
-  версия PG, результаты A–D, латентность вариантов A/B, выбранный adapter и причина).
+- **Результаты (2026-09-25)**:
+
+  | Проверка | Локальный PostgreSQL 16.13 (копия формы общей БД: public + academy-заглушка) | Supabase `vdhazibkfpgclcwyvvbi` |
+  |---|---|---|
+  | Миграции 001–004 применяются по одной в транзакции | ✓ | НЕ ВЫПОЛНЕНО |
+  | Инвентаризация вне `izi` до/после идентична | ✓ (`non_izi_identical: true`) | НЕ ВЫПОЛНЕНО |
+  | Стоп без маркера / при другом окружении | ✓ (`ENVIRONMENT_MARKER_MISSING`, `ENVIRONMENT_MISMATCH`) | НЕ ВЫПОЛНЕНО |
+  | Нет доступа anon/authenticated/PUBLIC, RLS, нет межсхемных ссылок | ✓ | НЕ ВЫПОЛНЕНО |
+  | Откат транзакции apply | ✓ | НЕ ВЫПОЛНЕНО |
+  | A: 20× resolve_or_create_account → 1 account, 1 identity, без сирот | ✓ | НЕ ВЫПОЛНЕНО |
+  | B: 10× confirm → применено один раз | ✓ | НЕ ВЫПОЛНЕНО |
+  | C: 20× одинаковый update_id → одна запись | ✓ | НЕ ВЫПОЛНЕНО |
+  | D: 6 update одного чата, 5 воркеров → порядок сохранён, в работе ≤ 1 | ✓ | НЕ ВЫПОЛНЕНО |
+  | PostgreSQL 17 | — (локально 16) | НЕ ВЫПОЛНЕНО (владелец сообщил 17.6) |
+  | Option A (Data API) latency / отказ публичному ключу | — | НЕ ВЫПОЛНЕНО |
+  | Option B (pooler, transaction mode) latency / prepared statements | — | НЕ ВЫПОЛНЕНО |
+  | Выбранный adapter | — | **не выбран** (решение только по измерениям) |
+
+  Локальные прогоны: 3 подряд, 8/8, после каждого — 0 оставшихся строк.
+  Статус 3A: **TESTED LOCALLY on real PostgreSQL**; **не** TESTED AGAINST REAL
+  DATABASE — из среды разработки нет сетевого доступа к `*.supabase.co` и нет
+  учётных данных БД. Выполнение на Supabase — по `RUNBOOK.md` владельцем или в
+  сессии с разрешённым хостом и выданным доступом.
 - **Проверка**: TESTED AGAINST REAL SERVICE (staging DB). Не DEPLOYED-бот.
 
 ### PHASE 3B — Telegram identity + bot shell
@@ -1185,6 +1216,11 @@ digest-блок. Memory опирается на `activity_log`, FTS и `source/c
 
 ## SEVER retirement (аудит 2026-09-25)
 
+Обновление: владелец проверил проект через Management API (ACTIVE_HEALTHY,
+PostgreSQL 17.6, 2 пользователя Auth, 0 buckets, 1 cron job, 6 таблиц
+`academy_*`, функция `academy-tutor`, `tavro_*` нет, `izi` нет) и решил проект
+**не удалять**, а использовать для IZI в схеме `izi`.
+
 Отчёт: [`SEVER_RETIREMENT.md`](SEVER_RETIREMENT.md). Статус удаления Supabase
 `sever-planner` (`vdhazibkfpgclcwyvvbi`): **BLOCKED** — Academy
 (`golovalisaia-hub/-`) использует тот же проект (таблицы `academy_*`, Auth,
@@ -1194,9 +1230,10 @@ Edge Function `academy-tutor`, SEVER `tasks`/`profiles`), а живая база
 
 ## Решения владельца и оставшиеся неопределённости
 
-1. **D1 — RESOLVED.** Отдельный Supabase-проект IZI, сначала staging. База SEVER
-   не используется как база IZI. В PHASE 2 реальный проект не создавался:
-   работа локально на PGlite.
+1. **D1 — ПЕРЕСМОТРЕНО владельцем (PHASE 3A pre-flight).** Новый проект не
+   создаётся: IZI использует существующий `sever-planner` (`vdhazibkfpgclcwyvvbi`)
+   **только в схеме `izi`**, изолированно от Academy и архивных таблиц SEVER.
+   Проект целиком не удаляется, потому что в нём живёт Academy.
 2. **D2 — RESOLVED.** Текущий подключённый Supabase SEVER проверен владельцем:
    таблиц `tavro_*` нет, миграции 018/019 не применены, очистка не требуется.
 3. **D3 — RESOLVED.** Для staging будет отдельный Telegram-бот (создаётся не в PHASE 2).
