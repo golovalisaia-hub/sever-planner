@@ -1183,6 +1183,15 @@ digest-блок. Memory опирается на `activity_log`, FTS и `source/c
 
 ---
 
+## SEVER retirement (аудит 2026-09-25)
+
+Отчёт: [`SEVER_RETIREMENT.md`](SEVER_RETIREMENT.md). Статус удаления Supabase
+`sever-planner` (`vdhazibkfpgclcwyvvbi`): **BLOCKED** — Academy
+(`golovalisaia-hub/-`) использует тот же проект (таблицы `academy_*`, Auth,
+Edge Function `academy-tutor`, SEVER `tasks`/`profiles`), а живая база из
+сессии не проверена. IZI от этого проекта не зависит. PHASE 3A не начинается,
+пока retirement не решён владельцем.
+
 ## Решения владельца и оставшиеся неопределённости
 
 1. **D1 — RESOLVED.** Отдельный Supabase-проект IZI, сначала staging. База SEVER
