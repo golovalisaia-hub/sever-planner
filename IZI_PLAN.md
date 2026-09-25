@@ -1,8 +1,9 @@
 # IZI Planner — PHASE 1: аудит доноров и архитектура
 
-> Статус документа: **DESIGN ONLY**. Ни одной строки production-кода IZI не
-> написано, ни одна миграция не применена, ничего не задеплоено.
-> Дата аудита: 2026-09-25.
+> Статус документа: PHASE 1 — **DESIGN**; PHASE 2 (Foundation) —
+> **IMPLEMENTED + TESTED LOCALLY** в ветке `izi/foundation` (см. раздел Z и
+> «PHASE 2 — фактические решения»). Ни одна миграция не применена к реальному
+> Supabase, ничего не задеплоено. Дата аудита: 2026-09-25.
 
 ---
 
@@ -498,7 +499,7 @@ confirm ─> izi_apply_capture(account, pending_action_id, selected_items)
   в предпросмотре; аудио не хранится. **Риск:** поддерживает ли выбранная
   OpenAI-модель транскрипции OGG/Opus напрямую — **не проверено**; в Edge
   Runtime нет ffmpeg. Варианты: прямой приём (если поддерживается), перекодирование
-  в отдельном сервисе, либо альтернативный STT за тем же интерфейсом. Решается в PHASE 10.
+  в отдельном сервисе, либо альтернативный STT за тем же интерфейсом. Решается в PHASE 7.
 - **Image** (V2): фото → VisionProvider → те же items; калории — только как
   явно помеченная оценка, никогда как факт.
 - **Частичный выбор**: пользователь может снять отдельные items (Mini App,
@@ -638,7 +639,7 @@ capture, 30 мин для мутаций), `applied_at`, `result`. Перехо�
 - Идемпотентность: unique(`account_id`, `kind`, `local_date`).
 - Масштаб: 100k пользователей × 2 digest = ~200k сообщений/день, пики на 08:30
   локального времени. Исходящий лимит Telegram для ботов ограничен (порядка
-  десятков сообщений в секунду, **конкретные значения проверить** в PHASE 9) →
+  десятков сообщений в секунду, **конкретные значения проверить** в PHASE 10) →
   очередь `notification_outbox` с глобальным rate limiter и разнесением по
   минутам (джиттер ±10 мин, настраиваемый).
 - Mini App показывает расширенную версию того же JSON.
@@ -788,28 +789,33 @@ pg_cron: reminders, digests, retry stuck updates, housekeeping (очистка �
 
 ## W. Migration strategy from donor code
 
-### W.1 Рекомендуемое размещение (РЕШЕНИЕ D1 — требует утверждения)
+### W.1 Размещение (D1 — RESOLVED)
 
-**Рекомендация:** код IZI живёт в этом репозитории в отдельном корне `izi/`,
-**база — отдельный Supabase-проект IZI** (staging, затем production).
+**Решение владельца:** код IZI живёт в этом репозитории в отдельном корне `izi/`,
+**база — отдельный Supabase-проект IZI** (сначала staging, затем production).
+Staging-проект создаётся отдельным согласованным действием (не в PHASE 2).
+
+Фактическая структура после PHASE 2 (Edge Functions и Mini App появятся в своих фазах):
 
 ```
 izi/
-  supabase/
-    migrations/          001_core.sql, 002_tasks_events_notes_inbox.sql, …
-    functions/
-      _core/             validation, datetime, telegram, ai/, repo/, modules/
-      izi-telegram-webhook/  izi-worker/  izi-api/  izi-cron/
-  miniapp/               (PHASE 11)
-  tests/                 unit/  db/(PGlite)  bot/  security/  eval/
-  package.json
+  package.json, package-lock.json, tsconfig.json, README.md
+  src/
+    core/        errors, validation, evidence, context, db,
+                 datetime/ (calendar, semantics, lexicon), identity/,
+                 actions/ (operations), repo/ (единственный доступ к БД)
+    modules/     tasks/ events/ notes/ inbox/ + registry
+    locales/ru/  temporal (лексикон D5), messages (тексты ошибок)
+  supabase/migrations/  001_core.sql, 002_records.sql, 003_actions.sql
+  tests/         core/ db/ security/ fakes/
 ```
 
 Почему так:
 - чистая история миграций с 001, никакого взаимодействия с триггерами/данными
   SEVER в production; SEVER-пользователи не рискуют ничем;
 - SEVER остаётся как есть до архивации; TAVRO-миграции 018/019 **не
-  применяются** (проверить, что они не были применены вручную — неизвестно);
+  применяются** (D2 — RESOLVED: владелец проверил подключённый Supabase SEVER,
+  таблиц `tavro_*` нет, 018/019 не применены, очистка не нужна);
 - перенос в отдельный репозиторий позже = перемещение папки;
 - импорт из SEVER через `sever-backup v2` или одноразовый серверный экспорт
   для пользователей, привязавших аккаунт.
@@ -860,8 +866,8 @@ izi/
 
 | Этап | Состав |
 |---|---|
-| **MVP** (закрытая бета в Telegram) | Аккаунт по Telegram, TZ-онбординг; Tasks, Events, Notes, Inbox; capture текстом с preview/confirm; `/today` `/tomorrow` `/week` `/inbox`; кнопки ✓/→завтра; Undo; напоминания по точному времени; утренний и вечерний digest; Ask: agenda/overdue/search; экспорт и удаление; квоты AI без оплаты |
-| **V1** | Голос; Mutation engine (массовые переносы/закрытия); Habits/Rituals; Diary/Ideas; повторяющиеся задачи/встречи; weekly review; явные факты памяти; Mini App functional shell; быстрый ввод (Shortcuts/Action Button/Back Tap через quick-токен и deep links); подписка PRO через Stars; импорт SEVER |
+| **MVP** (закрытая бета в Telegram) | Аккаунт по Telegram, TZ-онбординг; Tasks, Events, Notes, Inbox; capture текстом и **голосом** с preview/confirm; `/today` `/tomorrow` `/week` `/inbox`; кнопки ✓/→завтра; Undo; напоминания по точному времени; утренний и вечерний digest; Ask: agenda/overdue/search; экспорт и удаление; квоты AI без оплаты |
+| **V1** | Mutation engine (массовые переносы/закрытия); Habits/Rituals; Diary/Ideas; повторяющиеся задачи/встречи; weekly review; явные факты памяти; Mini App functional shell; быстрый ввод (Shortcuts/Action Button/Back Tap через quick-токен и deep links); подписка PRO через Stars; импорт SEVER |
 | **V2** | Money (операции, категории, бюджеты, регулярные платежи); Food/Water; Goals; Trends с инсайтами; Subjects (люди/места/вещи); семантический поиск; фото-capture |
 | **Future** | Health context, Documents, Projects, Locations, Files; web-клиент; web push; «сейф» с клиентским шифрованием; совместные списки; интеграции календарей |
 
@@ -869,28 +875,42 @@ izi/
 
 ## Z. Exact implementation phases
 
-Предлагаемая последовательность отличается от черновика ТЗ: **Query и Mutation
-перед голосом** (без них Telegram-опыт неполон), **Reminders+Digest раньше
-Mini App**, **быстрый ввод сразу после голоса** (дёшев при готовом capture).
+Порядок утверждён владельцем после PHASE 1: **голос сразу после реального
+OpenAI** (голос — ключевой вход Telegram-first продукта), затем Ask IZI и
+Mutation Engine; **Reminders + Digest + Quick Capture раньше Mini App**.
+
+| Фаза | Содержание | Статус |
+|---|---|---|
+| 2 | Foundation | IMPLEMENTED + TESTED LOCALLY |
+| 3 | Telegram identity + bot shell | — |
+| 4 | Core records without AI | — |
+| 5 | Capture Engine + Fake AI | — |
+| 6 | Real OpenAI integration | — |
+| 7 | Voice Capture | — |
+| 8 | Ask IZI / Query Engine | — |
+| 9 | Mutation Engine | — |
+| 10 | Reminders + Digest + Quick Capture | — |
+| 11 | Mini App functional shell | — |
+| 12 | Habits / Rituals / Diary / recurring | — |
+| 13 | Subscriptions | — |
+| 14+ | Money / Food / Trends / Memory / SEVER import | — |
 
 Для каждой фазы: *проверка* = минимальный уровень статуса, без которого фаза не закрыта.
 
-### PHASE 2 — Foundation
+### PHASE 2 — Foundation — IMPLEMENTED + TESTED LOCALLY
 - **Цель**: скелет `izi/`, ядро схемы, общие модули, тестовый контур. Без деплоя.
-- **Файлы**: `izi/package.json`, `izi/supabase/migrations/001_core.sql`
-  (accounts, identities, telegram_chats, account_settings, captures,
-  pending_actions, activity_log, ai_runs, inbound_updates, rate_limits),
-  `002_records.sql` (tasks, events, notes, inbox_items + FTS), `_core/validation.ts`,
-  `_core/datetime.ts`, `_core/repo/*`, `tests/db/harness.mjs`, `tests/fakes.mjs`.
-- **API**: нет.
-- **Тесты**: миграции в PGlite; RLS deny-all для anon/authenticated; составные
-  FK запрещают межаккаунтные ссылки; перенесённые тесты дат TAVRO + новые
-  (точность, дедлайн, part_of_day); статический тест «доступ к данным только из repo».
-- **Acceptance**: `node --test izi/tests` зелёный; миграции идемпотентны;
-  ни одного изменения в файлах SEVER/TAVRO.
-- **Риски**: PGlite ≠ Supabase Postgres (роли, расширения) → дублировать
-  критичные DB-тесты на настоящем Postgres в CI.
-- **Проверка**: TESTED LOCALLY.
+- **Файлы**: `izi/src/core/*`, `izi/src/modules/*`, `izi/src/locales/ru/*`,
+  `izi/supabase/migrations/001_core.sql` (accounts, identities, account_settings,
+  telegram_chats, captures, inbound_updates, rate_limits, ai_runs),
+  `002_records.sql` (tasks, events, notes, inbox_items + FTS),
+  `003_actions.sql` (pending_actions, activity_log, apply/undo/discard, housekeeping).
+- **API**: нет (только repository layer).
+- **Тесты**: 139 (core 52, db 66, security 21) — `cd izi && npm ci && npm test`.
+- **Acceptance**: `npm test` зелёный (typecheck + все тесты); миграции идемпотентны;
+  файлы SEVER/TAVRO не изменены; корневой набор SEVER без изменений.
+- **Риски**: PGlite (PostgreSQL 17.5, один connection) ≠ Supabase: конкурентность
+  проверена только последовательно; SQL не выполнялся на реальном Supabase.
+- **Проверка**: TESTED LOCALLY. Детали — «PHASE 2 — фактические решения» ниже.
 
 ### PHASE 3 — Telegram identity + bot shell
 - **Цель**: webhook → inbound_updates → worker; `/start`, онбординг TZ, `/help`,
@@ -902,14 +922,19 @@ Mini App**, **быстрый ввод сразу после голоса** (дё
   заблокированный бот; конкурентные update одного чата; initData контракт.
 - **Acceptance**: в staging-боте `/start` создаёт ровно один аккаунт; повторная
   доставка не дублирует; выключение БД на время → сообщение обработано после восстановления.
-- **Риски**: лимиты Edge Runtime и механизм фоновой обработки (проверить).
+- **Риски**: лимиты Edge Runtime и механизм фоновой обработки (проверить);
+  способ подключения сервера к БД (прямое Postgres-соединение через pooler
+  рекомендовано, т.к. repository layer — параметризованный SQL; проверить
+  поведение пулера и prepared statements); роль подключения должна быть
+  владельцем таблиц или `service_role` (BYPASSRLS), иначе RLS вернёт пустые выборки.
 - **Проверка**: DEPLOYED (staging) + VERIFIED IN TELEGRAM.
 
 ### PHASE 4 — Core records без AI
 - **Цель**: сервисы Tasks/Events/Notes/Inbox, apply-RPC, activity_log, Undo;
   детерминированные `/today`, `/tomorrow`, `/week`, `/inbox`, кнопки ✓/→завтра/вернуть;
   `/inbox <текст>`; экспорт и удаление аккаунта.
-- **Таблицы**: + `record` RPC, `izi_apply_mutation` для кнопок.
+- **Таблицы**: используются из PHASE 2; кнопки = propose + confirm одним вызовом
+  (тот же `izi.apply_pending_action`, чтобы каждое изменение попадало в журнал).
 - **Тесты**: транзакционность apply, версия/конфликт, Undo, ownership чужих
   callback, экспорт полный, удаление каскадом.
 - **Acceptance**: всё работает в staging-боте без AI-ключа.
@@ -935,33 +960,39 @@ Mini App**, **быстрый ввод сразу после голоса** (дё
 - **Риски**: подмножество JSON Schema у провайдера; латентность; стоимость.
 - **Проверка**: TESTED AGAINST REAL SERVICE.
 
-### PHASE 7 — Ask IZI (Query Engine)
+### PHASE 7 — Voice Capture
+- **Цель**: голосовые Telegram → SpeechProvider (OpenAI) → тот же capture-конвейер;
+  транскрипт в `captures.raw_text` (`raw_text_kind = transcript`, те же 30 дней);
+  аудио не хранится.
+- **Тесты**: fake STT + записанные ответы реального провайдера; ограничения длины/размера;
+  ошибка STT не теряет сообщение (очередь inbound_updates).
+- **Риски**: формат OGG/Opus у выбранного STT (проверить), длина аудио, стоимость.
+- **Проверка**: TESTED AGAINST REAL SERVICE + VERIFIED IN TELEGRAM на iPhone и Android.
+
+### PHASE 8 — Ask IZI (Query Engine)
 - **Цель**: AI-роутер различает capture/query; интенты agenda/upcoming/overdue/
   search/last_occurrence/count/progress; детерминированные ответы.
 - **Тесты**: «Как-нибудь позвонить бабушке» → capture (T8); ответы только из строк;
   чужие данные недоступны.
 - **Проверка**: TESTED AGAINST REAL SERVICE + VERIFIED IN TELEGRAM.
 
-### PHASE 8 — Mutation Engine
+### PHASE 9 — Mutation Engine
 - **Цель**: MutationPlan, серверный выбор кандидатов, preview со списком,
   «Изменить выбор», apply с проверкой версий, Undo.
 - **Тесты**: сценарий «перенеси всё неважное с завтра на субботу»; конкурирующее
   изменение между preview и confirm; пустой селектор; лимит кандидатов.
 - **Проверка**: VERIFIED IN TELEGRAM.
 
-### PHASE 9 — Reminders + Digest
-- **Цель**: reminders, notification_outbox, sender с rate limit, pg_cron,
-  morning/evening digest, тихие часы, «один голос за раз».
+### PHASE 10 — Reminders + Digest + Quick Capture
+- **Цель**: reminders, notification_outbox, sender с rate limit, pg_cron (включая
+  housekeeping-функции PHASE 2: purge raw text, expire actions, redact activity,
+  reap stale), morning/evening digest, тихие часы, «один голос за раз»;
+  quick-токены, инструкции для iOS Shortcuts / Action Button / Back Tap,
+  Android-ярлыки, deep links `t.me/<bot>?start=…`.
 - **Тесты**: DST-переходы; смена TZ пересчитывает; 429/403; дедупликация digest;
   синтетическая нагрузка 100k аккаунтов на staging.
 - **Риски**: реальные лимиты рассылки Telegram (проверить), пики 08:30.
 - **Проверка**: DEPLOYED + VERIFIED IN TELEGRAM + нагрузочный отчёт.
-
-### PHASE 10 — Voice + Quick capture
-- **Цель**: голосовые через SpeechProvider; quick-токены; инструкции для iOS
-  Shortcuts / Action Button / Back Tap, Android-ярлыки, deep links `t.me/<bot>?start=…`.
-- **Риски**: формат OGG/Opus у выбранного STT (проверить), длина аудио.
-- **Проверка**: TESTED AGAINST REAL SERVICE + VERIFIED IN TELEGRAM на iPhone и Android.
 
 ### PHASE 11 — Mini App functional shell
 - **Цель**: `izi-api` + сессии; функциональные экраны без финального дизайна.
@@ -977,13 +1008,55 @@ Mini App**, **быстрый ввод сразу после голоса** (дё
 - **Риски**: правила Telegram для цифровых товаров и курс Stars (проверить).
 - **Проверка**: TESTED AGAINST REAL SERVICE (тестовые платежи) → решение владельца о запуске.
 
-### PHASE 14 — Money
-### PHASE 15 — Food/Water
-### PHASE 16 — Trends + Memory v2 (subjects, insights, семантический поиск)
-### PHASE 17 — SEVER import и архивация SEVER
+### PHASE 14+ — Money / Food / Trends / Memory / SEVER import
 
-Каждая из 14–17 получит такое же детальное описание перед стартом; ядро
+Каждая из фаз 14+ получит такое же детальное описание перед стартом; ядро
 к этому моменту не меняется — добавляются модули.
+
+---
+
+## PHASE 2 — фактические решения
+
+Статус: **IMPLEMENTED + TESTED LOCALLY**. Не TESTED AGAINST REAL SERVICE, не
+DEPLOYED, не VERIFIED IN TELEGRAM, не PRODUCTION READY.
+
+| Решение | Почему |
+|---|---|
+| Отдельная схема `izi`, ничего в `public` | На Supabase у `public` есть default privileges для `anon`/`authenticated`; в `izi` клиентские роли не получают ничего. Схема не должна быть открыта через Data API |
+| RLS включён на всех 14 таблицах, политик нет, **не FORCE** | Deny-all для клиентских ролей. FORCE влияет только на владельца таблиц, которым будет сам сервер (или `service_role` с BYPASSRLS) — пользы нет, риск пустых выборок есть |
+| Identity: `accounts` + `identities(provider, subject)` unique + одна Telegram-identity на аккаунт | Один человек = один аккаунт; один Telegram ID нельзя привязать ко второму аккаунту (constraint + `IDENTITY_TAKEN`). Приватный `telegram_chats.chat_id` обязан совпадать с Telegram-identity аккаунта |
+| `AccountContext` выдаётся только `AccountRepo` и проверяется по WeakSet | Контекст нельзя собрать из клиентского `{accountId}`; статические тесты запрещают выдачу контекста и `VerifiedIdentity` вне своих модулей |
+| Все записи пишутся только через `pending_actions` → `izi.apply_pending_action` (plpgsql) | Одна транзакция на confirm, независимо от драйвера; повторный confirm возвращает прежний результат; операции неизменяемы после предпросмотра; выбранные индексы применяются, остальные — нет |
+| Составные FK `(account_id, …)` для всех связей между записями | Межаккаунтная ссылка невозможна на уровне схемы, даже для `service_role` |
+| `version` повышается триггером при любом UPDATE | Оптимистичная конкуренция не обходится ни одним путём записи |
+| `activity_log`: только изменённые поля + version, append-only (у сервера нет UPDATE/DELETE), payload с текстом редактируется через 30 дней | Основа Undo/аудита/Trends/Memory без склада личного текста; сырой текст захвата туда не попадает |
+| Undo: минимум 10 минут; при изменении любой затронутой записи после действия — `UNDO_CONFLICT`, ничего не откатывается | Новые изменения пользователя не уничтожаются; откат восстанавливает и производные поля (reschedule_count, completed_at) |
+| `captures.raw_text` ≤ 30 дней — CHECK-ограничение + `izi.purge_expired_raw_text()` | D4 закреплено в схеме; после очистки захват, метаданные (`raw_text_length`) и созданные записи остаются |
+| State machine захвата в триггере; у каждого нетерминального состояния есть выход вперёд и закрытие; зависший `processing` → `failed` → повтор | Нет состояния, из которого нельзя восстановиться |
+| `inbound_updates`: unique (provider, update_id), claim с `SKIP LOCKED`, порядок внутри чата, retry → dead, payload удаляется при done и не живёт > 30 дней, коды ошибок только `^[A-Z0-9_]+$` | Исправляет T1/T2; текст сообщения не попадает в поле ошибки. Worker не реализован |
+| Rate limit: PK (account_id, bucket, window), без advisory lock, очистка отдельной функцией | Исправляет глобальный lock SEVER и T10 |
+| Task: `plan_date` + `plan_precision` (day/week/month) ≠ `due_date`/`due_time`; `part_of_day` взаимоисключается с `plan_time`; точное время требует известного часового пояса | «На следующей неделе» хранится как неделя; «до пятницы» — срок; «вечером» — не время; часовой пояс не угадывается (`TIMEZONE_REQUIRED`), поэтому у `account_settings.timezone` нет значения по умолчанию |
+| Event: дата, время, длительность — `null`, пока не названы; нет автопревращения в задачу | Исправляет T4 |
+| Лексикон D5 в `src/locales/ru/temporal.ts`; core без кириллицы (статический тест) | D6: русский MVP, локализация добавляется новым каталогом |
+| Правила времени: «в 4» → ambiguous (04:00/16:00); «в 4 утра/дня/вечера» → 04:00/16:00/16:00; час 13–23 или «0X» → точно; «9:30» (одна цифра часа) → ambiguous, «09:30»/«10:30» → точно; противоречия («в 16 утра») → ambiguous | Ничего не выбирается за пользователя |
+| Правила дат: «в пятницу», сказанное в пятницу → ambiguous; «в следующую пятницу» → пятница следующей ISO-недели; дата без года → ближайшая не прошедшая; «до конца недели» → срок = воскресенье | Продуктовые правила, закреплены тестами; пересматриваются по eval в PHASE 5/6 |
+| Evidence: `Extracted<T> = {value, evidence{text,start,end}}`; сервер проверяет подстроку и перечитывает значение лексиконом | Основа исправления T7; confidence не вводился (нет смысла без калибровки) |
+| Тестовая БД: PGlite 0.3.14 = PostgreSQL 17.5 (как Supabase); TypeScript 7.0.2 только для typecheck; Node ≥ 22.18; runtime-зависимостей нет | `npm ci && npm test` воспроизводимо внутри `izi/`, не трогая окружение SEVER |
+
+Отклонения от плана PHASE 1: заметки пока без `kind` (idea/diary добавятся в
+PHASE 12 миграцией); `003_actions.sql` выделен отдельно от `001`/`002`;
+`chat_sessions`, `notification_outbox`, `entitlements` не созданы (их фазы).
+
+Известные ограничения PHASE 2:
+- PGlite — одно соединение: «параллельные» тесты фактически последовательны;
+  конкурентное поведение держится на `FOR UPDATE`/`SKIP LOCKED` и unique-индексах
+  и должно быть перепроверено на настоящем Postgres (PHASE 3).
+- Миграции не выполнялись на Supabase; pg_cron-расписания не созданы.
+- FTS использует конфигурацию `russian`; для других языков потребуется
+  отдельная конфигурация/колонка.
+- Лексикон D5 покрывает типовые формы (цифры, числительные 1–12, «утра/дня/
+  вечера/ночи», дни недели, месяцы, «через N дней», неделя/месяц); редкие
+  формы («в пол пятого», «через неделю») не распознаются и станут уточнением.
 
 ---
 
@@ -1066,22 +1139,28 @@ digest-блок. Memory опирается на `activity_log`, FTS и `source/c
 
 ---
 
-## Неопределённости и решения, нужные от владельца
+## Решения владельца и оставшиеся неопределённости
 
-1. **D1 — размещение базы**: отдельный Supabase-проект IZI (рекомендация) или
-   схема `izi` в текущем проекте SEVER.
-2. **D2 — применялись ли вручную миграции TAVRO 018/019** в каком-либо проекте
-   Supabase. Из репозитория это не видно. Если да — нужен план их аккуратного удаления.
-3. **D3 — тестовый бот и staging**: нужен отдельный бот в @BotFather для staging.
-4. **D4 — хранение сырого текста captures**: 30 дней (рекомендация) или иначе.
-5. **D5 — поведение по умолчанию для «вечером», «в 4»**: только подсказка (рекомендация) либо продуктовое правило, превращающее это во время.
-6. **D6 — язык**: только русский в MVP (рекомендация) или сразу RU/EN.
+1. **D1 — RESOLVED.** Отдельный Supabase-проект IZI, сначала staging. База SEVER
+   не используется как база IZI. В PHASE 2 реальный проект не создавался:
+   работа локально на PGlite.
+2. **D2 — RESOLVED.** Текущий подключённый Supabase SEVER проверен владельцем:
+   таблиц `tavro_*` нет, миграции 018/019 не применены, очистка не требуется.
+3. **D3 — RESOLVED.** Для staging будет отдельный Telegram-бот (создаётся не в PHASE 2).
+4. **D4 — RESOLVED.** Сырой текст захвата хранится максимум 30 дней и удаляется
+   автоматически; структурированные записи, метаданные и журнал без исходного
+   текста сохраняются. Реализовано в схеме (см. «PHASE 2 — фактические решения»).
+5. **D5 — RESOLVED.** «утром/днём/вечером/ночью» → `part_of_day`, время `null`;
+   «в 4» → требует уточнения; «в 4 утра» → 04:00; «в 4 дня/вечера» → 16:00;
+   «в 16», «в 16:00» → 16:00. Реализовано и покрыто тестами.
+6. **D6 — RESOLVED.** MVP только на русском; русские строки изолированы в
+   `izi/src/locales/ru/`, core и модули — без них (статический тест).
 7. **Не проверено** (будет проверено в указанных фазах): реальное поведение
    initData с полем `signature` (PHASE 3), лимиты и фоновые задачи Edge
-   Runtime (PHASE 3), актуальные модели/параметры Structured Outputs и цены
-   OpenAI (PHASE 6), формат OGG/Opus для STT (PHASE 10), лимиты массовой
-   отправки Telegram (PHASE 9), правила Stars для цифровых товаров и курс
-   (PHASE 13), PITR/бэкапы на тарифе Supabase (PHASE 9), условия хранения
-   данных у AI-провайдера (PHASE 6).
+   Runtime и способ подключения к БД (PHASE 3), актуальные модели/параметры
+   Structured Outputs и цены OpenAI (PHASE 6), формат OGG/Opus для STT (PHASE 7),
+   лимиты массовой отправки Telegram (PHASE 10), PITR/бэкапы на тарифе Supabase
+   (PHASE 10), правила Stars для цифровых товаров и курс (PHASE 13), условия
+   хранения данных у AI-провайдера (PHASE 6).
 8. **SGX Planner** напрямую не исследовался; продуктовые сравнения основаны
    только на перечне из ТЗ.
