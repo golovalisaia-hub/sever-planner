@@ -59,3 +59,13 @@ test('evidence shape is strict', () => {
   assert.throws(() => parseEvidence({ text: 'в 4', confidence: 0.99 }), { code: 'UNKNOWN_FIELD' });
   assert.deepEqual(parseEvidence({ text: 'в 4' }), { text: 'в 4', start: null, end: null });
 });
+
+test('Phase 2.1: "в 9:30" supports 09:30 only; 21:30 needs "вечера" in the user\'s words', () => {
+  const claim = time => ({ value: { kind: 'exact', time }, evidence: { text: 'в 9:30', start: null, end: null } });
+  assert.equal(verifyTimeClaim('созвон в 9:30', claim('09:30'), ruTemporal).ok, true);
+  assert.deepEqual(verifyTimeClaim('созвон в 9:30', claim('21:30'), ruTemporal), { ok: false, reason: 'VALUE_MISMATCH' });
+  const evening = { value: { kind: 'exact', time: '21:30' }, evidence: { text: 'в 9:30 вечера', start: null, end: null } };
+  assert.equal(verifyTimeClaim('созвон в 9:30 вечера', evening, ruTemporal).ok, true);
+  const bare = { value: { kind: 'exact', time: '09:00' }, evidence: { text: 'в 9', start: null, end: null } };
+  assert.deepEqual(verifyTimeClaim('созвон в 9', bare, ruTemporal), { ok: false, reason: 'VALUE_AMBIGUOUS' });
+});

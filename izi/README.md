@@ -2,7 +2,7 @@
 
 Telegram-first personal planner. Architecture and roadmap: [`../IZI_PLAN.md`](../IZI_PLAN.md).
 
-**Status: PHASE 2 (Foundation) — IMPLEMENTED + TESTED LOCALLY.**
+**Status: PHASE 2 + 2.1 (Foundation, hardening) — IMPLEMENTED + TESTED LOCALLY.**
 Nothing here is deployed; migrations have not been applied to any real
 Supabase project; there is no Telegram bot, no AI provider, no UI yet.
 
@@ -32,6 +32,24 @@ Everything is local: the database tests use PGlite, no network services.
 | `src/modules/` | record modules (tasks, events, notes, inbox) — writable fields mirror SQL |
 | `src/locales/ru/` | Russian time/date lexicon and error texts (the only place with Russian strings) |
 | `tests/` | `core/` pure logic, `db/` PGlite, `security/` access and static guards, `fakes/` harness |
+
+## Database access: not decided yet (PHASE 3A gate)
+
+`src/core/db.ts` is a minimal contract; there is **no production adapter** yet.
+Before any Telegram code, PHASE 3A applies these migrations to a separate
+staging Supabase project, checks PostgreSQL 17, privileges, RLS, real
+transactions and concurrency (concurrent account creation, double confirm,
+duplicate `update_id`, per-chat ordering), and then chooses by measurement:
+
+- **Option A** — Supabase Data API / supabase-js with `service_role`; `izi` added
+  to Exposed Schemas, while `anon`, `authenticated` and `PUBLIC` keep no usage
+  and no grants; writes through RPC only.
+- **Option B** — direct PostgreSQL connection through the Supabase pooler; the
+  schema stays unexposed; pooling, connection limits, secrets, transactions and
+  latency must be measured.
+
+The PGlite tests here run on a single connection: their "concurrent" cases are
+serialised and are not proof of concurrency safety.
 
 ## Rules the tests enforce
 

@@ -4,6 +4,8 @@ import {
   resolveDateToken, resolveAbsolute, taskTemporalFields, eventTemporalFields, isDateToken, deadlineBoundary, exactTime,
 } from '../../src/core/datetime/semantics.ts';
 import { todayIn, zonedToUtc, weekStart, addDays } from '../../src/core/datetime/calendar.ts';
+import { resolveDateRef } from '../../src/core/datetime/semantics.ts';
+import { ruTemporal } from '../../src/locales/ru/temporal.ts';
 
 // 2026-09-25 is a Friday.
 const TODAY = '2026-09-25';
@@ -24,10 +26,30 @@ test('relative day tokens resolve against the user\'s today', () => {
   assert.deepEqual(resolveDateToken('next_friday', TODAY), { kind: 'day', date: '2026-10-02' });
 });
 
-test('"this friday" said on a Friday is ambiguous, not silently today', () => {
-  const spec = resolveDateToken('this_friday', TODAY);
-  assert.equal(spec.kind, 'ambiguous');
-  assert.deepEqual(spec.candidates, ['2026-09-25', '2026-10-02']);
+test('Phase 2.1: a plain weekday is the nearest occurrence, today included', () => {
+  // TODAY is Friday 2026-09-25.
+  assert.deepEqual(resolveDateToken('this_friday', TODAY), { kind: 'day', date: '2026-09-25' });
+  assert.deepEqual(resolveDateToken('next_friday', TODAY), { kind: 'day', date: '2026-10-02' });
+  assert.deepEqual(resolveDateToken('this_thursday', TODAY), { kind: 'day', date: '2026-10-01' });
+});
+
+test('Phase 2.1: on a Friday, "в пятницу" = today, "до пятницы" = deadline today, "в следующую пятницу" = +7 days', () => {
+  const read = phrase => {
+    const [found] = ruTemporal.recognizeDates(phrase);
+    return { role: found.role, spec: resolveDateRef(found.ref, TODAY) };
+  };
+  assert.deepEqual(read('в пятницу'), { role: 'plan', spec: { kind: 'day', date: TODAY } });
+  assert.deepEqual(read('до пятницы'), { role: 'deadline', spec: { kind: 'day', date: TODAY } });
+  assert.deepEqual(read('к пятнице'), { role: 'deadline', spec: { kind: 'day', date: TODAY } });
+  assert.deepEqual(read('в следующую пятницу'), { role: 'plan', spec: { kind: 'day', date: '2026-10-02' } });
+  const week = read('на следующей неделе');
+  assert.equal(week.spec.kind, 'week');
+  assert.deepEqual(week.spec, { kind: 'week', start: '2026-09-28', end: '2026-10-04' });
+  // A past time today is not moved here: the resolver still says "today";
+  // the capture layer (Phase 5) asks whether next Friday was meant.
+  const fields = taskTemporalFields({ plan: read('в пятницу').spec, time: exactTime(15) });
+  assert.equal(fields.fields.plan_date, TODAY);
+  assert.equal(fields.fields.plan_time, '15:00');
 });
 
 test('unknown tokens are rejected', () => {

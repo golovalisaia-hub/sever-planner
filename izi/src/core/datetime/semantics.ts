@@ -68,7 +68,6 @@ export const weekOf = (date: string): DateSpec => {
   return { kind: 'week', start, end: addDays(start, 6) };
 };
 export const monthOf = (date: string): DateSpec => ({ kind: 'month', start: monthStart(date), end: monthEnd(date) });
-const ambiguousDates = (candidates: string[]): DateSpec => ({ kind: 'ambiguous', candidates, needsClarification: true });
 
 /** Resolves a relative token against the user's own "today" (already in their timezone). */
 export function resolveDateToken(token: string, today: string): DateSpec {
@@ -94,10 +93,10 @@ export function resolveDateToken(token: string, today: string): DateSpec {
     // Same weekday of the following ISO week.
     return exactDay(addDays(weekStart(today), 7 + target - 1));
   }
-  const delta = (target - current + 7) % 7;
-  // "On Friday" said on a Friday: today or in a week? Not ours to guess.
-  if (delta === 0) return ambiguousDates([today, addDays(today, 7)]);
-  return exactDay(addDays(today, delta));
+  // A plain weekday is the nearest occurrence, today included ("в пятницу"
+  // said on a Friday = today). Whether a resulting date-time already passed is
+  // the capture layer's clarification, not a silent move to next week.
+  return exactDay(addDays(today, (target - current + 7) % 7));
 }
 
 function realDate(year: number, month: number, dayOfMonth: number): string | null {

@@ -831,7 +831,7 @@ izi/
 | Шаг | Что | Как |
 |---|---|---|
 | 1 | `_shared/validation.ts`, `_shared/datetime.ts` | Копия в `izi/.../_core` с сохранением тестов TAVRO, затем изменения (точность дат, дедлайн, part_of_day) — каждое с тестом |
-| 2 | `telegram.ts` | Копия + 429/403 + sender; контрактный тест на реальном образце initData (PHASE 3) |
+| 2 | `telegram.ts` | Копия + 429/403 + sender; контрактный тест на реальном образце initData (PHASE 3B) |
 | 3 | `ai/schema.ts`, `ai/prompt.ts` | Переписать на модульную схему + evidence, сохранив негативные тесты TAVRO |
 | 4 | `ai/provider.ts`, `ai/speech.ts` | Интерфейсы + fake; OpenAI-адаптер — PHASE 6 |
 | 5 | `capture.ts`, `search.ts` | Логика переносится в worker/сервисы; хранение — новые RPC |
@@ -881,8 +881,9 @@ Mutation Engine; **Reminders + Digest + Quick Capture раньше Mini App**.
 
 | Фаза | Содержание | Статус |
 |---|---|---|
-| 2 | Foundation | IMPLEMENTED + TESTED LOCALLY |
-| 3 | Telegram identity + bot shell | — |
+| 2 / 2.1 | Foundation + hardening (правила времени/дней недели) | IMPLEMENTED + TESTED LOCALLY |
+| 3A | Real database contract check (staging DB, выбор adapter по измерениям) | — |
+| 3B | Telegram identity + bot shell | — |
 | 4 | Core records without AI | — |
 | 5 | Capture Engine + Fake AI | — |
 | 6 | Real OpenAI integration | — |
@@ -905,28 +906,65 @@ Mutation Engine; **Reminders + Digest + Quick Capture раньше Mini App**.
   `002_records.sql` (tasks, events, notes, inbox_items + FTS),
   `003_actions.sql` (pending_actions, activity_log, apply/undo/discard, housekeeping).
 - **API**: нет (только repository layer).
-- **Тесты**: 139 (core 52, db 71, security 16) — `cd izi && npm ci && npm test`.
+- **Тесты**: 142 после PHASE 2.1 (core 55, db 71, security 16) — `cd izi && npm ci && npm test`.
 - **Acceptance**: `npm test` зелёный (typecheck + все тесты); миграции идемпотентны;
   файлы SEVER/TAVRO не изменены; корневой набор SEVER без изменений.
 - **Риски**: PGlite (PostgreSQL 17.5, один connection) ≠ Supabase: конкурентность
   проверена только последовательно; SQL не выполнялся на реальном Supabase.
 - **Проверка**: TESTED LOCALLY. Детали — «PHASE 2 — фактические решения» ниже.
 
-### PHASE 3 — Telegram identity + bot shell
+### PHASE 3A — REAL DATABASE CONTRACT CHECK (обязательный gate перед ботом)
+- **Цель**: доказать на настоящем Postgres, что фундамент ведёт себя так же,
+  как в PGlite, и **по измерениям** выбрать production DB adapter. Бот и webhook
+  не начинаются, пока 3A не закрыта.
+- **Где**: отдельный staging Supabase-проект IZI (создаётся только после
+  отдельного согласования владельца).
+- **Шаги**:
+  1. применить `izi/supabase/migrations/001–003` на staging;
+  2. проверить версию PostgreSQL (ожидается 17);
+  3. проверить privileges: `anon`/`authenticated`/`PUBLIC` — нет USAGE на `izi`,
+     нет table/function grants; только серверная роль;
+  4. проверить RLS (deny-all без политик; серверная роль — владелец или BYPASSRLS);
+  5. проверить реальную транзакционность `izi.apply_pending_action` / undo (rollback);
+  6. прогнать integration-тесты конкурентности (ниже);
+  7. выбрать adapter по результатам и записать измерения в этот документ.
+- **Варианты adapter (исследовать оба, не выбирать теоретически)**:
+  - **OPTION A — Supabase Data API / supabase-js + `service_role`.** Для custom
+    schema нужно добавить `izi` в Exposed Schemas. Обязательные условия: у
+    `anon`, `authenticated`, `PUBLIC` нет USAGE на схему и нет table/function
+    grants; доступ только у `service_role`. Все записи — через RPC
+    (`izi.apply_pending_action` и др.), т.к. PostgREST не даёт многозапросных
+    транзакций; `src/core/repo` потребует адаптации (сейчас это параметризованный SQL).
+  - **OPTION B — прямое PostgreSQL-соединение через Supabase pooler.** Схема может
+    оставаться не exposed. Проверить: поведение в serverless (Edge Functions),
+    режим пулинга (transaction/session) и prepared statements, хранение
+    секрета подключения, лимиты соединений, поддержку транзакций, задержку.
+- **Обязательные integration-тесты конкурентности на настоящем Postgres**
+  (текущие PGlite-тесты с `Promise.all` остаются, но доказательством не считаются):
+  - A. 10–20 одновременных `resolve_or_create_account` с одним Telegram ID →
+    1 account, 1 identity;
+  - B. несколько одновременных confirm одного `pending_action` → операции
+    применены один раз;
+  - C. несколько одновременных вставок одного Telegram `update_id` → одна
+    `inbound_update`;
+  - D. несколько разных update одного `chat_key` при нескольких воркерах →
+    порядок обработки сохраняется.
+- **Результат измерений**: _пока не выполнено_ (заполняется в PHASE 3A:
+  версия PG, результаты A–D, латентность вариантов A/B, выбранный adapter и причина).
+- **Проверка**: TESTED AGAINST REAL SERVICE (staging DB). Не DEPLOYED-бот.
+
+### PHASE 3B — Telegram identity + bot shell
+- **Предусловие**: PHASE 3A закрыта, adapter выбран по измерениям.
 - **Цель**: webhook → inbound_updates → worker; `/start`, онбординг TZ, `/help`,
   `/settings`; создание аккаунта; sender с 429/403.
-- **Файлы**: `izi-telegram-webhook/`, `izi-worker/`, `_core/telegram/*`.
+- **Файлы**: `izi-telegram-webhook/`, `izi-worker/`, `_core/telegram/*`, production DB adapter.
 - **Таблицы**: используются из PHASE 2.
 - **API**: webhook endpoint.
 - **Тесты**: повтор update_id; сбой после приёма → повтор, а не потеря (T1);
   заблокированный бот; конкурентные update одного чата; initData контракт.
 - **Acceptance**: в staging-боте `/start` создаёт ровно один аккаунт; повторная
   доставка не дублирует; выключение БД на время → сообщение обработано после восстановления.
-- **Риски**: лимиты Edge Runtime и механизм фоновой обработки (проверить);
-  способ подключения сервера к БД (прямое Postgres-соединение через pooler
-  рекомендовано, т.к. repository layer — параметризованный SQL; проверить
-  поведение пулера и prepared statements); роль подключения должна быть
-  владельцем таблиц или `service_role` (BYPASSRLS), иначе RLS вернёт пустые выборки.
+- **Риски**: лимиты Edge Runtime и механизм фоновой обработки (проверить).
 - **Проверка**: DEPLOYED (staging) + VERIFIED IN TELEGRAM.
 
 ### PHASE 4 — Core records без AI
@@ -1038,8 +1076,8 @@ DEPLOYED, не VERIFIED IN TELEGRAM, не PRODUCTION READY.
 | Task: `plan_date` + `plan_precision` (day/week/month) ≠ `due_date`/`due_time`; `part_of_day` взаимоисключается с `plan_time`; точное время требует известного часового пояса | «На следующей неделе» хранится как неделя; «до пятницы» — срок; «вечером» — не время; часовой пояс не угадывается (`TIMEZONE_REQUIRED`), поэтому у `account_settings.timezone` нет значения по умолчанию |
 | Event: дата, время, длительность — `null`, пока не названы; нет автопревращения в задачу | Исправляет T4 |
 | Лексикон D5 в `src/locales/ru/temporal.ts`; core без кириллицы (статический тест) | D6: русский MVP, локализация добавляется новым каталогом |
-| Правила времени: «в 4» → ambiguous (04:00/16:00); «в 4 утра/дня/вечера» → 04:00/16:00/16:00; час 13–23 или «0X» → точно; «9:30» (одна цифра часа) → ambiguous, «09:30»/«10:30» → точно; противоречия («в 16 утра») → ambiguous | Ничего не выбирается за пользователя |
-| Правила дат: «в пятницу», сказанное в пятницу → ambiguous; «в следующую пятницу» → пятница следующей ISO-недели; дата без года → ближайшая не прошедшая; «до конца недели» → срок = воскресенье | Продуктовые правила, закреплены тестами; пересматриваются по eval в PHASE 5/6 |
+| Правила времени (уточнены владельцем в PHASE 2.1): голый час 1–12 («в 9», «в 4») → ambiguous (09:00/21:00, 04:00/16:00); время с явными минутами через двоеточие — 24-часовая запись и точное («9:30» → 09:30, «в 04:30», «в 12:30», «в 16:30», «в 21:30»; то же для «в 16.00»); qualifier имеет приоритет («в 9:30 утра» → 09:30, «в 9:30 вечера» → 21:30, «в 4:15 дня» → 16:15, «в 4:15 утра» → 04:15); час 13–23 или «0X» → точно; противоречия («в 16 утра») → ambiguous | Ничего не выбирается без evidence |
+| Правила дат (уточнены владельцем в PHASE 2.1): обычный день недели — ближайшее совпадение, **включая сегодня** (пятница: «в пятницу» → сегодня, «до/к пятнице» → срок сегодня); «в следующую пятницу» → пятница следующей ISO-недели (сегодня + 7 в пятницу); «на следующей неделе» → неделя, не день; дата без года → ближайшая не прошедшая; «до конца недели» → срок = воскресенье | Если точное дата-время уже прошло («в пятницу в 15:00», сказанное в пятницу в 20:00), resolver всё равно возвращает сегодня; уточнение «15:00 сегодня уже прошло. Вы имели в виду следующую пятницу?» — задача Capture Engine (PHASE 5), автоматического переноса нет |
 | Evidence: `Extracted<T> = {value, evidence{text,start,end}}`; сервер проверяет подстроку и перечитывает значение лексиконом | Основа исправления T7; confidence не вводился (нет смысла без калибровки) |
 | Тестовая БД: PGlite 0.3.14 = PostgreSQL 17.5 (как Supabase); TypeScript 7.0.2 только для typecheck; Node ≥ 22.18; runtime-зависимостей нет | `npm ci && npm test` воспроизводимо внутри `izi/`, не трогая окружение SEVER |
 
@@ -1050,8 +1088,14 @@ PHASE 12 миграцией); `003_actions.sql` выделен отдельно 
 Известные ограничения PHASE 2:
 - PGlite — одно соединение: «параллельные» тесты фактически последовательны;
   конкурентное поведение держится на `FOR UPDATE`/`SKIP LOCKED` и unique-индексах
-  и должно быть перепроверено на настоящем Postgres (PHASE 3).
+  и должно быть перепроверено на настоящем Postgres (PHASE 3A, integration-тесты A–D).
 - Миграции не выполнялись на Supabase; pg_cron-расписания не созданы.
+- Редакция текстовых полей `activity_log` через 30 дней — privacy-защита, а
+  **не** источник Personal Memory. D4 гарантирует 30 дней только для
+  `captures.raw_text` и payload `inbound_updates`; журнал сырой текст захвата не
+  копирует. Долгосрочная Memory должна получить отдельную контролируемую
+  модель данных (явные факты, subjects, согласие пользователя), а не
+  рассчитывать на текст журнала.
 - FTS использует конфигурацию `russian`; для других языков потребуется
   отдельная конфигурация/колонка.
 - Лексикон D5 покрывает типовые формы (цифры, числительные 1–12, «утра/дня/
@@ -1156,8 +1200,8 @@ digest-блок. Memory опирается на `activity_log`, FTS и `source/c
 6. **D6 — RESOLVED.** MVP только на русском; русские строки изолированы в
    `izi/src/locales/ru/`, core и модули — без них (статический тест).
 7. **Не проверено** (будет проверено в указанных фазах): реальное поведение
-   initData с полем `signature` (PHASE 3), лимиты и фоновые задачи Edge
-   Runtime и способ подключения к БД (PHASE 3), актуальные модели/параметры
+   initData с полем `signature` (PHASE 3B), лимиты и фоновые задачи Edge
+   Runtime и способ подключения к БД (PHASE 3A, по измерениям), актуальные модели/параметры
    Structured Outputs и цены OpenAI (PHASE 6), формат OGG/Opus для STT (PHASE 7),
    лимиты массовой отправки Telegram (PHASE 10), PITR/бэкапы на тарифе Supabase
    (PHASE 10), правила Stars для цифровых товаров и курс (PHASE 13), условия

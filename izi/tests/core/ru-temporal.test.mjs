@@ -63,10 +63,27 @@ test('"в 16", "в 16:00", "в 16 часов" = 16:00', () => {
   exact('в полдень', '12:00');
 });
 
-test('a single-digit clock is ambiguous, a two-digit 24h clock is not', () => {
-  ambiguous('в 9:30', ['09:30', '21:30']);
+test('Phase 2.1: a bare hour is ambiguous, explicit minutes are 24-hour notation', () => {
+  ambiguous('в 9', ['09:00', '21:00']);
+  ambiguous('в 4', ['04:00', '16:00']);
+  exact('в 9:30', '09:30');
+  exact('9:30', '09:30');
+  exact('в 04:30', '04:30');
+  exact('в 12:30', '12:30');
+  exact('в 16:30', '16:30');
+  exact('в 21:30', '21:30');
+  exact('в 4:15', '04:15');
   exact('в 09:30', '09:30');
   exact('в 10:00', '10:00');
+  exact('в 16', '16:00');
+  exact('в 16:00', '16:00');
+});
+
+test('Phase 2.1: an explicit qualifier wins over the 24-hour reading', () => {
+  exact('в 9:30 утра', '09:30');
+  exact('в 9:30 вечера', '21:30');
+  exact('в 4:15 дня', '16:15');
+  exact('в 4:15 утра', '04:15');
 });
 
 test('contradictions are not guessed', () => {

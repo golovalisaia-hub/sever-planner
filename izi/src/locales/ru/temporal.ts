@@ -7,7 +7,9 @@
 //   - "в 4" is ambiguous (04:00 or 16:00) and needs clarification;
 //   - "в 4 утра" = 04:00, "в 4 дня" = 16:00, "в 4 вечера" = 16:00;
 //   - "в 16", "в 16:00", "в 16 часов" = 16:00 (an hour of 13..23 is unambiguous);
-//   - a clock with a single-digit hour ("в 9:30") is ambiguous; "09:30" is not;
+//   - "в 9" / "в 4" (bare hour 1..12) is ambiguous; a clock with explicit
+//     minutes ("9:30", "в 04:30", "в 21:30") is 24-hour notation and exact;
+//   - "утра/дня/вечера/ночи" always wins ("в 9:30 вечера" = 21:30);
 //   - "до/к пятнице" is a deadline, "в пятницу" is a planned date;
 //   - "на следующей неделе" is a week, not a day.
 
@@ -101,14 +103,15 @@ function qualify(hour: number, minute: number, qualifier: Qualifier): TimeSpec {
   }
 }
 
-/** A bare hour or a clock without "утра/вечера": 24-hour when unambiguous, otherwise not guessed. */
+/**
+ * A bare hour or a clock without "утра/вечера". Explicit minutes ("9:30") are
+ * 24-hour notation and exact; a bare hour 1..12 ("в 9") is not guessed.
+ */
 function unqualified(hourText: string, minute: number, hasClock: boolean): TimeSpec | null {
   const parsed = hourValue(hourText);
   if (!parsed) return null;
   const { hour, leadingZero } = parsed;
-  if (hour >= 13 || hour === 0 || leadingZero) return exactTime(hour, minute);
-  // Two-digit clock notation "10:30"/"12:00" is read as a 24-hour clock.
-  if (hasClock && hourText.length === 2) return exactTime(hour, minute);
+  if (hasClock || hour >= 13 || hour === 0 || leadingZero) return exactTime(hour, minute);
   return ambiguousTime(twelveHourCandidates(hour, minute));
 }
 
