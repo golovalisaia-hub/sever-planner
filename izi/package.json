@@ -1,0 +1,17 @@
+{
+  "name": "izi-planner",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "test": "npm run typecheck && npm run test:unit",
+    "test:unit": "node --test --test-concurrency=1 \"tests/**/*.test.mjs\"",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
+    "typescript": "7.0.2"
+  }
+}
