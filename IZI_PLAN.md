@@ -905,7 +905,7 @@ Mutation Engine; **Reminders + Digest + Quick Capture раньше Mini App**.
   `002_records.sql` (tasks, events, notes, inbox_items + FTS),
   `003_actions.sql` (pending_actions, activity_log, apply/undo/discard, housekeeping).
 - **API**: нет (только repository layer).
-- **Тесты**: 139 (core 52, db 66, security 21) — `cd izi && npm ci && npm test`.
+- **Тесты**: 139 (core 52, db 71, security 16) — `cd izi && npm ci && npm test`.
 - **Acceptance**: `npm test` зелёный (typecheck + все тесты); миграции идемпотентны;
   файлы SEVER/TAVRO не изменены; корневой набор SEVER без изменений.
 - **Риски**: PGlite (PostgreSQL 17.5, один connection) ≠ Supabase: конкурентность
